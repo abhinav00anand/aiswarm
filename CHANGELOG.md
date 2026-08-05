@@ -1,28 +1,32 @@
-# AISwarm Changelog
+# AISwarm-Next Release Changelog
 
-All notable changes to the AISwarm project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+All notable changes to **AISwarm-Next** are documented here.
+This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
 ## [1.0.0] - 2026-08-05
 
-### 🚀 Added
-- **Host-1 Global Router**: Intelligent task surface sensitivity evaluation, blast radius assessment, and multi-lane routing (`FAST`, `PRODUCTION`, `HYBRID`).
-- **Host-2 Capability Manager**: High-speed fast-path task execution engine with automatic `EscalationPacket` fallback.
+### 🚀 Major Platform Architecture
+- **Host-1 Global Router**: Multi-lane routing system supporting `FAST` (~0.1s latency), `PRODUCTION` (12-stage Boss pipeline), and `HYBRID` execution paths based on task sensitivity and blast radius.
+- **Host-2 Capability Manager**: High-performance fast-path capability engine with automatic `EscalationPacket` fallback to Boss Agent.
 - **Enterprise Security Subsystem**:
-  - `APIKeyValidator`: Fail-fast startup authentication enforcement.
-  - `ExecutionSandbox`: Subprocess isolation with command allowlisting and path restriction.
-  - `SecretRedactor`: Multi-pattern regex secret scrubbing (OpenAI, Anthropic, GitHub, PyPI, Google, AWS).
-  - `EngineeringGovernor`: Live cost guard, budget caps, and capability spawn gating.
-  - `AuditLedger`: Thread-safe, append-only JSONL audit event logging (`~/.aiswarm/audit.jsonl`).
-- **PyPI Package (`aiswarm-next`)**: PEP 517 compliant setuptools packaging with `aiswarm` CLI entry points.
+  - `APIKeyValidator`: Fail-fast startup authentication enforcement across CLI, API server, and core modules.
+  - `ExecutionSandbox`: Subprocess isolation with path traversal protection and command allowlisting (`python`, `pytest`, `git`, `pip`).
+  - `SecretRedactor`: Multi-pattern secret scrubber for OpenAI, Anthropic, GitHub, PyPI, Google, and AWS keys.
+  - `EngineeringGovernor`: USD token spend tracking, cost limits, and capability spawn gates.
+  - `AuditLedger`: Thread-safe, append-only event logging (`~/.aiswarm/audit.jsonl`).
+- **5-Gate Merge Controller**: Strict 5-stage validation (Compilation, Unit Test, Performance, Security, Path Resolution) before code merges.
 
-### ⚡ Verified Benchmarks
-- 210 Unit Tests (100% Passed)
-- 131 Stress & Fuzzing Tests (100% Passed)
-- 6,700 EventBus events / sec
-- 23,800 TaskScheduler tasks / sec
-- 12,300 AuditLedger events / sec
+### 📦 PyPI Package & GitHub Sync
+- Published package `aiswarm-next` on PyPI ([https://pypi.org/project/aiswarm-next/1.0.0/](https://pypi.org/project/aiswarm-next/1.0.0/)).
+- Created official GitHub repository ([https://github.com/abhinav00anand/aiswarm-next](https://github.com/abhinav00anand/aiswarm-next)).
+- Added PEP 561 `py.typed` marker for strict type checking support.
+- CLI console script entry point `aiswarm` and API server `aiswarm-api`.
+
+### 📊 Benchmark Metrics
+- **210 / 210 Unit Tests Passed** (100% pass rate in 23.01s).
+- **131 / 131 Stress & Fuzzing Tests Passed** (100% pass rate in 100.86s).
+- **6,700 events / sec** EventBus throughput.
+- **23,800 tasks / sec** TaskScheduler priority queue throughput.
+- **12,300 events / sec** AuditLedger disk persistence throughput.
