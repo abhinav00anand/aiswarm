@@ -1,0 +1,68 @@
+sandbox:
+  enabled: true
+  timeout: 30         # seconds per execution
+  memory_limit_mb: 512
+  cpu_limit: 1.0
+
+code_analysis:
+  scan_imports: true
+  scan_eval: true
+  scan_exec: true
+  scan_subprocess: true
+  scan_network: true
+  scan_file_write: true
+
+forbidden_patterns:
+  - pattern: "os\\.system\\s*\\("
+    reason: "Direct system shell execution forbidden"
+  - pattern: "subprocess\\.Popen"
+    reason: "Uncontrolled subprocess creation"
+  - pattern: "eval\\s*\\("
+    reason: "Dynamic code evaluation"
+  - pattern: "__import__\\s*\\("
+    reason: "Dynamic import injection"
+  - pattern: "open\\s*\\(.*['\"]w['\"]"
+    reason: "Uncontrolled file write"
+  - pattern: "socket\\.socket"
+    reason: "Raw socket creation"
+  - pattern: "ctypes"
+    reason: "C extension abuse vector"
+  - pattern: "pickle\\.loads"
+    reason: "Unsafe deserialization"
+
+allowed_imports:
+  - re
+  - math
+  - json
+  - typing
+  - dataclasses
+  - pathlib
+  - datetime
+  - collections
+  - itertools
+  - functools
+  - abc
+  - enum
+  - uuid
+  - hashlib
+  - base64
+  - struct
+  - copy
+  - time
+  - random
+  - asyncio
+  - numpy
+  - pandas
+  - torch
+
+rate_limits:
+  llm_calls_per_minute: 60
+  llm_calls_per_hour: 500
+  max_prompt_tokens: 100000
+  max_output_tokens: 16384
+
+api_security:
+  require_api_key: true
+  rate_limit_per_ip: 100
+  cors_origins: ["http://localhost:3000", "http://localhost:8080"]
+  trusted_hosts: ["localhost", "127.0.0.1"]

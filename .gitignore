@@ -1,0 +1,115 @@
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.Python
+
+# ── Virtual environments ──────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+.env.local
+
+# ── Test / coverage ───────────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+coverage.xml
+.hypothesis/
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Secrets / environment ─────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+*.crt
+secrets/
+
+# ── Storage / generated data ──────────────────────────────────────────────────
+storage/
+/data/
+*.db
+*.sqlite
+
+# ── Vector DB ─────────────────────────────────────────────────────────────────
+chroma_db/
+*.index
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Replit ────────────────────────────────────────────────────────────────────
+.replit.local
+.config/
+
+# ── Misc ──────────────────────────────────────────────────────────────────────
+*.tmp
+*.bak
+.mypy_cache/
+.ruff_cache/
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# Secrets / environment
+.env
+*.pem
+*.key
+
+# Storage (large runtime data — gitignore but keep .gitkeep)
+storage/logs/*.log
+storage/vector_db/
+storage/cache/
+storage/checkpoints/
+storage/artifacts/
+
+# Task history blobs
+task_history/compiler/
+task_history/tests/
+task_history/benchmarks/
+task_history/merged/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.tar
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb

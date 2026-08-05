@@ -1,0 +1,139 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aiswarm-next"
+
+version = "1.0.0"
+description = "Production-grade AI agent orchestration system — Boss, Manager, Coder, Critics, and Worker pipeline"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.11"
+authors = [{ name = "AISwarm Contributors" }]
+keywords = ["ai", "agents", "orchestration", "llm", "swarm", "code-generation", "multi-agent"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Code Generators",
+    "Typing :: Typed",
+]
+
+dependencies = [
+
+    # Async / concurrency
+    "anyio>=4.4",
+    "asyncio-throttle>=1.0.2",
+    # LLM providers
+    "openai>=1.35",
+    "anthropic>=0.30",
+    "google-generativeai>=0.7",
+    "boto3>=1.34",
+    # HTTP
+    "httpx>=0.27",
+    "aiohttp>=3.9",
+    # Data validation
+    "pydantic>=2.7",
+    "pydantic-settings>=2.3",
+    # Structured logging
+    "structlog>=24.2",
+    "rich>=13.7",
+    # Redis
+    "redis[hiredis]>=5.0",
+    # Vector DB / RAG
+    "chromadb>=0.5",
+    "sentence-transformers>=3.0",
+    "tiktoken>=0.7",
+    # AST / code parsing
+    "tree-sitter>=0.22",
+    "pygments>=2.18",
+    # Git
+    "gitpython>=3.1",
+    # Config
+    "pyyaml>=6.0",
+    "python-dotenv>=1.0",
+    "omegaconf>=2.3",
+    # API server
+    "fastapi>=0.111",
+    "uvicorn[standard]>=0.30",
+    "python-multipart>=0.0.9",
+    # CLI
+    "click>=8.1",
+    "typer>=0.12",
+    # Telemetry / observability
+    "opentelemetry-api>=1.25",
+    "opentelemetry-sdk>=1.25",
+    "opentelemetry-exporter-otlp>=1.25",
+    "prometheus-client>=0.20",
+    # Telegram bot
+    "python-telegram-bot>=21.3",
+    # Cryptography / security
+    "cryptography>=42.0",
+    # Utilities
+    "tenacity>=8.3",
+    "cachetools>=5.3",
+    "humanize>=4.9",
+    "python-dateutil>=2.9",
+    "ujson>=5.10",
+    "xxhash>=3.4",
+    "aiofiles>=23.2",
+    "psutil>=5.9",
+    # Test
+    "pytest>=8.2",
+    "pytest-asyncio>=0.23",
+    "pytest-cov>=5.0",
+    "pytest-mock>=3.14",
+    "hypothesis>=6.103",
+]
+
+[project.urls]
+Homepage = "https://github.com/abhinav00anand/aiswarm"
+Documentation = "https://github.com/abhinav00anand/aiswarm#readme"
+Repository = "https://github.com/abhinav00anand/aiswarm.git"
+Issues = "https://github.com/abhinav00anand/aiswarm/issues"
+
+[project.scripts]
+
+aiswarm = "apps.cli.main:app"
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.5",
+    "mypy>=1.10",
+    "black>=24.4",
+    "pre-commit>=3.7",
+    "ipython>=8.25",
+]
+gpu = [
+    "torch>=2.3",
+    "numpy>=1.26",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["aiswarm*", "apps*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E", "F", "W", "I", "N", "UP", "S", "B", "A", "C4", "PTH", "RUF"]
+ignore = ["S101", "B008", "RUF012"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "-v --tb=short"
+
+[tool.coverage.run]
+source = ["aiswarm"]
+omit = ["*/tests/*", "*/migrations/*"]

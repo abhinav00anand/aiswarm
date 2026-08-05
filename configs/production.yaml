@@ -1,0 +1,165 @@
+aiswarm:
+  version: "1.0.0"
+  environment: production
+
+orchestrator:
+  max_concurrent_tasks: 50
+  task_timeout: 3600
+  checkpoint_interval: 30
+  deadlock_timeout: 300
+  state_sync_interval: 15
+
+agents:
+  boss:
+    model: meta-llama/llama-3.1-70b-instruct
+    provider: novita
+    temperature: 0.1
+    max_tokens: 4096
+    max_retries: 3
+    escalation_threshold: 3
+
+  manager:
+    model: meta-llama/llama-3.1-70b-instruct
+    provider: novita
+    temperature: 0.2
+    max_tokens: 4096
+    max_task_decomposition: 20
+
+  planner:
+    model: meta-llama/llama-3.1-405b-instruct
+    provider: novita
+    temperature: 0.1
+    max_tokens: 2048
+
+  context_selector:
+    max_files: 15
+    max_tokens: 8000
+    similarity_threshold: 0.75
+    strategy: semantic_plus_structural
+
+  coder:
+    model: meta-llama/llama-3.1-405b-instruct
+    provider: novita
+    temperature: 0.15
+    max_tokens: 8192
+    max_retries: 5
+
+  precheck:
+    model: meta-llama/llama-3.1-8b-instruct
+    provider: novita
+    temperature: 0.0
+    max_tokens: 1024
+
+  critics:
+    model: meta-llama/llama-3.1-70b-instruct
+    provider: novita
+    temperature: 0.1
+    max_tokens: 2048
+    # All 8 critics share this config:
+    # architecture, performance, security, testing, reliability, maintainability, documentation, style
+
+  benchmark:
+    model: meta-llama/llama-3.1-8b-instruct
+    provider: novita
+    temperature: 0.0
+    max_tokens: 1024
+
+  documentation:
+    model: meta-llama/llama-3.1-70b-instruct
+    provider: novita
+    temperature: 0.3
+    max_tokens: 4096
+
+  optimizer:
+    model: meta-llama/llama-3.1-405b-instruct
+    provider: novita
+    temperature: 0.1
+    max_tokens: 8192
+
+review:
+  approval_threshold: 2
+  veto_power: true
+  max_revision_cycles: 5
+
+worker:
+  mode: local
+  poll_interval: 5
+  timeout: 300
+  max_parallel_jobs: 8
+  artifact_hash_validation: true
+
+redis:
+  url: "${REDIS_URL}"
+  job_queue: aiswarm:jobs
+  result_queue: aiswarm:results
+  state_key_prefix: aiswarm:state
+  lock_timeout: 60
+  result_ttl: 3600
+
+storage:
+  root: /data/aiswarm
+  artifacts: /data/aiswarm/artifacts
+  prompts: /data/aiswarm/prompts
+  tasks: /data/aiswarm/tasks
+  logs: /data/aiswarm/logs
+  benchmarks: /data/aiswarm/benchmarks
+  vector_db: /data/aiswarm/vector_db
+  cache: /data/aiswarm/cache
+
+rag:
+  embedding_model: all-MiniLM-L6-v2
+  chunk_size: 512
+  chunk_overlap: 64
+  top_k: 10
+  rerank: true
+  cache_embeddings: true
+
+telemetry:
+  enabled: true
+  log_level: WARNING
+  log_format: json
+  metrics_port: 9090
+  tracing_enabled: true
+  notification_channel: telegram
+
+security:
+  enable_code_sandbox: true
+  max_file_size_kb: 1024
+  forbidden_imports:
+    - os.system
+    - subprocess.Popen
+    - eval
+    - exec
+    - __import__
+  allowed_languages:
+    - python
+    - cpp
+    - rust
+    - javascript
+    - typescript
+
+cost_guard:
+  max_daily_usd: 100.0
+  max_session_usd: 10.0
+  max_session_tokens: 10000000
+  alert_threshold_pct: 0.80
+
+rate_limits:
+  novita:
+    rpm: 60
+    concurrency: 5
+  openai:
+    rpm: 60
+    concurrency: 5
+  anthropic:
+    rpm: 50
+    concurrency: 4
+  deepseek:
+    rpm: 30
+    concurrency: 3
+
+testing:
+  timeout: 120
+  coverage_threshold: 80
+  numeric_tolerance: 1.0e-6
+  performance_tolerance: 0.10

@@ -1,0 +1,1 @@
+"""AISwarm CLI application."""

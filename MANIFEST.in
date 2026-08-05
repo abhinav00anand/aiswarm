@@ -1,0 +1,6 @@
+include LICENSE
+include README.md
+include pyproject.toml
+include aiswarm/py.typed
+recursive-include aiswarm *.py
+recursive-include apps *.py

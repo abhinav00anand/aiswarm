@@ -1,0 +1,151 @@
+aiswarm:
+  version: "1.0.0"
+  environment: development
+
+orchestrator:
+  max_concurrent_tasks: 5
+  task_timeout: 1800
+  checkpoint_interval: 60
+  deadlock_timeout: 120
+  state_sync_interval: 30
+
+agents:
+  boss:
+    model: meta-llama/llama-3.1-70b-instruct
+    provider: novita
+    temperature: 0.1
+    max_tokens: 4096
+    max_retries: 2
+    escalation_threshold: 2
+
+  manager:
+    model: meta-llama/llama-3.1-70b-instruct
+    provider: novita
+    temperature: 0.2
+    max_tokens: 4096
+    max_task_decomposition: 10
+
+  planner:
+    model: meta-llama/llama-3.1-70b-instruct
+    provider: novita
+    temperature: 0.1
+    max_tokens: 2048
+
+  context_selector:
+    max_files: 10
+    max_tokens: 6000
+    similarity_threshold: 0.70
+    strategy: semantic_plus_structural
+
+  coder:
+    model: meta-llama/llama-3.1-70b-instruct
+    provider: novita
+    temperature: 0.2
+    max_tokens: 4096
+    max_retries: 3
+
+  precheck:
+    model: meta-llama/llama-3.1-8b-instruct
+    provider: novita
+    temperature: 0.0
+    max_tokens: 1024
+
+  critics:
+    model: meta-llama/llama-3.1-8b-instruct
+    provider: novita
+    temperature: 0.1
+    max_tokens: 2048
+
+  benchmark:
+    model: meta-llama/llama-3.1-8b-instruct
+    provider: novita
+    temperature: 0.0
+    max_tokens: 512
+
+  documentation:
+    model: meta-llama/llama-3.1-8b-instruct
+    provider: novita
+    temperature: 0.3
+    max_tokens: 2048
+
+  optimizer:
+    model: meta-llama/llama-3.1-70b-instruct
+    provider: novita
+    temperature: 0.1
+    max_tokens: 4096
+
+review:
+  approval_threshold: 1
+  veto_power: false
+  max_revision_cycles: 3
+
+worker:
+  mode: local
+  poll_interval: 5
+  timeout: 120
+  max_parallel_jobs: 2
+  artifact_hash_validation: false
+
+redis:
+  url: "redis://localhost:6379/0"
+  job_queue: aiswarm:dev:jobs
+  result_queue: aiswarm:dev:results
+  state_key_prefix: aiswarm:dev:state
+  lock_timeout: 30
+  result_ttl: 1800
+
+storage:
+  root: ./storage
+  artifacts: ./storage/artifacts
+  prompts: ./storage/prompts
+  tasks: ./storage/tasks
+  logs: ./storage/logs
+  benchmarks: ./storage/benchmarks
+  vector_db: ./storage/vector_db
+  cache: ./storage/cache
+
+rag:
+  embedding_model: all-MiniLM-L6-v2
+  chunk_size: 512
+  chunk_overlap: 64
+  top_k: 5
+  rerank: false
+  cache_embeddings: false
+
+telemetry:
+  enabled: true
+  log_level: DEBUG
+  log_format: console
+  metrics_port: 9090
+  tracing_enabled: false
+  notification_channel: none
+
+security:
+  enable_code_sandbox: false
+  max_file_size_kb: 2048
+  forbidden_imports:
+    - os.system
+  allowed_languages:
+    - python
+    - javascript
+    - typescript
+
+cost_guard:
+  max_daily_usd: 10.0
+  max_session_usd: 2.0
+  max_session_tokens: 1000000
+  alert_threshold_pct: 0.70
+
+rate_limits:
+  novita:
+    rpm: 30
+    concurrency: 2
+  openai:
+    rpm: 20
+    concurrency: 2
+
+testing:
+  timeout: 60
+  coverage_threshold: 60
+  numeric_tolerance: 1.0e-6
+  performance_tolerance: 0.20

@@ -1,0 +1,1 @@
+"""AISwarm Operator Dashboard application."""

@@ -1,0 +1,162 @@
+providers:
+  novita:
+    base_url: "https://api.novita.ai/v3/openai"
+    env_key: NOVITA_API_KEY
+    api_style: openai_compatible
+    models:
+      - id: meta-llama/llama-3.1-405b-instruct
+        display: "Llama 3.1 405B"
+        context_window: 131072
+        max_output: 8192
+        cost_per_1k_input: 0.0028
+        cost_per_1k_output: 0.0028
+      - id: meta-llama/llama-3.1-70b-instruct
+        display: "Llama 3.1 70B"
+        context_window: 131072
+        max_output: 4096
+        cost_per_1k_input: 0.0009
+        cost_per_1k_output: 0.0009
+      - id: meta-llama/llama-3.1-8b-instruct
+        display: "Llama 3.1 8B"
+        context_window: 131072
+        max_output: 2048
+        cost_per_1k_input: 0.0001
+        cost_per_1k_output: 0.0001
+      - id: deepseek/deepseek-r1
+        display: "DeepSeek R1"
+        context_window: 65536
+        max_output: 8192
+        cost_per_1k_input: 0.0014
+        cost_per_1k_output: 0.0019
+      - id: mistralai/mistral-nemo
+        display: "Mistral Nemo"
+        context_window: 128000
+        max_output: 4096
+        cost_per_1k_input: 0.0001
+        cost_per_1k_output: 0.0001
+
+  openai:
+    base_url: "https://api.openai.com/v1"
+    env_key: OPENAI_API_KEY
+    api_style: openai
+    models:
+      - id: gpt-4o
+        display: "GPT-4o"
+        context_window: 128000
+        max_output: 4096
+        cost_per_1k_input: 0.005
+        cost_per_1k_output: 0.015
+      - id: gpt-4o-mini
+        display: "GPT-4o Mini"
+        context_window: 128000
+        max_output: 4096
+        cost_per_1k_input: 0.00015
+        cost_per_1k_output: 0.0006
+      - id: o1-preview
+        display: "o1 Preview"
+        context_window: 128000
+        max_output: 32768
+        cost_per_1k_input: 0.015
+        cost_per_1k_output: 0.060
+
+  anthropic:
+    env_key: ANTHROPIC_API_KEY
+    api_style: anthropic
+    models:
+      - id: claude-3-5-sonnet-20241022
+        display: "Claude 3.5 Sonnet"
+        context_window: 200000
+        max_output: 8192
+        cost_per_1k_input: 0.003
+        cost_per_1k_output: 0.015
+      - id: claude-3-5-haiku-20241022
+        display: "Claude 3.5 Haiku"
+        context_window: 200000
+        max_output: 8192
+        cost_per_1k_input: 0.001
+        cost_per_1k_output: 0.005
+
+  gemini:
+    env_key: GOOGLE_API_KEY
+    api_style: google
+    models:
+      - id: gemini-1.5-pro-002
+        display: "Gemini 1.5 Pro"
+        context_window: 2000000
+        max_output: 8192
+        cost_per_1k_input: 0.00125
+        cost_per_1k_output: 0.005
+      - id: gemini-1.5-flash-002
+        display: "Gemini 1.5 Flash"
+        context_window: 1000000
+        max_output: 8192
+        cost_per_1k_input: 0.000075
+        cost_per_1k_output: 0.0003
+
+  deepseek:
+    base_url: "https://api.deepseek.com/v1"
+    env_key: DEEPSEEK_API_KEY
+    api_style: openai_compatible
+    models:
+      - id: deepseek-coder
+        display: "DeepSeek Coder"
+        context_window: 128000
+        max_output: 8192
+        cost_per_1k_input: 0.00014
+        cost_per_1k_output: 0.00028
+      - id: deepseek-chat
+        display: "DeepSeek Chat"
+        context_window: 64000
+        max_output: 4096
+        cost_per_1k_input: 0.00014
+        cost_per_1k_output: 0.00028
+
+  bedrock:
+    env_key: AWS_ACCESS_KEY_ID
+    api_style: bedrock
+    models:
+      - id: anthropic.claude-3-5-sonnet-20241022-v2:0
+        display: "Claude 3.5 Sonnet (Bedrock)"
+        context_window: 200000
+        max_output: 8192
+
+  local:
+    base_url: "http://localhost:11434/v1"
+    env_key: null
+    api_style: openai_compatible
+    models:
+      - id: llama3.1:latest
+        display: "Llama 3.1 (Local Ollama)"
+        context_window: 32768
+        max_output: 4096
+      - id: codestral:latest
+        display: "Codestral (Local Ollama)"
+        context_window: 32768
+        max_output: 4096
+
+routing:
+  # Role → preferred provider order (falls back left-to-right)
+  boss:
+    primary: novita
+    fallback: [openai, anthropic]
+    model: meta-llama/llama-3.1-70b-instruct
+  manager:
+    primary: novita
+    fallback: [openai, anthropic]
+    model: meta-llama/llama-3.1-70b-instruct
+  planner:
+    primary: novita
+    fallback: [openai, deepseek]
+    model: meta-llama/llama-3.1-70b-instruct
+  coder:
+    primary: novita
+    fallback: [deepseek, openai, anthropic]
+    model: meta-llama/llama-3.1-405b-instruct
+  critic:
+    primary: novita
+    fallback: [openai, anthropic]
+    model: meta-llama/llama-3.1-70b-instruct
+  precheck:
+    primary: novita
+    fallback: [openai]
+    model: meta-llama/llama-3.1-8b-instruct

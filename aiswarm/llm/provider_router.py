@@ -1,0 +1,283 @@
+"""
+Provider router — selects, initializes, and fails over between LLM providers.
+
+Every agent uses the router; never a provider directly.
+The router applies:
+  1. Role-specific provider preference order from config.
+  2. Automatic fallback if the primary provider fails or is unavailable.
+  3. Per-provider rate limiting (token bucket + concurrency cap).
+  4. Cost guard circuit breaker — halts on budget breach.
+  5. Cost and token tracking aggregated per session.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import os
+from typing import Any
+
+import structlog
+
+from aiswarm.llm.adapter import BaseLLMAdapter, LLMMessage, LLMResponse
+from aiswarm.llm.openai import OpenAIAdapter
+from aiswarm.llm.anthropic import AnthropicAdapter
+from aiswarm.llm.gemini import GeminiAdapter
+from aiswarm.llm.deepseek import DeepSeekAdapter
+from aiswarm.llm.bedrock import BedrockAdapter
+from aiswarm.llm.local_models import LocalModelAdapter
+from aiswarm.core.cost_guard import CostGuard, CostLimitExceeded
+from aiswarm.core.rate_limiter import ProviderRateLimiter
+
+logger = structlog.get_logger(__name__)
+
+# ── Per-provider model ID mapping ─────────────────────────────────────────────
+# When the router falls back from Novita→OpenAI→Anthropic, the Novita model ID
+# (e.g. "meta-llama/llama-3.1-70b-instruct") is invalid on OpenAI or Anthropic.
+# This table maps a Novita model ID to an equivalent model on each provider.
+# If no mapping exists the provider is skipped during fallback.
+_MODEL_FALLBACK: dict[str, dict[str, str]] = {
+    # novita model id → {provider: equivalent_model}
+    "meta-llama/llama-3.1-405b-instruct": {
+        "openai": "gpt-4o",
+        "anthropic": "claude-3-5-sonnet-20241022",
+        "gemini": "gemini-2.0-flash",
+        "deepseek": "deepseek-chat",
+    },
+    "meta-llama/llama-3.1-70b-instruct": {
+        "openai": "gpt-4o-mini",
+        "anthropic": "claude-3-5-haiku-20241022",
+        "gemini": "gemini-2.0-flash",
+        "deepseek": "deepseek-chat",
+    },
+    "meta-llama/llama-3.1-8b-instruct": {
+        "openai": "gpt-4o-mini",
+        "anthropic": "claude-3-5-haiku-20241022",
+        "gemini": "gemini-2.0-flash",
+        "deepseek": "deepseek-chat",
+        "local": "llama3",
+    },
+    "deepseek/deepseek-r1": {
+        "openai": "gpt-4o",
+        "anthropic": "claude-3-5-sonnet-20241022",
+        "deepseek": "deepseek-reasoner",
+    },
+}
+
+
+def _resolve_model(requested_model: str, provider_name: str) -> str | None:
+    """
+    Resolve the correct model ID for a given provider.
+
+    - For "novita": use the requested model ID directly.
+    - For other providers: look up the mapping table; skip if no equivalent.
+    """
+    if provider_name == "novita":
+        return requested_model
+    # Direct OpenAI/Deepseek model names pass through unchanged
+    if not requested_model.startswith("meta-llama/") and provider_name not in ("novita",):
+        # Might already be a native model name (e.g. gpt-4o, claude-3-5-sonnet)
+        return requested_model
+    mapping = _MODEL_FALLBACK.get(requested_model, {})
+    resolved = mapping.get(provider_name)
+    if resolved is None:
+        logger.debug(
+            "router.no_model_mapping",
+            requested=requested_model,
+            provider=provider_name,
+        )
+    return resolved
+
+
+# Novita uses the OpenAI-compatible adapter
+_NOVITA_COSTS: dict[str, tuple[float, float]] = {
+    "meta-llama/llama-3.1-405b-instruct": (0.0028, 0.0028),
+    "meta-llama/llama-3.1-70b-instruct": (0.0009, 0.0009),
+    "meta-llama/llama-3.1-8b-instruct": (0.0001, 0.0001),
+    "deepseek/deepseek-r1": (0.0014, 0.0019),
+    "mistralai/mistral-nemo": (0.0001, 0.0001),
+}
+
+
+def _build_providers() -> dict[str, BaseLLMAdapter]:
+    """Construct all provider adapters from environment configuration."""
+    novita_key = os.getenv("NOVITA_API_KEY") or os.getenv("NOVITA_TOKEN", "")
+    novita_base = os.getenv("NOVITA_BASE_URL", "https://api.novita.ai/v3/openai")
+
+    return {
+        "novita": OpenAIAdapter(
+            api_key=novita_key,
+            base_url=novita_base,
+            provider_name="novita",
+            cost_table=_NOVITA_COSTS,
+        ),
+        "openai": OpenAIAdapter(
+            api_key=os.getenv("OPENAI_API_KEY", ""),
+            provider_name="openai",
+        ),
+        "anthropic": AnthropicAdapter(
+            api_key=os.getenv("ANTHROPIC_API_KEY", ""),
+        ),
+        "gemini": GeminiAdapter(
+            api_key=os.getenv("GOOGLE_API_KEY", ""),
+        ),
+        "deepseek": DeepSeekAdapter(
+            api_key=os.getenv("DEEPSEEK_API_KEY", ""),
+        ),
+        "bedrock": BedrockAdapter(),
+        "local": LocalModelAdapter(),
+    }
+
+
+class ProviderRouter:
+    """
+    Intelligent router with fallback, cost tracking, rate limiting, and budget guard.
+
+    Usage::
+
+        router = ProviderRouter()
+        response = await router.chat(
+            messages=messages,
+            model="meta-llama/llama-3.1-70b-instruct",
+            provider_preference=["novita", "openai", "anthropic"],
+        )
+    """
+
+    def __init__(
+        self,
+        providers: dict[str, BaseLLMAdapter] | None = None,
+        cost_guard: CostGuard | None = None,
+        rate_limiter: ProviderRateLimiter | None = None,
+    ) -> None:
+        self._providers = providers or _build_providers()
+        self._cost_guard = cost_guard or CostGuard()
+        self._rate_limiter = rate_limiter or ProviderRateLimiter()
+        self._total_tokens: int = 0
+        self._total_cost: float = 0.0
+        self._call_count: int = 0
+        self._failures: dict[str, int] = {}
+
+    async def chat(
+        self,
+        messages: list[LLMMessage],
+        model: str,
+        provider_preference: list[str] | None = None,
+        temperature: float = 0.2,
+        max_tokens: int = 4096,
+        task_id: str = "",
+        **kwargs: Any,
+    ) -> LLMResponse:
+        """
+        Attempt providers in preference order, falling back on error.
+
+        Applies per-provider rate limiting and cost-guard checks on every call.
+
+        Args:
+            messages: Conversation history in LLMMessage format.
+            model: Preferred model ID (Novita/canonical).
+            provider_preference: Ordered list of provider names to try.
+            temperature: Sampling temperature.
+            max_tokens: Maximum completion tokens.
+            task_id: Optional task ID for cost-guard attribution.
+
+        Raises:
+            CostLimitExceeded: When daily/session budget is exhausted.
+            RuntimeError: When all providers fail.
+        """
+        order = provider_preference or ["novita", "openai", "anthropic", "deepseek", "local"]
+
+        last_exc: Exception | None = None
+        for provider_name in order:
+            provider = self._providers.get(provider_name)
+            if provider is None:
+                logger.warning("router.unknown_provider", name=provider_name)
+                continue
+            if not provider.is_available():
+                logger.debug("router.provider_unavailable", name=provider_name)
+                continue
+
+            resolved_model = _resolve_model(model, provider_name)
+            if resolved_model is None:
+                logger.debug(
+                    "router.skipping_no_model",
+                    provider=provider_name,
+                    requested_model=model,
+                )
+                continue
+
+            try:
+                logger.debug(
+                    "router.attempting",
+                    provider=provider_name,
+                    model=resolved_model,
+                    temperature=temperature,
+                )
+
+                # ── Rate limit: acquire slot before calling provider ───────
+                async with self._rate_limiter.acquire(provider_name):
+                    response = await provider.chat(
+                        messages=messages,
+                        model=resolved_model,
+                        temperature=temperature,
+                        max_tokens=max_tokens,
+                        **kwargs,
+                    )
+
+                self._total_tokens += response.total_tokens
+                self._total_cost += response.cost_usd
+                self._call_count += 1
+                self._failures.pop(provider_name, None)
+
+                # ── Cost guard: record spend after every successful call ───
+                await self._cost_guard.record(
+                    provider=provider_name,
+                    tokens=response.total_tokens,
+                    cost_usd=response.cost_usd,
+                    task_id=task_id,
+                )
+
+                return response
+
+            except CostLimitExceeded:
+                # Budget exhausted — do NOT fall back, re-raise immediately
+                raise
+
+            except Exception as exc:  # noqa: BLE001
+                last_exc = exc
+                err_str = str(exc)
+                self._failures[provider_name] = self._failures.get(provider_name, 0) + 1
+
+                # Notify rate limiter if we received HTTP 429
+                if "429" in err_str or "rate limit" in err_str.lower():
+                    self._rate_limiter.notify_rate_limited(provider_name)
+
+                logger.warning(
+                    "router.provider_failed",
+                    provider=provider_name,
+                    error=err_str,
+                    failures=self._failures[provider_name],
+                )
+                # Brief back-off before trying next provider
+                await asyncio.sleep(0.5)
+
+        raise RuntimeError(
+            f"All providers exhausted for model={model!r}. "
+            f"Last error: {last_exc}"
+        ) from last_exc
+
+    @property
+    def stats(self) -> dict[str, Any]:
+        return {
+            "total_calls": self._call_count,
+            "total_tokens": self._total_tokens,
+            "total_cost_usd": round(self._total_cost, 6),
+            "provider_failures": dict(self._failures),
+            "cost_guard": self._cost_guard.check_budget_remaining(),
+            "rate_limiter": self._rate_limiter.stats(),
+        }
+
+    @property
+    def cost_guard(self) -> CostGuard:
+        return self._cost_guard
+
+    def list_available(self) -> list[str]:
+        return [name for name, p in self._providers.items() if p.is_available()]
