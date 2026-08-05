@@ -53,6 +53,6 @@ Every event is assigned a UUID, timestamped, typed (`ROUTE_DECISION`, `TOOL_SPAW
 If you discover a security vulnerability in AISwarm-Next:
 
 1. **Do NOT open a public issue on GitHub.**
-2. Send a confidential report to `security@aiswarm.org`.
+2. Send a confidential report to `indrohelpdesk@gmail.com`.
 3. Include reproduction steps, sample payloads, and impact assessment.
 4. Maintainers will respond within **24 hours** and issue a patch release.
