@@ -1,42 +1,58 @@
-# AISwarm Security Policy & Threat Model
+# AISwarm-Next Security Policy & Threat Model
 
 ---
 
-## 🔒 Security Architecture Overview
+## 🔒 Security Architecture & Vision
 
-AISwarm is engineered with a **Zero-Trust Security** model to safely run multi-agent code generation, execute untrusted scripts, and interact with external LLM APIs without risking data loss or credential leakage.
+**AISwarm-Next** is designed with a **Zero-Trust Security Architecture**. Because autonomous AI agents generate, compile, and execute code dynamically, AISwarm-Next enforces strict boundaries to ensure generated code cannot breach process isolation, leak credentials, access host file systems, or exceed token budgets.
 
 ---
 
-## 🛡️ Core Security Controls
+## 🛡 Security Controls Matrix
 
-### 1. Mandatory Fail-Fast Authentication (`APIKeyValidator`)
-- Requires valid API keys at application startup.
-- Unauthenticated initialization immediately throws `SecurityAuthError` and aborts execution.
+| Security Layer | Implementation Component | Defense Mechanism |
+|---|---|---|
+| **Authentication** | `APIKeyValidator` | Fail-fast boot guard; aborts startup if no valid API key is present. |
+| **Process Isolation** | `ExecutionSandbox` | Subprocess sandboxing, command allowlisting (`python`, `pytest`, `git`, `pip`). |
+| **Path Protection** | `ExecutionSandbox` | Canonical path verification preventing directory traversal escaping repository root. |
+| **Secret Scrubbing** | `SecretRedactor` | Multi-pattern regex redacting OpenAI, Anthropic, GitHub, PyPI, Google, AWS keys. |
+| **Governance** | `EngineeringGovernor` | Real-time USD spend caps (`CostGuard`), token budgets, capability spawn gates. |
+| **Observability** | `AuditLedger` | Thread-safe, append-only JSONL log (`~/.aiswarm/audit.jsonl`) with startup recovery. |
+| **Policy Engine** | `PolicyEngine` | Central rule engine evaluating `ALLOW`, `DENY`, `REQUIRE_HITL`. |
 
-### 2. Isolated Process Execution (`ExecutionSandbox`)
-- All user/agent code is executed in isolated subprocesses.
-- Command allowlisting prevents unauthorized binary execution.
-- Path resolution blocks any attempts to access files outside the allocated workspace.
+---
+
+## 🔍 Detailed Security Controls
+
+### 1. Fail-Fast Startup Authentication (`APIKeyValidator`)
+`APIKeyValidator` inspects the environment during initialization (`aiswarm/security/auth.py`). If no valid provider key (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`) is found, initialization halts immediately with a `SecurityAuthError`.
+
+### 2. Subprocess Execution Sandbox (`ExecutionSandbox`)
+All code execution occurs inside isolated subprocesses managed by `ExecutionSandbox` (`aiswarm/security/sandbox.py`):
+- **Command Allowlisting**: Only explicitly approved commands can be executed. Attempts to run arbitrary binaries (`curl`, `bash`, `powershell`, `rm`) trigger a `SandboxViolationError`.
+- **Path Traversal Protection**: Prevents path manipulation attacks (`../etc/passwd`, `C:\Windows`) by validating canonical resolved paths against `workspace_dir`.
 
 ### 3. Multi-Pattern Secret Redaction (`SecretRedactor`)
-- Every prompt, response, log entry, and audit payload is scrubbed before disk write or display.
-- Detects and replaces OpenAI, Anthropic, GitHub, PyPI, Google, and AWS key patterns with `***REDACTED***`.
+`SecretRedactor` (`aiswarm/security/redaction.py`) intercepts all strings flowing to logs, stdout, prompts, or audit event payloads:
+```text
+OpenAI Key      : sk-proj-123456789...  ──►  ***OPENAI_KEY***
+Anthropic Key   : sk-ant-123456789...   ──►  ***ANTHROPIC_KEY***
+GitHub PAT      : ghp_123456789...      ──►  ***GH_PAT***
+PyPI Token      : pypi-AgEI12345...     ──►  ***REDACTED***
+Google Key      : AIzaSy12345...        ──►  ***GOOGLE_KEY***
+AWS Access Key  : AKIA12345678...       ──►  ***AWS_KEY***
+```
 
-### 4. Engineering Governor (`EngineeringGovernor`)
-- Session and daily cost caps prevent unauthorized API usage spikes.
-- Restricts capability invocation based on user roles (`WORKER`, `MANAGER`, `BOSS`).
-
-### 5. Immutable Audit Trail (`AuditLedger`)
-- All security decisions, route choices, policy evaluations, and merge attempts are recorded in `~/.aiswarm/audit.jsonl`.
+### 4. Immutable Audit Ledger (`AuditLedger`)
+Every event is assigned a UUID, timestamped, typed (`ROUTE_DECISION`, `TOOL_SPAWN`, `POLICY_VIOLATION`, `MERGE`), and appended to `~/.aiswarm/audit.jsonl` using an async `Lock` (`aiswarm/security/audit.py`).
 
 ---
 
-## 🚨 Reporting a Vulnerability
+## 🚨 Confidential Vulnerability Reporting
 
-If you discover a potential security vulnerability within AISwarm:
+If you discover a security vulnerability in AISwarm-Next:
 
 1. **Do NOT open a public issue on GitHub.**
-2. Send a confidential report to `security@aiswarm.org` or contact the repository maintainer directly.
-3. Include detailed steps to reproduce the issue, along with any relevant code snippets or environment details.
-4. The maintainers will respond within **24 hours** and provide a patch release timeline.
+2. Send a confidential report to `security@aiswarm.org`.
+3. Include reproduction steps, sample payloads, and impact assessment.
+4. Maintainers will respond within **24 hours** and issue a patch release.
