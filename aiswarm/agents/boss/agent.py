@@ -64,9 +64,17 @@ class BossAgent(BaseAgent):
 
     role = "boss"
 
-    def __init__(self, router: Any, model: str, repo_root: str = ".", **kwargs: Any) -> None:
+    def __init__(
+        self,
+        router: Any,
+        model: str,
+        repo_root: str = ".",
+        host2_manager: Host2CapabilityManager | None = None,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(router, model, **kwargs)
         self._repo_root = Path(repo_root)
+        self._host2_manager = host2_manager or Host2CapabilityManager()
 
     async def run(self, task: Task) -> dict[str, Any]:
         """
@@ -100,8 +108,8 @@ class BossAgent(BaseAgent):
             requester_role="boss",
             parameters=parameters,
         )
-        manager = Host2CapabilityManager()
-        return await manager.execute_capability(request)
+        return await self._host2_manager.execute_capability(request)
+
 
     async def execute_hybrid_task(self, task: Task) -> dict[str, Any]:
         """
