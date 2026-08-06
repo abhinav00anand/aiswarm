@@ -11,7 +11,7 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from aiswarm.llm.adapter import LLMAdapter, LLMMessage, LLMResponse
+from aiswarm.llm.adapter import BaseLLMAdapter, LLMMessage, LLMResponse
 from aiswarm.security.audit import get_audit_ledger
 from aiswarm.security.governor import EngineeringGovernor
 from aiswarm.security.redaction import scrub
@@ -28,10 +28,10 @@ class DirectModelCoordinator:
     def __init__(
         self,
         governor: EngineeringGovernor | None = None,
-        llm_adapter: LLMAdapter | None = None,
+        llm_adapter: BaseLLMAdapter | None = None,
     ) -> None:
         self.governor = governor or EngineeringGovernor()
-        self.adapter = llm_adapter or LLMAdapter()
+        self.adapter = llm_adapter  # Must be injected — BaseLLMAdapter has no direct constructor
         self.audit_ledger = get_audit_ledger()
 
     async def run_direct(
@@ -61,8 +61,13 @@ class DirectModelCoordinator:
             LLMMessage(role="user", content=scrubbed_prompt),
         ]
 
+        if self.adapter is None:
+            raise RuntimeError(
+                "DirectModelCoordinator requires an llm_adapter to be injected. "
+                "Use ProviderRouter or a concrete BaseLLMAdapter implementation."
+            )
         try:
-            response: LLMResponse = await self.adapter.completion(
+            response: LLMResponse = await self.adapter.chat(
                 messages=messages,
                 model=model,
                 temperature=temperature,
@@ -73,7 +78,7 @@ class DirectModelCoordinator:
             duration = time.time() - start_time
 
             # 5. Record event in immutable Audit Ledger
-            self.audit_ledger.record(
+            await self.audit_ledger.record(
                 event_type="DIRECT_MODEL_EXECUTION",
                 actor=user_role,
                 action="direct_prompt_run",
@@ -106,7 +111,7 @@ class DirectModelCoordinator:
             duration = time.time() - start_time
             logger.error("direct_model.failed", model=model, error=str(exc))
             
-            self.audit_ledger.record(
+            await self.audit_ledger.record(
                 event_type="DIRECT_MODEL_EXECUTION",
                 actor=user_role,
                 action="direct_prompt_run",
