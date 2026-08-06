@@ -58,8 +58,10 @@ class WorkflowEngine:
                 mgr = Host2CapabilityManager()
                 fast_payload = {
                     "task_id": task.task_id,
-                    "code": getattr(task, "generated_code", ""),
-                    "test_command": getattr(task, "test_command", ["pytest"]),
+                    "code": getattr(task, "generated_code", "") or "",
+                    "target_file": task.target_files[0] if task.target_files else ".",
+                    "language": getattr(task, "target_language", "python"),
+                    "test_command": getattr(task, "test_command", None),
                 }
                 result = await mgr.execute_fast_task(fast_payload)
                 if result.get("escalated"):
@@ -67,7 +69,9 @@ class WorkflowEngine:
                     logger.warning("workflow.fast_escalated_to_production", task_id=task.task_id)
                     route = ExecutionMode.PRODUCTION
                 else:
-                    # Apply quality gate evaluation before marking MERGED
+                    # Execute compile & test validation before merge evaluation
+                    await self._stage_compile(task)
+                    await self._stage_test(task)
                     if hasattr(self._orc, "merge_controller") and self._orc.merge_controller is not None:
                         can_merge, merge_reason = self._orc.merge_controller.evaluate_merge(task)
                         if not can_merge:
@@ -81,6 +85,7 @@ class WorkflowEngine:
                         task.transition(TaskState.MERGED, reason="Fast route complete", agent="workflow_engine")
                         task.completed_at = datetime.now(timezone.utc)
                         return task
+
 
 
             # ── Stage 1: Plan & contextualize ──────────────────────────────
