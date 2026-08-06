@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "aiswarm-next"
 
 version = "1.1.0"
-description = "Production-grade AI agent orchestration system — Boss, Manager, Coder, Critics, C++ Native Engine, and Zero-Cloud Ollama Fallback"
+description = "Production-grade AI agent orchestration system — Boss, Manager, Coder, Critics, and Worker pipeline"
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.11"
@@ -92,10 +92,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/abhinav00anand/aiswarm-next"
-Documentation = "https://github.com/abhinav00anand/aiswarm-next#readme"
-Repository = "https://github.com/abhinav00anand/aiswarm-next.git"
-Issues = "https://github.com/abhinav00anand/aiswarm-next/issues"
+Homepage = "https://github.com/abhinav00anand/aiswarm"
+Documentation = "https://github.com/abhinav00anand/aiswarm#readme"
+Repository = "https://github.com/abhinav00anand/aiswarm.git"
+Issues = "https://github.com/abhinav00anand/aiswarm/issues"
 
 [project.scripts]
 
