@@ -60,6 +60,17 @@ def build_orchestrator(
     APIKeyValidator.verify_api_keys(api_key)
 
     cfg = config or {}
+    
+    is_notebook_mode = (
+        os.getenv("AISWARM_NOTEBOOK_MODE") in ("1", "true", "True") or 
+        cfg.get("profile") == "notebook"
+    )
+    adapter_url = os.getenv("OPENAI_API_ADAPTER_URL")
+
+    if is_notebook_mode or adapter_url:
+        os.environ["OMP_NUM_THREADS"] = "1"
+        os.environ["MKL_NUM_THREADS"] = "1"
+
     agents_cfg = cfg.get("agents", {})
 
     # ── Logging ───────────────────────────────────────────────────────────────
@@ -110,10 +121,22 @@ def build_orchestrator(
     from aiswarm.testing.benchmark_runner import BenchmarkRunner
 
     def _model(role: str, default: str) -> str:
+        if adapter_url:
+            from aiswarm.llm.provider_router import get_adapter_model
+            adv = get_adapter_model()
+            if adv and adv != "adapter-default":
+                return adv
+            return "distilgpt2"
+        if is_notebook_mode:
+            return "distilgpt2"
         return agents_cfg.get(role, {}).get("model", default)
 
     def _pref(role: str) -> list[str]:
-        return agents_cfg.get(role, {}).get("provider_preference", ["novita", "openai", "anthropic"])
+        pref = agents_cfg.get(role, {}).get("provider_preference", ["novita", "openai", "anthropic"])
+        if adapter_url:
+            if "adapter" not in pref:
+                pref = ["adapter"] + pref
+        return pref
 
     # ── Host-2 Capability Manager & Security Governance ─────────────────────
     from aiswarm.agents.host2.manager import Host2CapabilityManager
