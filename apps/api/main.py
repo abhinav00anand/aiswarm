@@ -282,6 +282,27 @@ async def rag_status() -> dict[str, Any]:
         return {"status": "unavailable", "error": str(exc)}
 
 
+class DirectModelRequest(BaseModel):
+    prompt: str
+    model: str = "gpt-4o"
+    system_prompt: str = "You are a helpful AI assistant coordinated by AISwarm-Next."
+    temperature: float = 0.7
+
+
+@app.post("/direct-model/run", tags=["direct-model"])
+async def run_direct_model(req: DirectModelRequest) -> dict[str, Any]:
+    """Execute a direct LLM model prompt coordinated with AISwarm security and audit logging."""
+    from aiswarm.llm.direct_runner import DirectModelCoordinator
+    coord = DirectModelCoordinator()
+    return await coord.run_direct(
+        prompt=req.prompt,
+        model=req.model,
+        system_prompt=req.system_prompt,
+        temperature=req.temperature,
+    )
+
+
+
 def _to_summary(task: Task) -> TaskSummary:
     return TaskSummary(
         task_id=task.task_id,
