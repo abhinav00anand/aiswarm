@@ -67,11 +67,14 @@ class EventBus:
             if "source" not in event:
                 event["source"] = "system"
             if isinstance(event.get("event_type"), str):
+                raw_type = event["event_type"]
                 try:
-                    event["event_type"] = EvType(event["event_type"])
-                except ValueError:
-                    event["event_type"] = EvType.TASK_CREATED
+                    event["event_type"] = EvType(raw_type)
+                except ValueError as err:
+                    logger.error("event_bus.unknown_event_type", raw_type=raw_type)
+                    raise ValueError(f"Unrecognized event_type '{raw_type}' in EventBus.publish()") from err
             event = EventSchema.model_validate(event)
+
 
         self._published += 1
         handlers = list(self._handlers.get(event.event_type, []))
