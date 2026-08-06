@@ -67,9 +67,21 @@ class WorkflowEngine:
                     logger.warning("workflow.fast_escalated_to_production", task_id=task.task_id)
                     route = ExecutionMode.PRODUCTION
                 else:
-                    task.transition(TaskState.MERGED, reason="Fast route complete", agent="workflow_engine")
-                    task.completed_at = datetime.now(timezone.utc)
-                    return task
+                    # Apply quality gate evaluation before marking MERGED
+                    if hasattr(self._orc, "merge_controller") and self._orc.merge_controller is not None:
+                        can_merge, merge_reason = self._orc.merge_controller.evaluate_merge(task)
+                        if not can_merge:
+                            logger.warning("workflow.fast_quality_gate_failed", task_id=task.task_id, reason=merge_reason)
+                            route = ExecutionMode.PRODUCTION
+                        else:
+                            task.transition(TaskState.MERGED, reason="Fast route complete & quality gate passed", agent="workflow_engine")
+                            task.completed_at = datetime.now(timezone.utc)
+                            return task
+                    else:
+                        task.transition(TaskState.MERGED, reason="Fast route complete", agent="workflow_engine")
+                        task.completed_at = datetime.now(timezone.utc)
+                        return task
+
 
             # ── Stage 1: Plan & contextualize ──────────────────────────────
             await self._stage_plan(task)
