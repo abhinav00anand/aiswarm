@@ -71,9 +71,23 @@ class APIKeyValidator:
             logger.info("auth.api_key_verified", configured_keys=list(configured.keys()))
             return True
 
+        # Auto-fallback: If no cloud API keys are present, attempt local Ollama auto-provisioning
+        logger.info("auth.no_cloud_keys_found_attempting_ollama_fallback")
+        try:
+            from aiswarm.llm.ollama_manager import OllamaManager
+            manager = OllamaManager()
+            ok, selected_model = manager.ensure_ollama_provisioned()
+            if ok:
+                os.environ["OLLAMA_FALLBACK_ACTIVE"] = "true"
+                os.environ["OLLAMA_SELECTED_MODEL"] = selected_model
+                logger.info("auth.ollama_fallback_activated", model=selected_model)
+                return True
+        except Exception as exc:
+            logger.warning("auth.ollama_auto_provision_failed", error=str(exc))
+
         msg = (
-            "CRITICAL SECURITY ERROR: AISwarm requires a valid API key to start.\n"
-            "No API key was detected in environment variables or parameters.\n\n"
+            "CRITICAL SECURITY ERROR: AISwarm requires a valid API key or active local Ollama setup to start.\n"
+            "No API key was detected in environment variables or parameters, and local Ollama auto-fallback failed.\n\n"
             "Please configure at least one of the following environment variables:\n"
             "  - AISWARM_API_KEY\n"
             "  - OPENAI_API_KEY\n"
@@ -81,9 +95,9 @@ class APIKeyValidator:
             "  - GEMINI_API_KEY / GOOGLE_API_KEY\n"
             "  - NOVITA_API_KEY\n"
             "  - DEEPSEEK_API_KEY\n\n"
-            "Alternatively, pass '--api-key YOUR_KEY' when invoking the CLI."
+            "Alternatively, ensure local Ollama service is running on http://localhost:11434."
         )
-        logger.error("auth.api_key_missing")
+        logger.error("auth.api_key_and_ollama_missing")
         raise SecurityAuthError(msg)
 
     @classmethod
