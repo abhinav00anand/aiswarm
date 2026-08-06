@@ -77,7 +77,7 @@ _PROVIDER_DEFAULT_MODELS: dict[str, str] = {
     "anthropic": "claude-3-5-sonnet-20241022",
     "gemini": "gemini-2.0-flash",
     "deepseek": "deepseek-chat",
-    "local": "llama3",
+    "local": os.getenv("OLLAMA_SELECTED_MODEL", "llama3.2:3b"),
 }
 
 
@@ -216,7 +216,9 @@ class ProviderRouter:
             CostLimitExceeded: When daily/session budget is exhausted.
             RuntimeError: When all providers fail.
         """
-        order = provider_preference or ["novita", "openai", "anthropic", "deepseek", "local"]
+        order = list(provider_preference) if provider_preference else ["novita", "openai", "anthropic", "deepseek", "local"]
+        if "local" not in order:
+            order.append("local")
 
         last_exc: Exception | None = None
         for provider_name in order:
