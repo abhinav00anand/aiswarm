@@ -64,28 +64,61 @@ _MODEL_FALLBACK: dict[str, dict[str, str]] = {
 }
 
 
+_KNOWN_PROVIDER_MODELS: dict[str, set[str]] = {
+    "openai": {"gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo", "o1", "o1-mini", "o3-mini"},
+    "anthropic": {"claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022", "claude-3-opus-20240229", "claude-3-sonnet-20240229", "claude-3-haiku-20240307"},
+    "gemini": {"gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"},
+    "deepseek": {"deepseek-chat", "deepseek-reasoner"},
+    "local": {"llama3", "llama3:70b", "mistral", "qwen"},
+}
+
+_PROVIDER_DEFAULT_MODELS: dict[str, str] = {
+    "openai": "gpt-4o",
+    "anthropic": "claude-3-5-sonnet-20241022",
+    "gemini": "gemini-2.0-flash",
+    "deepseek": "deepseek-chat",
+    "local": "llama3",
+}
+
+
 def _resolve_model(requested_model: str, provider_name: str) -> str | None:
     """
     Resolve the correct model ID for a given provider.
 
     - For "novita": use the requested model ID directly.
-    - For other providers: look up the mapping table; skip if no equivalent.
+    - For other providers: check explicit mapping, native model set, or fallback default.
     """
     if provider_name == "novita":
         return requested_model
-    # Direct OpenAI/Deepseek model names pass through unchanged
-    if not requested_model.startswith("meta-llama/") and provider_name not in ("novita",):
-        # Might already be a native model name (e.g. gpt-4o, claude-3-5-sonnet)
-        return requested_model
+
+    # Check explicit mapping table
     mapping = _MODEL_FALLBACK.get(requested_model, {})
-    resolved = mapping.get(provider_name)
-    if resolved is None:
-        logger.debug(
-            "router.no_model_mapping",
+    if provider_name in mapping:
+        return mapping[provider_name]
+
+    # Check if requested_model is natively supported by this provider
+    known_models = _KNOWN_PROVIDER_MODELS.get(provider_name, set())
+    if requested_model in known_models:
+        return requested_model
+
+    # Fallback default model for provider to avoid invalid model ID errors
+    fallback_default = _PROVIDER_DEFAULT_MODELS.get(provider_name)
+    if fallback_default:
+        logger.info(
+            "router.resolved_fallback_default",
             requested=requested_model,
             provider=provider_name,
+            resolved=fallback_default,
         )
-    return resolved
+        return fallback_default
+
+    logger.debug(
+        "router.no_model_mapping",
+        requested=requested_model,
+        provider=provider_name,
+    )
+    return None
+
 
 
 # Novita uses the OpenAI-compatible adapter
