@@ -36,6 +36,22 @@ class Host2CapabilityManager:
         self.governor = governor or EngineeringGovernor()
         self.max_retries = max_retries
 
+    async def execute_capability(self, request: CapabilityRequest) -> dict[str, Any]:
+        """
+        Public adapter interface for executing a direct capability request.
+        Invoked by BossAgent or WorkflowEngine.
+        """
+        logger.info("host2.execute_capability_start", capability=request.capability_name, role=request.requester_role)
+        self.governor.check_capability_spawn_policy(request.capability_name, request.requester_role)
+        handle: CapabilityHandle = await self.capability_registry.invoke(request)
+        return {
+            "status": handle.status,
+            "capability_name": handle.capability_name,
+            "output": handle.output,
+            "execution_time_seconds": handle.execution_time_seconds,
+            "handle": handle.model_dump(),
+        }
+
     async def execute_fast_task(self, task_payload: dict[str, Any]) -> dict[str, Any]:
         """
         Execute a fast-mode task using optimal capabilities.
@@ -43,24 +59,33 @@ class Host2CapabilityManager:
         """
         task_id = task_payload.get("task_id", "fast_task")
         code = task_payload.get("code", "")
+        target_file = task_payload.get("target_file") or task_payload.get("path", ".")
         test_command = task_payload.get("test_command", "pytest")
+        capability_name = task_payload.get("capability_name", "pytest")
+        language = task_payload.get("language", "python")
         completed_steps = []
 
-        logger.info("host2.execute_start", task_id=task_id)
+        logger.info("host2.execute_start", task_id=task_id, language=language)
 
         # Check governance spawn permissions
-        self.governor.check_capability_spawn_policy("python_exec", "host2")
+        self.governor.check_capability_spawn_policy(capability_name, "host2")
 
         # Step 1: Run code/test capability in sandbox
         retry_count = 0
         while retry_count <= self.max_retries:
             logger.info("host2.step_execute", task_id=task_id, attempt=retry_count + 1)
             
-            # Invoke pytest capability via registry
+            # Task-scoped invocation parameters
+            params: dict[str, Any] = {"path": target_file}
+            if code:
+                params["code"] = code
+            if "instruction" in task_payload:
+                params["instruction"] = task_payload["instruction"]
+
             request = CapabilityRequest(
-                capability_name="pytest",
+                capability_name=capability_name,
                 requester_role="host2",
-                parameters={"path": "."},
+                parameters=params,
             )
             handle: CapabilityHandle = await self.capability_registry.invoke(request)
 
@@ -95,3 +120,4 @@ class Host2CapabilityManager:
             "escalation_packet": escalation_packet.model_dump(),
             "escalated": True,
         }
+
