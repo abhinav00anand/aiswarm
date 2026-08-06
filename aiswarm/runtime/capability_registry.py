@@ -32,6 +32,9 @@ class CapabilityRegistry:
         self.register("git", self._handle_git)
         self.register("python_exec", self._handle_python_exec)
         self.register("lightweight_execution", self._handle_lightweight_execution)
+        self.register("cpp_compile", self._handle_cpp_compile)
+        self.register("cpp_test", self._handle_cpp_test)
+        self.register("custom_test", self._handle_custom_test)
 
     def register(self, name: str, handler: Callable[[dict[str, Any]], Any]) -> None:
         """Register a new capability handler."""
