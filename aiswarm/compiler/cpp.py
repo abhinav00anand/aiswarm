@@ -40,7 +40,13 @@ class CppCompiler:
         extra_flags: list[str] | None = None,
     ) -> dict[str, Any]:
         """Compile C++ source files into an executable binary using sandbox."""
-        cmd = [self.compiler_path, f"-std={std_version}"] + source_files + ["-o", output_binary]
+        if self.compiler_path == "cl":
+            # Translate standard to MSVC syntax, e.g. c++17 -> /std:c++17
+            std_flag = f"/std:{std_version}"
+            cmd = [self.compiler_path, "/EHsc", std_flag] + source_files + [f"/Fe:{output_binary}"]
+        else:
+            cmd = [self.compiler_path, f"-std={std_version}"] + source_files + ["-o", output_binary]
+
         if extra_flags:
             cmd.extend(extra_flags)
 
