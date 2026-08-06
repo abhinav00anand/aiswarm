@@ -109,12 +109,16 @@ class ContextSelectorAgent(BaseAgent):
         return context_files
 
     def _list_available_files(self) -> list[str]:
-        """Walk the repo and return relative paths of source files."""
-        extensions = {".py", ".ts", ".js", ".cpp", ".rs", ".h", ".hpp", ".md"}
+        """Walk the repo and return relative paths of source and configuration files."""
+        extensions = {
+            ".py", ".ts", ".js", ".cpp", ".c", ".rs", ".go", ".java", ".h", ".hpp", ".md",
+            ".yaml", ".yml", ".json", ".toml", ".env", ".ini", ".xml", ".cfg", ".txt", ".sh", ".ps1"
+        }
         skip_dirs = {
             ".git", "__pycache__", "node_modules", ".venv", "venv",
             "dist", "build", ".mypy_cache", ".ruff_cache",
         }
+
         files: list[str] = []
         for path in self._repo_root.rglob("*"):
             if any(part in skip_dirs for part in path.parts):
