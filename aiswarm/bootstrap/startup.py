@@ -248,6 +248,9 @@ def build_orchestrator(
     if hasattr(orchestrator, "set_task_store"):
         orchestrator.set_task_store(task_store)
 
+    from aiswarm.core.merge_controller import MergeController
+    merge_controller = MergeController(repo_root=repo_root)
+
     orchestrator.register_agent("boss", boss)
     orchestrator.register_agent("manager", manager)
     orchestrator.register_agent("planner", planner)
@@ -269,6 +272,7 @@ def build_orchestrator(
     orchestrator.register_agent("governor", governor)
     orchestrator.register_agent("self_healing", self_healing)
     orchestrator.register_agent("confidence_engine", confidence_engine)
+    orchestrator.register_agent("merge_controller", merge_controller)
 
     # ── Lifecycle ─────────────────────────────────────────────────────────────
     lifecycle = LifecycleManager()
