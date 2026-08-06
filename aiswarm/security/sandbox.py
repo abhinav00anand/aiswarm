@@ -32,6 +32,10 @@ _DEFAULT_ALLOWLIST = {
     "cargo",
     "g++",
     "gcc",
+    "clang++",
+    "cl",
+    "main",
+    "host2_engine",
     "node",
     "npm",
 }
