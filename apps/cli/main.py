@@ -54,9 +54,19 @@ def run(
     max_retries: int = typer.Option(5, "--retries", help="Max retry attempts"),
     wait: bool = typer.Option(True, "--wait/--no-wait", help="Wait for completion"),
     api_key: str | None = typer.Option(None, "--api-key", "-k", help="AISwarm or Provider API Key"),
+    adapter_url: str | None = typer.Option(None, "--adapter-url", help="OpenAI-compatible adapter URL"),
+    no_ollama: bool = typer.Option(False, "--no-ollama", help="Disable Ollama auto-provisioning"),
+    notebook: bool = typer.Option(False, "--notebook", help="Run in lightweight notebook mode"),
 ) -> None:
     """Submit a task and optionally wait for it to complete."""
     _load_env()
+    if adapter_url:
+        os.environ["OPENAI_API_ADAPTER_URL"] = adapter_url
+    if no_ollama:
+        os.environ["AISWARM_NO_OLLAMA"] = "1"
+    if notebook:
+        os.environ["AISWARM_NOTEBOOK_MODE"] = "1"
+
     APIKeyValidator.enforce_startup_auth(api_key)
     asyncio.run(_run_task(
         title=title,
@@ -183,7 +193,7 @@ def providers() -> None:
     table = Table(title="LLM Providers")
     table.add_column("Provider", style="cyan")
     table.add_column("Status", justify="center")
-    for name in ["novita", "openai", "anthropic", "gemini", "deepseek", "bedrock", "local"]:
+    for name in ["novita", "openai", "anthropic", "gemini", "deepseek", "bedrock", "local", "adapter"]:
         status = "[green]✓ Available[/green]" if name in available else "[red]✗ Not configured[/red]"
         table.add_row(name, status)
     console.print(table)
