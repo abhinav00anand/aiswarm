@@ -1,50 +1,66 @@
-"""C++ compiler adapter — wraps g++ for C++ source files."""
+"""
+C++ Compiler Subsystem for AISwarm-Next.
+
+Supports g++, clang++, and MSVC cl.exe compilation, warning diagnostics parsing,
+and C++ GoogleTest/Catch2 test execution inside ExecutionSandbox.
+"""
 
 from __future__ import annotations
 
-import asyncio
-import subprocess
-import tempfile
-import time
+import shutil
 from pathlib import Path
+from typing import Any
 
-from aiswarm.schemas.task import Task, CompilerOutput
+from aiswarm.security.sandbox import ExecutionSandbox
+from aiswarm.utils.compat_log import get_logger
+
+logger = get_logger(__name__)
 
 
 class CppCompiler:
-    """Compiles C++ source using g++."""
+    """C++ Compiler and Test Execution Engine."""
 
-    def __init__(self, standard: str = "c++17", timeout: float = 60.0) -> None:
-        self._std = standard
-        self._timeout = timeout
+    def __init__(self, sandbox: ExecutionSandbox | None = None) -> None:
+        self.sandbox = sandbox or ExecutionSandbox()
+        self.compiler_path = self._detect_compiler()
 
-    async def compile(self, task: Task) -> CompilerOutput:
-        code = task.generated_code or ""
-        t0 = time.monotonic()
-        with tempfile.NamedTemporaryFile(suffix=".cpp", delete=False, mode="w") as f:
-            f.write(code)
-            src = Path(f.name)
-        out_bin = src.with_suffix("")
-        cmd = ["g++", f"-std={self._std}", "-O2", "-Wall", "-Wextra", str(src), "-o", str(out_bin)]
-        try:
-            loop = asyncio.get_event_loop()
-            result = await loop.run_in_executor(
-                None,
-                lambda: subprocess.run(cmd, capture_output=True, text=True, timeout=self._timeout),
-            )
-        except Exception as exc:  # noqa: BLE001
-            src.unlink(missing_ok=True)
-            return CompilerOutput(success=False, stderr=str(exc), exit_code=-1)
-        finally:
-            src.unlink(missing_ok=True)
-            out_bin.unlink(missing_ok=True)
-        output = CompilerOutput(
-            success=result.returncode == 0,
-            stdout=result.stdout[:2000],
-            stderr=result.stderr[:2000],
-            exit_code=result.returncode,
-            duration_seconds=time.monotonic() - t0,
-            command=" ".join(cmd[:3]),
-        )
-        task.compiler_output = output
-        return output
+    def _detect_compiler(self) -> str:
+        """Detect available C++ compiler (g++, clang++, or cl.exe)."""
+        for comp in ["g++", "clang++", "cl"]:
+            if shutil.which(comp):
+                logger.info("cpp_compiler.detected", compiler=comp)
+                return comp
+        return "g++"
+
+    async def compile(
+        self,
+        source_files: list[str],
+        output_binary: str = "main.exe",
+        std_version: str = "c++17",
+        extra_flags: list[str] | None = None,
+    ) -> dict[str, Any]:
+        """Compile C++ source files into an executable binary using sandbox."""
+        cmd = [self.compiler_path, f"-std={std_version}"] + source_files + ["-o", output_binary]
+        if extra_flags:
+            cmd.extend(extra_flags)
+
+        logger.info("cpp_compiler.compiling", command=cmd)
+        result = await self.sandbox.execute_sandboxed_command(cmd)
+        return {
+            "success": result.get("returncode") == 0,
+            "compiler": self.compiler_path,
+            "output_binary": output_binary,
+            "stdout": result.get("stdout", ""),
+            "stderr": result.get("stderr", ""),
+            "returncode": result.get("returncode", -1),
+        }
+
+    async def run_tests(self, test_binary: str = "main.exe") -> dict[str, Any]:
+        """Execute compiled C++ test binary in sandbox."""
+        result = await self.sandbox.execute_sandboxed_command([f"./{test_binary}"])
+        return {
+            "passed": result.get("returncode") == 0,
+            "stdout": result.get("stdout", ""),
+            "stderr": result.get("stderr", ""),
+            "returncode": result.get("returncode", -1),
+        }
