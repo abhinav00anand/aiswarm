@@ -112,13 +112,19 @@ def build_orchestrator(
     def _model(role: str, default: str) -> str:
         return agents_cfg.get(role, {}).get("model", default)
 
+    def _pref(role: str) -> list[str]:
+        return agents_cfg.get(role, {}).get("provider_preference", ["novita", "openai", "anthropic"])
+
     # ── Host-2 Capability Manager & Security Governance ─────────────────────
     from aiswarm.agents.host2.manager import Host2CapabilityManager
     from aiswarm.runtime.capability_registry import CapabilityRegistry
     from aiswarm.security.governor import EngineeringGovernor
 
     capability_registry = CapabilityRegistry()
-    governor = EngineeringGovernor(cost_guard=cost_guard)
+    governor = EngineeringGovernor(
+        max_daily_budget_usd=float(os.getenv("MAX_DAILY_SPEND_USD", "100.0")),
+        max_session_budget_usd=float(os.getenv("MAX_SESSION_SPEND_USD", "10.0")),
+    )
     host2_manager = Host2CapabilityManager(
         capability_registry=capability_registry,
         governor=governor,
@@ -222,20 +228,13 @@ def build_orchestrator(
 
     # ── Enterprise Subsystems — created BEFORE Orchestrator so they can be injected ──
     from aiswarm.agents.host1.router import Host1Router
-    from aiswarm.agents.host2.manager import Host2CapabilityManager
-    from aiswarm.security.governor import EngineeringGovernor
     from aiswarm.core.self_healing import SelfHealingEngine
     from aiswarm.core.confidence_engine import ConfidenceEngine
 
     host1_router = Host1Router()
-    host2_manager = Host2CapabilityManager()
-    governor = EngineeringGovernor(
-        max_daily_budget_usd=float(os.getenv("MAX_DAILY_SPEND_USD", "100.0")),
-        max_session_budget_usd=float(os.getenv("MAX_SESSION_SPEND_USD", "10.0")),
-    )
-    cost_guard._governor = governor
+    # NOTE: governor, capability_registry and host2_manager are already created above.
+    # Do NOT create a second instance here — reuse the configured shared objects.
     self_healing = SelfHealingEngine()
-
     confidence_engine = ConfidenceEngine()
 
     # ── Orchestrator — receives host1_router + governor for routing integration ──
