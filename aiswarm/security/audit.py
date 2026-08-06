@@ -84,11 +84,17 @@ class AuditLedger:
         task_id: str | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> AuditEvent:
-        # Accept both string and EventType enum
+        # Accept both string and EventType enum — store as string to avoid ValueError on unknown types
         if isinstance(event_type, str):
-            event_type = EventType(event_type)
+            # Try to coerce to enum for validation; fall back to raw string for custom event types
+            try:
+                event_type_str = EventType(event_type).value
+            except ValueError:
+                event_type_str = event_type  # Accept custom event type strings
+        else:
+            event_type_str = event_type.value
         event = AuditEvent(
-            event_type=event_type,
+            event_type=event_type_str,
             actor=actor,
             action=action,
             outcome=outcome,
@@ -106,7 +112,7 @@ class AuditLedger:
                     logger.warning("audit.write_error", error=str(exc))
             logger.info(
                 "audit.recorded",
-                event_type=event.event_type.value,
+                event_type=event.event_type,
                 actor=event.actor,
                 action=event.action,
                 outcome=event.outcome,
@@ -150,7 +156,8 @@ class AuditLedger:
 
         counts: dict[str, int] = {}
         for event in events:
-            counts[event.event_type.value] = counts.get(event.event_type.value, 0) + 1
+            key = event.event_type if isinstance(event.event_type, str) else event.event_type.value
+            counts[key] = counts.get(key, 0) + 1
         return counts
 
 
