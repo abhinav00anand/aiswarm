@@ -95,7 +95,11 @@ class BossAgent(BaseAgent):
 
     async def request_host2_capability(self, capability_name: str, parameters: dict[str, Any]) -> dict[str, Any]:
         """Request a specific capability from Host-2."""
-        request = CapabilityRequest(name=capability_name, parameters=parameters)
+        request = CapabilityRequest(
+            capability_name=capability_name,
+            requester_role="boss",
+            parameters=parameters,
+        )
         manager = Host2CapabilityManager()
         return await manager.execute_capability(request)
 
@@ -107,7 +111,15 @@ class BossAgent(BaseAgent):
         logger.info("boss.executing_hybrid", task_id=task.task_id)
         
         # 1. Decompose subtasks from task description
-        prompt = f"Decompose the following task into lightweight subtasks:\n{task.description}\nOutput JSON list of strings."
+        prompt = f"""
+Decompose the following task into lightweight subtasks for Host-2 execution:
+Task: {task.description}
+
+Output a JSON object with key "subtasks" as a list of subtask instruction strings:
+{{
+  "subtasks": ["subtask 1", "subtask 2"]
+}}
+"""
         messages = [
             LLMMessage(role="system", content=_SYSTEM_PROMPT),
             LLMMessage(role="user", content=prompt),
@@ -115,7 +127,13 @@ class BossAgent(BaseAgent):
         response = await self.call_llm(messages, task=task, temperature=0.1)
         
         try:
-            subtasks = json.loads(self._parse_response(response.content).get("directive", "[]"))
+            parsed = self._parse_response(response.content)
+            subtasks = parsed.get("subtasks") or parsed.get("directive")
+            if isinstance(subtasks, str):
+                try:
+                    subtasks = json.loads(subtasks)
+                except Exception:
+                    subtasks = [subtasks]
             if not isinstance(subtasks, list):
                 subtasks = [task.description]
         except Exception:
@@ -125,12 +143,11 @@ class BossAgent(BaseAgent):
         for i, subtask in enumerate(subtasks):
             # 2. Delegate to Host-2
             logger.info("boss.hybrid_delegate", subtask=subtask)
-            res = await self.request_host2_capability("lightweight_execution", {"instruction": subtask})
+            res = await self.request_host2_capability("lightweight_execution", {"instruction": str(subtask)})
             
             # 3. Handle EscalationPackets
-            if res.get("status") == "escalated":
+            if res.get("status") in ["ESCALATED", "escalated"]:
                 logger.warning("boss.hybrid_escalation", packet=res)
-                # Fallback to local handling or log
                 res["resolution"] = "Boss logged escalation"
                 
             results.append({"subtask": subtask, "result": res})
@@ -142,6 +159,7 @@ class BossAgent(BaseAgent):
             "subtasks_completed": len(results),
             "results": results
         }
+
 
     async def handle_deadlock(self, task: Task) -> dict[str, Any]:
         """
