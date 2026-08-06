@@ -31,6 +31,7 @@ class CapabilityRegistry:
         self.register("ruff", self._handle_ruff)
         self.register("git", self._handle_git)
         self.register("python_exec", self._handle_python_exec)
+        self.register("lightweight_execution", self._handle_lightweight_execution)
 
     def register(self, name: str, handler: Callable[[dict[str, Any]], Any]) -> None:
         """Register a new capability handler."""
@@ -67,6 +68,10 @@ class CapabilityRegistry:
                     status = "FAILED"
                 elif "exit_code" in result and result["exit_code"] != 0:
                     status = "FAILED"
+                elif result.get("success") is False or result.get("status") in ["FAILED", "ERROR"]:
+                    status = "FAILED"
+            elif result is False or result is None:
+                status = "FAILED"
 
             return CapabilityHandle(
                 request_id=request.request_id,
@@ -84,7 +89,6 @@ class CapabilityRegistry:
                 output=str(exc),
             )
 
-
     # Built-in capability handlers running via ExecutionSandbox
     async def _handle_pytest(self, params: dict[str, Any]) -> dict[str, Any]:
         test_path = params.get("path", ".")
@@ -101,3 +105,11 @@ class CapabilityRegistry:
     async def _handle_python_exec(self, params: dict[str, Any]) -> dict[str, Any]:
         script_path = params.get("script", "main.py")
         return await self.sandbox.execute_sandboxed_command(["python", str(script_path)])
+
+    async def _handle_lightweight_execution(self, params: dict[str, Any]) -> dict[str, Any]:
+        instruction = params.get("instruction", "echo 'lightweight_ok'")
+        code = params.get("code")
+        if code:
+            return await self.sandbox.execute_sandboxed_command(["python", "-c", code])
+        return await self.sandbox.execute_sandboxed_command(["python", "-c", f"print({instruction!r})"])
+
