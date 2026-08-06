@@ -60,12 +60,20 @@ class Host2CapabilityManager:
         task_id = task_payload.get("task_id", "fast_task")
         code = task_payload.get("code", "")
         target_file = task_payload.get("target_file") or task_payload.get("path", ".")
-        test_command = task_payload.get("test_command", "pytest")
-        capability_name = task_payload.get("capability_name", "pytest")
-        language = task_payload.get("language", "python")
+        language = (task_payload.get("language") or "python").lower()
+        test_command = task_payload.get("test_command")
+        capability_name = task_payload.get("capability_name")
         completed_steps = []
 
-        logger.info("host2.execute_start", task_id=task_id, language=language)
+        # Auto-detect C++ language tasks
+        if language in ["c++", "cpp"] or str(target_file).endswith((".cpp", ".hpp", ".cxx", ".cc")):
+            capability_name = capability_name or "cpp_compile"
+        elif test_command and test_command != "pytest":
+            capability_name = capability_name or "custom_test"
+        else:
+            capability_name = capability_name or "pytest"
+
+        logger.info("host2.execute_start", task_id=task_id, language=language, capability=capability_name)
 
         # Check governance spawn permissions
         self.governor.check_capability_spawn_policy(capability_name, "host2")
@@ -79,6 +87,8 @@ class Host2CapabilityManager:
             params: dict[str, Any] = {"path": target_file}
             if code:
                 params["code"] = code
+            if test_command:
+                params["test_command"] = test_command
             if "instruction" in task_payload:
                 params["instruction"] = task_payload["instruction"]
 
@@ -99,6 +109,7 @@ class Host2CapabilityManager:
                     "handle": handle.model_dump(),
                     "escalated": False,
                 }
+
 
             retry_count += 1
             completed_steps.append(f"Attempt {retry_count} failed: {handle.output}")
