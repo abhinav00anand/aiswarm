@@ -26,17 +26,19 @@ class EventType(str, Enum):
     POLICY_VIOLATION = "POLICY_VIOLATION"
     HITL_REQUEST = "HITL_REQUEST"
     KEY_VERIFICATION = "KEY_VERIFICATION"
+    DIRECT_MODEL_EXECUTION = "DIRECT_MODEL_EXECUTION"
 
 
 class AuditEvent(BaseModel):
     event_id: uuid.UUID = Field(default_factory=uuid.uuid4)
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    event_type: EventType
+    event_type: str = Field(...)
     actor: str
     task_id: str | None = None
     action: str
     outcome: str
     metadata: dict[str, Any] = Field(default_factory=dict)
+
 
 
 class AuditLedger:
