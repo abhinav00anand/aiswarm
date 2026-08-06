@@ -163,7 +163,11 @@ class PreCheckAgent(BaseAgent):
         end = text.rfind("}") + 1
         if start >= 0 and end > start:
             try:
-                return json.loads(text[start:end])
+                res = json.loads(text[start:end])
+                if isinstance(res, dict) and "passed" in res:
+                    return res
             except json.JSONDecodeError:
                 pass
-        return {"passed": True, "issues": []}
+        logger.warning("precheck.parse_malformed_failing_closed", content_snippet=content[:100])
+        return {"passed": False, "issues": ["Malformed precheck output from model — failing closed"], "severity": "BLOCK"}
+
