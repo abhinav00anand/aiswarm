@@ -98,8 +98,12 @@ class RAGRetriever:
         """Simple keyword search when semantic search is unavailable."""
         keywords = set(query.lower().split())
         results: list[dict[str, Any]] = []
-        extensions = {".py", ".ts", ".js", ".cpp", ".rs", ".h"}
+        extensions = {
+            ".py", ".ts", ".js", ".cpp", ".c", ".rs", ".go", ".java", ".h", ".hpp", ".md",
+            ".yaml", ".yml", ".json", ".toml", ".env", ".ini", ".xml", ".cfg", ".txt"
+        }
         skip = {".git", "__pycache__", "node_modules", ".venv", "dist", "build"}
+
 
         for path in self._root.rglob("*"):
             if any(p in skip for p in path.parts):
