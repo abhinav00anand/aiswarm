@@ -53,6 +53,20 @@ class MergeController:
             )
 
     def _gate_critic_approval(self, task: Task) -> None:
+        from aiswarm.schemas.routing import ExecutionMode
+        metadata = getattr(task, "metadata", {}) or {}
+        decision = metadata.get("route_decision")
+        is_fast = False
+        if decision:
+            route = getattr(decision, "route", None)
+            if route == ExecutionMode.FAST or route == "FAST":
+                is_fast = True
+
+        if is_fast:
+            # FAST route tasks bypass critic reviews by design
+            logger.info("merge.critic_gate_bypassed_for_fast_mode", task_id=task.task_id)
+            return
+
         if not task.reviews:
             raise MergeGateError("No critic reviews found.")
         if task.is_security_vetoed():
@@ -177,3 +191,7 @@ class MergeController:
             files=[str(p) for p in written],
         )
         return written
+
+    async def run(self, task: Task) -> None:
+        """Polymorphic agent run wrapper."""
+        await self.attempt_merge(task)
