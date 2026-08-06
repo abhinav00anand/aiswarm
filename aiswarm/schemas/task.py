@@ -237,11 +237,15 @@ class Task(BaseModel):
         self.state = new_state
 
     def is_approved(self) -> bool:
-        """Return True if majority of critics approved."""
+        """Return True if majority of critics approved with no security veto."""
         if not self.reviews:
             return False
+        if self.is_security_vetoed():
+            return False
         approvals = sum(1 for r in self.reviews if r.decision == ReviewDecision.APPROVE)
-        return approvals >= 2  # ≥2 out of 3
+        required_approvals = max(2, (len(self.reviews) + 1) // 2)
+        return approvals >= required_approvals
+
 
     def is_security_vetoed(self) -> bool:
         """Return True if the security critic issued a veto."""
