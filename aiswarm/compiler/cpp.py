@@ -57,7 +57,13 @@ class CppCompiler:
 
     async def run_tests(self, test_binary: str = "main.exe") -> dict[str, Any]:
         """Execute compiled C++ test binary in sandbox."""
-        result = await self.sandbox.execute_sandboxed_command([f"./{test_binary}"])
+        import sys
+        # On Windows use just the binary name; on Unix prefix with ./
+        if sys.platform == "win32":
+            binary_cmd = [test_binary]
+        else:
+            binary_cmd = [f"./{test_binary}"]
+        result = await self.sandbox.execute_sandboxed_command(binary_cmd)
         return {
             "passed": result.get("returncode") == 0,
             "stdout": result.get("stdout", ""),
