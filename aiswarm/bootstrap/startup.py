@@ -112,17 +112,27 @@ def build_orchestrator(
     def _model(role: str, default: str) -> str:
         return agents_cfg.get(role, {}).get("model", default)
 
-    def _pref(role: str) -> list[str]:
-        p = agents_cfg.get(role, {}).get("provider", "novita")
-        return [p, "openai", "anthropic", "deepseek"]
+    # ── Host-2 Capability Manager & Security Governance ─────────────────────
+    from aiswarm.agents.host2.manager import Host2CapabilityManager
+    from aiswarm.runtime.capability_registry import CapabilityRegistry
+    from aiswarm.security.governor import EngineeringGovernor
+
+    capability_registry = CapabilityRegistry()
+    governor = EngineeringGovernor(cost_guard=cost_guard)
+    host2_manager = Host2CapabilityManager(
+        capability_registry=capability_registry,
+        governor=governor,
+    )
 
     boss = BossAgent(
         router=router,
         model=_model("boss", "meta-llama/llama-3.1-70b-instruct"),
         provider_preference=_pref("boss"),
         repo_root=repo_root,
+        host2_manager=host2_manager,
         temperature=0.1,
     )
+
     manager = ManagerAgent(
         router=router,
         model=_model("manager", "meta-llama/llama-3.1-70b-instruct"),
