@@ -81,6 +81,38 @@ _PROVIDER_DEFAULT_MODELS: dict[str, str] = {
 }
 
 
+_ADAPTER_MODEL_CACHE: str | None = None
+
+
+def get_adapter_model() -> str:
+    """Retrieve the advertised model ID from the adapter's /v1/models endpoint."""
+    global _ADAPTER_MODEL_CACHE
+    if _ADAPTER_MODEL_CACHE is not None:
+        return _ADAPTER_MODEL_CACHE
+    
+    url = os.getenv("OPENAI_API_ADAPTER_URL")
+    if not url:
+        _ADAPTER_MODEL_CACHE = "adapter-default"
+        return _ADAPTER_MODEL_CACHE
+        
+    import urllib.request
+    import json
+    base_url = url.rstrip('/')
+    try:
+        req = urllib.request.Request(f"{base_url}/v1/models", method="GET")
+        with urllib.request.urlopen(req, timeout=3.0) as response:
+            if response.status == 200:
+                data = json.loads(response.read().decode("utf-8"))
+                if "data" in data and len(data["data"]) > 0:
+                    _ADAPTER_MODEL_CACHE = data["data"][0]["id"]
+                    return _ADAPTER_MODEL_CACHE
+    except Exception:
+        pass
+        
+    _ADAPTER_MODEL_CACHE = "adapter-default"
+    return _ADAPTER_MODEL_CACHE
+
+
 def _resolve_model(requested_model: str, provider_name: str) -> str | None:
     """
     Resolve the correct model ID for a given provider.
@@ -88,6 +120,12 @@ def _resolve_model(requested_model: str, provider_name: str) -> str | None:
     - For "novita": use the requested model ID directly.
     - For other providers: check explicit mapping, native model set, or fallback default.
     """
+    if provider_name == "adapter":
+        adv = get_adapter_model()
+        if adv and adv != "adapter-default":
+            return adv
+        return requested_model
+
     if provider_name == "novita":
         return requested_model
 
@@ -136,7 +174,7 @@ def _build_providers() -> dict[str, BaseLLMAdapter]:
     novita_key = os.getenv("NOVITA_API_KEY") or os.getenv("NOVITA_TOKEN", "")
     novita_base = os.getenv("NOVITA_BASE_URL", "https://api.novita.ai/v3/openai")
 
-    return {
+    providers = {
         "novita": OpenAIAdapter(
             api_key=novita_key,
             base_url=novita_base,
@@ -145,6 +183,7 @@ def _build_providers() -> dict[str, BaseLLMAdapter]:
         ),
         "openai": OpenAIAdapter(
             api_key=os.getenv("OPENAI_API_KEY", ""),
+            base_url=os.getenv("OPENAI_API_BASE"),
             provider_name="openai",
         ),
         "anthropic": AnthropicAdapter(
@@ -159,6 +198,17 @@ def _build_providers() -> dict[str, BaseLLMAdapter]:
         "bedrock": BedrockAdapter(),
         "local": LocalModelAdapter(),
     }
+
+    adapter_url = os.getenv("OPENAI_API_ADAPTER_URL")
+    if adapter_url:
+        providers["adapter"] = OpenAIAdapter(
+            api_key=os.getenv("OPENAI_API_KEY", "dummy"),
+            base_url=adapter_url,
+            provider_name="adapter",
+            cost_table={},
+        )
+
+    return providers
 
 
 class ProviderRouter:
@@ -217,10 +267,14 @@ class ProviderRouter:
             RuntimeError: When all providers fail.
         """
         order = list(provider_preference) if provider_preference else ["novita", "openai", "anthropic", "deepseek", "local"]
+        if os.getenv("OPENAI_API_ADAPTER_URL") and "adapter" not in order:
+            order = ["adapter"] + order
         if "local" not in order:
             order.append("local")
 
         last_exc: Exception | None = None
+        is_notebook = os.getenv("AISWARM_NOTEBOOK_MODE") in ("1", "true", "True")
+
         for provider_name in order:
             provider = self._providers.get(provider_name)
             if provider is None:
@@ -247,13 +301,21 @@ class ProviderRouter:
                     temperature=temperature,
                 )
 
+                # Cap tokens if using adapter or in notebook mode
+                target_max_tokens = max_tokens
+                if provider_name == "adapter" or is_notebook:
+                    if target_max_tokens > 1024:
+                        target_max_tokens = 1024
+                    if "do_sample" not in kwargs:
+                        kwargs["do_sample"] = False
+
                 # ── Rate limit: acquire slot before calling provider ───────
                 async with self._rate_limiter.acquire(provider_name):
                     response = await provider.chat(
                         messages=messages,
                         model=resolved_model,
                         temperature=temperature,
-                        max_tokens=max_tokens,
+                        max_tokens=target_max_tokens,
                         **kwargs,
                     )
 
