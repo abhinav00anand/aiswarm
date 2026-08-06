@@ -52,6 +52,57 @@ class Host2CapabilityManager:
             "handle": handle.model_dump(),
         }
 
+    async def run_native_cpp_engine(self, capability: str, path: str, request_id: str = "cpp_req") -> dict[str, Any]:
+        """
+        Runs the native C++ Host-2 execution engine for the given capability and path.
+        """
+        import sys
+        import shutil
+        from pathlib import Path
+
+        cpp_src = Path(r"C:\Users\lenovo\.gemini\antigravity\scratch\aiswarm\aiswarm\host2_cpp\host2_engine.cpp")
+        bin_name = "host2_engine.exe" if sys.platform == "win32" else "host2_engine"
+        bin_path = cpp_src.parent / bin_name
+
+        # Compile if not present
+        if not bin_path.exists():
+            compiler = "g++"
+            if shutil.which("clang++"):
+                compiler = "clang++"
+            elif shutil.which("cl"):
+                compiler = "cl"
+
+            if compiler == "cl":
+                cmd = ["cl", "/EHsc", str(cpp_src), f"/Fe:{bin_path}"]
+            else:
+                cmd = [compiler, "-std=c++17", str(cpp_src), "-o", str(bin_path)]
+
+            logger.info("host2.compile_native_engine", command=cmd)
+            proc = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            stdout, stderr = await proc.communicate()
+            if proc.returncode != 0:
+                logger.error("host2.compile_native_engine_failed", stderr=stderr.decode())
+                raise RuntimeError(f"Failed to compile native C++ Host-2 engine: {stderr.decode()}")
+
+        # Execute the native engine in the sandbox
+        cmd = [str(bin_path), "--capability", capability, "--path", path, "--request-id", request_id]
+        logger.info("host2.run_native_engine", command=cmd)
+
+        # Run via sandbox
+        result = await self.capability_registry.sandbox.execute_sandboxed_command(cmd)
+        if result.get("returncode") == 0:
+            import json
+            try:
+                # The stdout contains JSON from the C++ engine
+                return json.loads(result.get("stdout", "{}").strip())
+            except Exception:
+                pass
+        return result
+
     async def execute_fast_task(self, task_payload: dict[str, Any]) -> dict[str, Any]:
         """
         Execute a fast-mode task using optimal capabilities.
@@ -66,7 +117,8 @@ class Host2CapabilityManager:
         completed_steps = []
 
         # Auto-detect C++ language tasks
-        if language in ["c++", "cpp"] or str(target_file).endswith((".cpp", ".hpp", ".cxx", ".cc")):
+        is_cpp = language in ["c++", "cpp"] or str(target_file).endswith((".cpp", ".hpp", ".cxx", ".cc"))
+        if is_cpp:
             capability_name = capability_name or "cpp_compile"
         elif test_command and test_command != "pytest":
             capability_name = capability_name or "custom_test"
@@ -77,6 +129,15 @@ class Host2CapabilityManager:
 
         # Check governance spawn permissions
         self.governor.check_capability_spawn_policy(capability_name, "host2")
+
+        if is_cpp:
+            try:
+                native_res = await self.run_native_cpp_engine(capability_name, target_file, request_id=task_id)
+                if native_res.get("status") == "SUCCESS":
+                    completed_steps.append(f"C++ Native Host-2 Engine executed successfully: {native_res}")
+            except Exception as e:
+                logger.warning("host2.native_cpp_engine_failed", task_id=task_id, error=str(e))
+                completed_steps.append(f"C++ Native Host-2 Engine execution failed: {e}")
 
         # Step 1: Run code/test capability in sandbox
         retry_count = 0
