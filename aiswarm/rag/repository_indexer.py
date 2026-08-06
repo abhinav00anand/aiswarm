@@ -23,7 +23,11 @@ _SKIP_DIRS = {
     ".git", "__pycache__", "node_modules", ".venv", "venv",
     "dist", "build", ".mypy_cache", ".ruff_cache", "storage",
 }
-_SOURCE_EXTENSIONS = {".py", ".ts", ".js", ".cpp", ".rs", ".h", ".hpp"}
+_SOURCE_EXTENSIONS = {
+    ".py", ".ts", ".js", ".cpp", ".c", ".rs", ".go", ".java", ".h", ".hpp", ".md",
+    ".yaml", ".yml", ".json", ".toml", ".env", ".ini", ".xml", ".cfg", ".txt"
+}
+
 
 
 class RepositoryIndexer:
