@@ -123,10 +123,13 @@ class StateMachine:
 
     @staticmethod
     def is_terminal(state: TaskState) -> bool:
+        """Return True if the state is a terminal (non-retryable) state."""
         return state in {
             TaskState.MERGED,
             TaskState.REJECTED,
             TaskState.CANCELLED,
+            TaskState.DEADLOCK,
+            TaskState.ESCALATED,
         }
 
     @staticmethod
