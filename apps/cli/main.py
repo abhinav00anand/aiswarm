@@ -241,5 +241,24 @@ async def _index_repo(root: str) -> None:
     console.print(f"[green]✓ Indexed {count} source files into RAG store.[/green]")
 
 
+@app.command()
+def direct(
+    prompt: str = typer.Argument(..., help="Prompt to execute directly with model"),
+    model: str = typer.Option("gpt-4o", "--model", "-m", help="LLM model (e.g. gpt-4o, claude-3-5-sonnet)"),
+    temperature: float = typer.Option(0.7, "--temp", "-t", help="Temperature (0.0 - 1.0)"),
+) -> None:
+    """Directly execute a prompt through an LLM model with AISwarm security and audit coordination."""
+    _load_env()
+    from aiswarm.llm.direct_runner import DirectModelCoordinator
+    coord = DirectModelCoordinator()
+    res = asyncio.run(coord.run_direct(prompt=prompt, model=model, temperature=temperature))
+    if res.get("status") == "SUCCESS":
+        console.print(Panel(res.get("content", ""), title=f"[bold green]Direct Model Output ({model})[/bold green]"))
+        console.print(f"[dim]Cost: ${res.get('usage', {}).get('cost_usd', 0.0):.4f} | Duration: {res.get('duration_seconds')}s[/dim]")
+    else:
+        console.print(f"[bold red]Direct Model Failed:[/bold red] {res.get('error')}")
+
+
 if __name__ == "__main__":
     app()
+
