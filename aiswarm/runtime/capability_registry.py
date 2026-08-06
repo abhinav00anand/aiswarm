@@ -92,6 +92,11 @@ class CapabilityRegistry:
     # Built-in capability handlers running via ExecutionSandbox
     async def _handle_pytest(self, params: dict[str, Any]) -> dict[str, Any]:
         test_path = params.get("path", ".")
+        test_cmd = params.get("test_command")
+        if test_cmd and isinstance(test_cmd, list):
+            return await self.sandbox.execute_sandboxed_command(test_cmd)
+        elif test_cmd and isinstance(test_cmd, str):
+            return await self.sandbox.execute_sandboxed_command([test_cmd, str(test_path)])
         return await self.sandbox.execute_sandboxed_command(["pytest", str(test_path)])
 
     async def _handle_ruff(self, params: dict[str, Any]) -> dict[str, Any]:
@@ -113,3 +118,21 @@ class CapabilityRegistry:
             return await self.sandbox.execute_sandboxed_command(["python", "-c", code])
         return await self.sandbox.execute_sandboxed_command(["python", "-c", f"print({instruction!r})"])
 
+    async def _handle_cpp_compile(self, params: dict[str, Any]) -> dict[str, Any]:
+        from aiswarm.compiler.cpp import CppCompiler
+        compiler = CppCompiler(sandbox=self.sandbox)
+        source_files = params.get("source_files") or [params.get("path", "main.cpp")]
+        out_bin = params.get("output_binary", "main.exe")
+        return await compiler.compile(source_files=source_files, output_binary=out_bin)
+
+    async def _handle_cpp_test(self, params: dict[str, Any]) -> dict[str, Any]:
+        from aiswarm.compiler.cpp import CppCompiler
+        compiler = CppCompiler(sandbox=self.sandbox)
+        out_bin = params.get("output_binary", "main.exe")
+        return await compiler.run_tests(test_binary=out_bin)
+
+    async def _handle_custom_test(self, params: dict[str, Any]) -> dict[str, Any]:
+        test_cmd = params.get("test_command") or params.get("command") or ["pytest"]
+        if isinstance(test_cmd, str):
+            test_cmd = test_cmd.split()
+        return await self.sandbox.execute_sandboxed_command(test_cmd)
