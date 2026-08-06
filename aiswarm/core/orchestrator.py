@@ -203,16 +203,21 @@ class Orchestrator:
                 logger.error("orchestrator.execute_error", task_id=task.task_id, error=str(exc))
             finally:
                 save_task(task)
-                event_type = (
-                    EventType.TASK_COMPLETED if task.state == TaskState.MERGED
-                    else EventType.TASK_FAILED
-                )
+                state_event_map = {
+                    TaskState.MERGED: EventType.TASK_COMPLETED,
+                    TaskState.REJECTED: EventType.TASK_REJECTED,
+                    TaskState.DEADLOCK: EventType.TASK_DEADLOCK,
+                    TaskState.ESCALATED: EventType.TASK_ESCALATED,
+                    TaskState.CANCELLED: EventType.TASK_CANCELLED,
+                }
+                event_type = state_event_map.get(task.state, EventType.TASK_FAILED)
                 await self._bus.publish(Event(
                     event_type=event_type,
                     source="orchestrator",
                     task_id=task.task_id,
                     payload={"final_state": task.state.value},
                 ))
+
 
     async def get_task(self, task_id: str) -> Task | None:
         return self._tasks.get(task_id)
