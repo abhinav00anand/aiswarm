@@ -55,7 +55,7 @@ class WorkflowEngine:
             if route == ExecutionMode.FAST:
                 logger.info("workflow.route_fast", task_id=task.task_id)
                 from aiswarm.agents.host2.manager import Host2CapabilityManager
-                mgr = Host2CapabilityManager()
+                mgr = self._orc.get_agent("host2") or Host2CapabilityManager()
                 fast_payload = {
                     "task_id": task.task_id,
                     "code": getattr(task, "generated_code", "") or "",
@@ -72,19 +72,21 @@ class WorkflowEngine:
                     # Execute compile & test validation before merge evaluation
                     await self._stage_compile(task)
                     await self._stage_test(task)
-                    if hasattr(self._orc, "merge_controller") and self._orc.merge_controller is not None:
-                        can_merge, merge_reason = self._orc.merge_controller.evaluate_merge(task)
-                        if not can_merge:
-                            logger.warning("workflow.fast_quality_gate_failed", task_id=task.task_id, reason=merge_reason)
-                            route = ExecutionMode.PRODUCTION
-                        else:
-                            task.transition(TaskState.MERGED, reason="Fast route complete & quality gate passed", agent="workflow_engine")
-                            task.completed_at = datetime.now(timezone.utc)
-                            return task
-                    else:
-                        task.transition(TaskState.MERGED, reason="Fast route complete", agent="workflow_engine")
-                        task.completed_at = datetime.now(timezone.utc)
+
+                    try:
+                        merge_ctrl = self._orc.get_agent("merge_controller")
+                        if not merge_ctrl:
+                            from aiswarm.core.merge_controller import MergeController
+                            boss = self._orc.get_agent("boss")
+                            repo_root = getattr(boss, "_repo_root", ".") if boss else "."
+                            merge_ctrl = MergeController(repo_root=repo_root)
+
+                        # This will run gates and write files to disk
+                        await merge_ctrl.attempt_merge(task)
                         return task
+                    except Exception as merge_exc:
+                        logger.warning("workflow.fast_quality_gate_failed", task_id=task.task_id, reason=str(merge_exc))
+                        route = ExecutionMode.PRODUCTION
 
 
 
@@ -109,25 +111,36 @@ class WorkflowEngine:
                     # Stage 4: Pre-check (syntax, basic sanity)
                     if not await self._stage_precheck(task):
                         task.retry_count += 1
+                        self._retry.record_failure(task.task_id, "Pre-check failed")
+                        await self._retry.wait(task.task_id)
                         continue
                     # Stage 5: Critic review
                     if not await self._stage_review(task):
                         task.retry_count += 1
+                        self._retry.record_failure(task.task_id, "Critic review failed")
+                        await self._retry.wait(task.task_id)
                         continue
                     # Stage 6: Compile
                     if not await self._stage_compile(task):
                         task.retry_count += 1
+                        self._retry.record_failure(task.task_id, "Compilation failed")
+                        await self._retry.wait(task.task_id)
                         continue
                     # Stage 7: Test
                     if not await self._stage_test(task):
                         task.retry_count += 1
+                        self._retry.record_failure(task.task_id, "Testing failed")
+                        await self._retry.wait(task.task_id)
                         continue
                     # Stage 8: Benchmark
                     if not await self._stage_benchmark(task):
                         task.retry_count += 1
+                        self._retry.record_failure(task.task_id, "Benchmarking failed")
+                        await self._retry.wait(task.task_id)
                         continue
                     # Stage 9: Merge
                     await self._stage_merge(task)
+                    self._retry.mark_success(task.task_id)
                     break
 
                 except RetryExhausted as exc:
