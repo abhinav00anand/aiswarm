@@ -27,7 +27,7 @@ from aiswarm.schemas.task import Task
 logger = structlog.get_logger(__name__)
 
 _SYSTEM_PROMPT = """\
-You are the Coder Agent of Blynx.
+You are the Coder Agent of Zymis.
 
 You write high-quality, robust code. Every line you produce must satisfy:
 ✓ Correct — mathematically and logically accurate
