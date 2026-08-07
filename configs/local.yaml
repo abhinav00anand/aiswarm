@@ -1,0 +1,29 @@
+# AISwarm Local-First Configuration Profile
+aiswarm:
+  version: "1.2.0"
+  environment: local
+
+orchestrator:
+  max_concurrent_tasks: 2
+  task_timeout_seconds: 300
+  checkpoint_dir: "~/.aiswarm/checkpoints"
+  enable_fast_path: true
+  enable_parallel_critics: true
+
+llm:
+  default_provider: "local"
+  local_model_url: "http://localhost:11434/v1"
+  no_ollama: false
+  local_first: true
+  
+  # Agents configured for local models
+  boss_model: "llama3.1:8b"
+  manager_model: "llama3.2:3b"
+  planner_model: "llama3.2:3b"
+  coder_model: "llama3.1:8b"
+  critic_model: "llama3.2:3b"
+
+security:
+  sandbox_enabled: true
+  audit_ledger_path: "~/.aiswarm/audit.jsonl"
+  secret_scrubbing: true
