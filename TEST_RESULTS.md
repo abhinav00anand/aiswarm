@@ -1,4 +1,4 @@
-# Blynx — Verified Test Results & Benchmark Report
+# Zymis — Verified Test Results & Benchmark Report
 
 Generated: August 5, 2026 | Python 3.14 | pytest 9.1.1
 
