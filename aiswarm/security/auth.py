@@ -18,7 +18,7 @@ logger = get_logger(__name__)
 
 # Known environment variables that provide valid API keys
 _SUPPORTED_KEY_ENVS = [
-    "BLYNX_API_KEY",
+    "ZYMIS_API_KEY",
     "OPENAI_API_KEY",
     "ANTHROPIC_API_KEY",
     "GOOGLE_API_KEY",
@@ -100,7 +100,7 @@ class APIKeyValidator:
         openai_key = os.environ.get("OPENAI_API_KEY", "").strip()
         openai_base = os.environ.get("OPENAI_API_BASE", "").strip()
         adapter_url = os.environ.get("OPENAI_API_ADAPTER_URL", "").strip()
-        no_ollama = os.environ.get("BLYNX_NO_OLLAMA", "").strip() in ("1", "true", "True")
+        no_ollama = os.environ.get("ZYMIS_NO_OLLAMA", "").strip() in ("1", "true", "True")
 
         # 1. If OPENAI_API_BASE + OPENAI_API_KEY set -> use cloud provider
         if openai_key and openai_base:
@@ -139,21 +139,21 @@ class APIKeyValidator:
                 logger.warning("auth.ollama_auto_provision_failed", error=str(exc))
 
         # 4. Check for deferred / offline local mode
-        deferred_mode = os.environ.get("BLYNX_DEFERRED_INIT", "").strip() in ("1", "true", "True") or \
-                        os.environ.get("BLYNX_LOCAL_MODE", "").strip() in ("1", "true", "True") or \
-                        os.environ.get("BLYNX_ALLOW_OFFLINE", "").strip() in ("1", "true", "True")
+        deferred_mode = os.environ.get("ZYMIS_DEFERRED_INIT", "").strip() in ("1", "true", "True") or \
+                        os.environ.get("ZYMIS_LOCAL_MODE", "").strip() in ("1", "true", "True") or \
+                        os.environ.get("ZYMIS_ALLOW_OFFLINE", "").strip() in ("1", "true", "True")
         if deferred_mode:
             logger.info("auth.deferred_offline_mode_active")
             return True
 
         msg = (
-            "CRITICAL SECURITY ERROR: Blynx requires a valid API key, adapter, or active local Ollama setup to start.\n"
+            "CRITICAL SECURITY ERROR: Zymis requires a valid API key, adapter, or active local Ollama setup to start.\n"
             "No API key/adapter was detected or successfully validated, and local Ollama fallback is unavailable or failed.\n\n"
             "Please configure one of the following:\n"
             "  - OPENAI_API_ADAPTER_URL (or pass --adapter-url)\n"
             "  - OPENAI_API_KEY and OPENAI_API_BASE\n"
             "  - Other cloud API keys (OPENAI_API_KEY, ANTHROPIC_API_KEY, etc.)\n"
-            "  - Or ensure local Ollama is running and BLYNX_NO_OLLAMA is not set."
+            "  - Or ensure local Ollama is running and ZYMIS_NO_OLLAMA is not set."
         )
         logger.error("auth.api_key_and_ollama_missing")
         raise SecurityAuthError(msg)
@@ -165,6 +165,6 @@ class APIKeyValidator:
             cls.verify_api_keys(explicit_key)
         except SecurityAuthError as exc:
             logger.critical("auth.startup_failed", error=str(exc))
-            print(f"\n[BLYNX SECURITY FAULT] {exc}\n", file=sys.stderr)
+            print(f"\n[ZYMIS SECURITY FAULT] {exc}\n", file=sys.stderr)
             sys.exit(1)
 
