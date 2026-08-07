@@ -72,7 +72,12 @@ _KNOWN_PROVIDER_MODELS: dict[str, set[str]] = {
     "anthropic": {"claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022", "claude-3-opus-20240229", "claude-3-sonnet-20240229", "claude-3-haiku-20240307"},
     "gemini": {"gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"},
     "deepseek": {"deepseek-chat", "deepseek-reasoner"},
-    "local": {"llama3.1:8b", "llama3.2:3b", "llama3.2:1b", "llama3.1:70b", "llama3", "llama3:70b", "mistral", "qwen", "distilgpt2"},
+    "local": {
+        "llama3.1:8b", "llama3.2:3b", "llama3.2:1b", "llama3.1:70b", "llama3.1:latest",
+        "llama3.2:latest", "llama3:latest", "llama3", "llama3:70b", "codestral:latest",
+        "codestral", "mistral", "mistral:latest", "qwen", "qwen:latest", "phi3:latest",
+        "gemma2:latest", "distilgpt2"
+    },
 }
 
 _PROVIDER_DEFAULT_MODELS: dict[str, str] = {
