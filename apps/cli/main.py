@@ -30,7 +30,7 @@ from aiswarm.security.audit import get_audit_ledger
 
 app = typer.Typer(
     name="aiswarm",
-    help="AISwarm — Production-grade AI agent orchestration",
+    help="AISwarm — Lightweight multi-agent orchestration framework",
     rich_markup_mode="rich",
 )
 console = Console()
