@@ -82,7 +82,7 @@ class OllamaManager:
             endpoints.append(f"{self.base_url}/models")
 
         for url in endpoints:
-            req = urllib.request.Request(url, headers={"User-Agent": "Blynx-HealthCheck"})
+            req = urllib.request.Request(url, headers={"User-Agent": "Zymis-HealthCheck"})
             try:
                 with urllib.request.urlopen(req, timeout=2) as res:
                     if res.status == 200:
@@ -136,7 +136,7 @@ class OllamaManager:
         req = urllib.request.Request(
             url,
             data=payload,
-            headers={"Content-Type": "application/json", "User-Agent": "Blynx-Puller"},
+            headers={"Content-Type": "application/json", "User-Agent": "Zymis-Puller"},
             method="POST",
         )
         try:
