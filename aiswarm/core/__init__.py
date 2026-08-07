@@ -1,1 +1,1 @@
-"""Core orchestration layer — the control plane of AISwarm."""
+"""Core orchestration layer — the control plane of Blynx."""
