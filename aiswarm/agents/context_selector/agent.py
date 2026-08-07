@@ -84,17 +84,29 @@ class ContextSelectorAgent(BaseAgent):
         response = await self.call_llm(messages, task=task, temperature=0.0)
         selections = self._parse_selections(response.content)
 
+        total_tokens = 0
         for sel in selections[: self._max_files]:
             content = self._read_file(sel["path"], sel.get("lines"))
             if content is not None:
+                token_est = len(content.split()) * 4 // 3  # rough estimate
+                if total_tokens + token_est > self._max_tokens and context_files:
+                    logger.info(
+                        "context_selector.token_budget_exceeded",
+                        max_tokens=self._max_tokens,
+                        current_tokens=total_tokens,
+                        file=sel["path"],
+                    )
+                    break
+
                 ctx = FileContext(
                     path=sel["path"],
                     content=content,
                     reason=sel.get("reason", "context"),
-                    token_count=len(content.split()) * 4 // 3,  # rough estimate
+                    token_count=token_est,
                     relevance_score=1.0,
                 )
                 context_files.append(ctx)
+                total_tokens += token_est
 
         task.context_files = context_files
         task.prompt_ledger.append(
