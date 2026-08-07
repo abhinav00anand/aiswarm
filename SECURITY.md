@@ -1,10 +1,10 @@
-# AISwarm-Next Security Policy & Threat Model
+# AISwarm Security Policy & Threat Model
 
 ---
 
 ## 🔒 Security Architecture & Vision
 
-**AISwarm-Next** is designed with a **Zero-Trust Security Architecture**. Because autonomous AI agents generate, compile, and execute code dynamically, AISwarm-Next enforces strict boundaries to ensure generated code cannot breach process isolation, leak credentials, access host file systems, or exceed token budgets.
+**AISwarm** is designed with a **Zero-Trust Security Architecture**. Because autonomous AI agents generate, compile, and execute code dynamically, AISwarm enforces strict boundaries to ensure generated code cannot breach process isolation, leak credentials, access host file systems, or exceed token budgets.
 
 ---
 
@@ -50,7 +50,7 @@ Every event is assigned a UUID, timestamped, typed (`ROUTE_DECISION`, `TOOL_SPAW
 
 ## 🚨 Confidential Vulnerability Reporting
 
-If you discover a security vulnerability in AISwarm-Next:
+If you discover a security vulnerability in AISwarm:
 
 1. **Do NOT open a public issue on GitHub.**
 2. Send a confidential report to `indrohelpdesk@gmail.com`.
