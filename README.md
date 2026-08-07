@@ -53,7 +53,7 @@ We love contributions! Please read our **[CONTRIBUTING.md](CONTRIBUTING.md)** fo
 *Enjoy building intelligent swarms!*
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/abhinav00anand/blynx/main/assets/logo.jpg" alt="Blynx logo" width="160" height="160" style="border-radius:24px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);">
+  <img src="https://github.com/abhinav00anand/blynx/blob/main/assets/logo.jpg?raw=true" alt="Blynx logo" width="160" height="160" style="border-radius:24px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);">
 </p>
 
 <p align="center">
