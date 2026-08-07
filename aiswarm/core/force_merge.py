@@ -49,10 +49,10 @@ class ForceMergeOperator:
         Raises:
             ValueError: If reason is empty (reason is mandatory).
         """
-        if not reason or not reason.strip():
+        if not reason or len(reason.strip()) < 10:
             raise ValueError(
-                "Force-merge requires a non-empty reason. "
-                "Document why the normal merge gates are being bypassed."
+                "Force-merge requires a non-empty reason (at least 10 characters). "
+                "Document explicitly why quality gates are being bypassed."
             )
 
         if task.state == TaskState.MERGED:
@@ -61,6 +61,22 @@ class ForceMergeOperator:
                 task_id=task.task_id,
             )
             return
+
+        # Record to immutable audit ledger
+        try:
+            from aiswarm.security.audit import get_audit_ledger
+            get_audit_ledger().record_event(
+                event_type="FORCE_MERGE_EXECUTED",
+                agent=f"operator:{operator}",
+                details={
+                    "task_id": task.task_id,
+                    "operator": operator,
+                    "reason": reason,
+                    "previous_state": task.state.value,
+                },
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("force_merge.audit_ledger_failed", error=str(exc))
 
         task.boss_override = f"[FORCE-MERGE by {operator}] {reason}"
         task.merged = True
