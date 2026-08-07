@@ -1,5 +1,5 @@
 """
-Blynx FastAPI Application.
+Zymis FastAPI Application.
 
 Endpoints:
   POST /tasks                   — submit a new task
@@ -60,7 +60,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(
-    title="Blynx API",
+    title="Zymis API",
     description="Lightweight multi-agent orchestration framework",
     version="0.1.0",
     lifespan=lifespan,
@@ -285,13 +285,13 @@ async def rag_status() -> dict[str, Any]:
 class DirectModelRequest(BaseModel):
     prompt: str
     model: str = "gpt-4o"
-    system_prompt: str = "You are a helpful AI assistant coordinated by Blynx."
+    system_prompt: str = "You are a helpful AI assistant coordinated by Zymis."
     temperature: float = 0.7
 
 
 @app.post("/direct-model/run", tags=["direct-model"])
 async def run_direct_model(req: DirectModelRequest) -> dict[str, Any]:
-    """Execute a direct LLM model prompt coordinated with Blynx security and audit logging."""
+    """Execute a direct LLM model prompt coordinated with Zymis security and audit logging."""
     from aiswarm.llm.direct_runner import DirectModelCoordinator
     coord = DirectModelCoordinator()
     return await coord.run_direct(
