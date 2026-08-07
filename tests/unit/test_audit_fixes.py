@@ -154,3 +154,20 @@ def test_auth_deferred_init_mode():
     """Verify AISWARM_DEFERRED_INIT=1 permits startup auth check."""
     with patch.dict(os.environ, {"AISWARM_DEFERRED_INIT": "1"}, clear=True):
         assert APIKeyValidator.verify_api_keys() is True
+
+
+@pytest.mark.asyncio
+async def test_host1_router_has_route_task_method():
+    """Verify Host1Router has route_task method taking Task objects."""
+    from aiswarm.agents.host1.router import Host1Router
+    router = Host1Router()
+    task = Task(title="Test Title", description="Test Desc", prompt="Do work")
+    decision = await router.route_task(task)
+    assert decision.route is not None
+
+
+def test_local_model_resolution_passthrough():
+    """Verify _resolve_model passes llama3.1:8b directly for local provider."""
+    from aiswarm.llm.provider_router import _resolve_model
+    res = _resolve_model("llama3.1:8b", "local")
+    assert res == "llama3.1:8b"
