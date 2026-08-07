@@ -233,3 +233,45 @@ async def test_workflow_engine_handles_sync_evaluate_task_fallback():
     assert hasattr(router, "evaluate_task")
     res = router.evaluate_task({"title": task.title})
     assert res.route.value == "PRODUCTION"
+
+
+def test_orchestrator_set_task_store():
+    """Verify Orchestrator set_task_store attaches task store."""
+    from aiswarm.core.orchestrator import Orchestrator
+    orc = Orchestrator()
+    mock_store = MagicMock()
+    orc.set_task_store(mock_store)
+    assert orc._task_store == mock_store
+
+
+@pytest.mark.asyncio
+async def test_context_selector_enforces_max_tokens_budget(tmp_path):
+    """Verify ContextSelectorAgent stops selection when token budget is exceeded."""
+    from aiswarm.agents.context_selector.agent import ContextSelectorAgent
+    (tmp_path / "file1.py").write_text("word " * 3000)  # ~4000 tokens
+    (tmp_path / "file2.py").write_text("word " * 3000)  # ~4000 tokens
+    (tmp_path / "file3.py").write_text("word " * 3000)  # ~4000 tokens
+
+    agent = ContextSelectorAgent(router=MagicMock(), model="m", repo_root=str(tmp_path), config={"max_tokens": 5000})
+    response_mock = MagicMock()
+    response_mock.content = '[{"path": "file1.py"}, {"path": "file2.py"}, {"path": "file3.py"}]'
+    response_mock.model = "test-model"
+    response_mock.provider = "local"
+    response_mock.input_tokens = 10
+    response_mock.output_tokens = 20
+    response_mock.latency_ms = 50.0
+    agent.call_llm = AsyncMock(return_value=response_mock)
+    
+    task = Task(title="T", description="D", prompt="P")
+    selected = await agent.run(task)
+
+    # Should only include file1.py before exceeding the 5000 token budget
+    assert len(selected) == 1
+    assert selected[0].path == "file1.py"
+
+
+def test_local_model_resolution_latest_tags():
+    """Verify _resolve_model resolves llama3.1:latest and codestral:latest cleanly."""
+    from aiswarm.llm.provider_router import _resolve_model
+    assert _resolve_model("llama3.1:latest", "local") == "llama3.1:latest"
+    assert _resolve_model("codestral:latest", "local") == "codestral:latest"
