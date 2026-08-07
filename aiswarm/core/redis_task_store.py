@@ -113,10 +113,28 @@ class RedisTaskStore:
         return None
 
     async def get_all(self) -> list[Task]:
+        if self._available:
+            try:
+                task_ids = await self._redis.smembers(_KEY_ALL)
+                for tid in task_ids:
+                    tid_str = tid.decode() if isinstance(tid, bytes) else tid
+                    if tid_str not in self._local:
+                        await self.get(tid_str)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("redis_task_store.get_all_redis_error", error=str(exc))
         return list(self._local.values())
 
     async def get_active(self) -> list[Task]:
         from aiswarm.core.state_machine import StateMachine
+        if self._available:
+            try:
+                task_ids = await self._redis.zrange(_KEY_ACTIVE, 0, -1)
+                for tid in task_ids:
+                    tid_str = tid.decode() if isinstance(tid, bytes) else tid
+                    if tid_str not in self._local:
+                        await self.get(tid_str)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("redis_task_store.get_active_redis_error", error=str(exc))
         return [t for t in self._local.values() if not StateMachine.is_terminal(t.state)]
 
     async def restore_from_redis(self) -> int:
