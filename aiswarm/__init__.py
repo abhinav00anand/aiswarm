@@ -1,5 +1,5 @@
 """
-Blynx — Lightweight multi-agent orchestration framework.
+Zymis — Lightweight multi-agent orchestration framework.
 
 Hierarchy:
   Boss → Manager → Task Planner → Context Selector (RAG)
