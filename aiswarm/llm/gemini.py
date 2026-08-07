@@ -49,18 +49,23 @@ class GeminiAdapter(BaseLLMAdapter):
             raise ImportError("google-generativeai is required for Gemini support") from exc
 
         genai.configure(api_key=self._key)
-        gen_model = genai.GenerativeModel(model_name=model)
-
         system_parts = [m.content for m in messages if m.role == "system"]
-        history = []
-        last_user = ""
+        system_instruction = "\n\n".join(system_parts) if system_parts else None
+
+        gen_model = genai.GenerativeModel(
+            model_name=model,
+            system_instruction=system_instruction,
+        )
+
+        contents = []
         for m in messages:
             if m.role == "system":
                 continue
-            if m.role == "user":
-                last_user = m.content
-            elif m.role == "assistant":
-                history.append({"role": "model", "parts": m.content})
+            role = "user" if m.role == "user" else "model"
+            contents.append({"role": role, "parts": [m.content]})
+
+        if not contents:
+            contents = [{"role": "user", "parts": ["Proceed with the requested task."]}]
 
         generation_config = genai.GenerationConfig(
             temperature=temperature,
@@ -70,7 +75,7 @@ class GeminiAdapter(BaseLLMAdapter):
         t0 = time.monotonic()
         try:
             response = await gen_model.generate_content_async(
-                contents=last_user,
+                contents=contents,
                 generation_config=generation_config,
             )
         except Exception as exc:
