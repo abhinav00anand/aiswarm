@@ -19,7 +19,7 @@ handlers:
   file_rotating:
     class: logging.handlers.RotatingFileHandler
     formatter: json
-    filename: ./storage/logs/blynx.log
+    filename: ./storage/logs/zymis.log
     maxBytes: 104857600   # 100 MB
     backupCount: 10
     level: DEBUG
@@ -37,7 +37,7 @@ root:
   handlers: [console, file_rotating, error_file]
 
 loggers:
-  blynx:
+  zymis:
     level: DEBUG
     propagate: true
   uvicorn:
