@@ -1,14 +1,14 @@
-# aiswarm – AI‑Swarm Framework 🚀
+# blynx – AI‑Swarm Framework 🚀
 
-[![PyPI version](https://img.shields.io/pypi/v/aiswarm.svg)](https://pypi.org/project/aiswarm/)
-[![License](https://img.shields.io/github/license/abhinav00anand/aiswarm.svg)](https://github.com/abhinav00anand/aiswarm/blob/main/LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/abhinav00anand/aiswarm.svg?style=social)](https://github.com/abhinav00anand/aiswarm)
+[![PyPI version](https://img.shields.io/pypi/v/blynx.svg)](https://pypi.org/project/blynx/)
+[![License](https://img.shields.io/github/license/abhinav00anand/blynx.svg)](https://github.com/abhinav00anand/blynx/blob/main/LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/abhinav00anand/blynx.svg?style=social)](https://github.com/abhinav00anand/blynx)
 
-## What is **aiswarm**?
+## What is **blynx**?
 
-`aiswarm` is a **light‑weight, modular framework** that lets you compose **multiple autonomous LLM agents** (boss, manager, coder, critic, worker, …) into a coherent swarm.  It ships with a **clean CLI**, a **FastAPI server**, and a **plug‑in system** so you can extend it without touching the core.
+`blynx` is a **light‑weight, modular framework** that lets you compose **multiple autonomous LLM agents** (boss, manager, coder, critic, worker, …) into a coherent swarm.  It ships with a **clean CLI**, a **FastAPI server**, and a **plug‑in system** so you can extend it without touching the core.
 
-> **Why use aiswarm?**
+> **Why use blynx?**
 > * **Framework, not a black‑box app** – you get the orchestration engine and can build your own agents on top.
 > * **Zero‑install for experimentation** – install from PyPI and run a single command to see a swarm in action.
 > * **Typed, async‑first** – fully typed with `pydantic`, async‑ready, and works on Python 3.11+.
@@ -19,10 +19,10 @@
 
 ```bash
 # Install the package
-python -m pip install aiswarm
+python -m pip install blynx
 
 # Run the demo swarm (boss + worker)
-aiswarm run demo
+blynx run demo
 ```
 
 You’ll see a colourful console output while the boss coordinator assigns tasks to workers, collects results, and prints a summary.
@@ -46,14 +46,14 @@ We love contributions! Please read our **[CONTRIBUTING.md](CONTRIBUTING.md)** fo
 
 ## License
 
-`aiswarm` is licensed under the **MIT License** – see the `LICENSE` file.
+`blynx` is licensed under the **MIT License** – see the `LICENSE` file.
 
 ---
 
 *Enjoy building intelligent swarms!*
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/abhinav00anand/aiswarm/main/assets/logo.jpg" alt="AISwarm logo" width="160" height="160" style="border-radius:24px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);">
+  <img src="https://raw.githubusercontent.com/abhinav00anand/blynx/main/assets/logo.jpg" alt="Blynx logo" width="160" height="160" style="border-radius:24px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);">
 </p>
 
 <p align="center">
@@ -62,8 +62,8 @@ We love contributions! Please read our **[CONTRIBUTING.md](CONTRIBUTING.md)** fo
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/aiswarm/"><img src="https://img.shields.io/pypi/v/aiswarm.svg?style=for-the-badge&logo=pypi&logoColor=white&color=blue" alt="PyPI Package"></a>
-  <a href="https://github.com/abhinav00anand/aiswarm"><img src="https://img.shields.io/badge/github-aiswarm-black.svg?style=for-the-badge&logo=github" alt="GitHub Repository"></a>
+  <a href="https://pypi.org/project/blynx/"><img src="https://img.shields.io/pypi/v/blynx.svg?style=for-the-badge&logo=pypi&logoColor=white&color=blue" alt="PyPI Package"></a>
+  <a href="https://github.com/abhinav00anand/blynx"><img src="https://img.shields.io/badge/github-blynx-black.svg?style=for-the-badge&logo=github" alt="GitHub Repository"></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-3776AB.svg?style=for-the-badge&logo=python&logoColor=white" alt="Python Version"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge" alt="License: MIT"></a>
 </p>
@@ -74,7 +74,7 @@ We love contributions! Please read our **[CONTRIBUTING.md](CONTRIBUTING.md)** fo
 
 *   **🦙 Zero-Cloud-Key Local Fallback**: Dynamic disk measurement auto-provisions Ollama (`llama3.1:8b`, `llama3.2:3b`, or `llama3.2:1b`) when no cloud API keys are present.
 *   **🔌 Explicit Local Adapter URL**: Seamlessly point to any in-notebook OpenAI-compatible API endpoint (e.g. running vLLM, Hugging Face, or local model servers) via `--adapter-url` or `OPENAI_API_ADAPTER_URL`.
-*   **📓 Optimized Notebook Mode**: Turn on `--notebook` or `AISWARM_NOTEBOOK_MODE=1` to disable Ollama auto-installations, limit CPU thread contention (`OMP`/`MKL`), cap generation tokens, and fall back to safe small models.
+*   **📓 Optimized Notebook Mode**: Turn on `--notebook` or `BLYNX_NOTEBOOK_MODE=1` to disable Ollama auto-installations, limit CPU thread contention (`OMP`/`MKL`), cap generation tokens, and fall back to safe small models.
 *   **🛡️ Multi-Agent Auditing**: Production pipeline routes code through **8 domain-specialized Critic Agents** (Security, Architecture, Performance, Maintainability, Reliability, Style, Testing, and Documentation).
 *   **🔒 Zero-Trust Execution Sandbox**: Scopes files and process isolation, allowlisting compilation processes to strictly prevent environment breakouts.
 *   **📜 Audit Ledger**: Generates a cryptographically traceable, JSONL-formatted immutable audit log of all system decisions.
@@ -142,7 +142,7 @@ During the verification phase of the Production Lane, 8 specialized Critic agent
 
 ## 🔌 Running in Notebooks (Kaggle / Colab)
 
-To run AISwarm in offline or memory-restricted notebook environments, you can start a lightweight local Hugging Face adapter and point the orchestrator directly to it:
+To run Blynx in offline or memory-restricted notebook environments, you can start a lightweight local Hugging Face adapter and point the orchestrator directly to it:
 
 ### 1. Launch the Secure Local HF Adapter
 In a separate background process or cell, start our provided secure FastAPI proxy hosting a model like `distilgpt2`:
@@ -157,16 +157,16 @@ os.environ["ADAPTER_API_KEY"] = "my-secure-notebook-token"
 !python examples/local_adapter.py
 ```
 
-### 2. Run AISwarm pointed to the local Adapter
+### 2. Run Blynx pointed to the local Adapter
 Configure the orchestrator using environment variables or CLI flags:
 
 ```bash
 export OPENAI_API_ADAPTER_URL="http://127.0.0.1:8000"
 export OPENAI_API_KEY="my-secure-notebook-token"
-export AISWARM_NO_OLLAMA=1
-export AISWARM_NOTEBOOK_MODE=1
+export BLYNX_NO_OLLAMA=1
+export BLYNX_NOTEBOOK_MODE=1
 
-aiswarm run "Write an efficient factorial function and tests"
+blynx run "Write an efficient factorial function and tests"
 ```
 
 *See the comprehensive [`examples/kaggle.ipynb`](./examples/kaggle.ipynb) notebook for a complete, runnable notebook environment script.*
@@ -178,7 +178,7 @@ aiswarm run "Write an efficient factorial function and tests"
 ### Installation
 
 ```bash
-pip install aiswarm
+pip install blynx
 ```
 
 ### Running with Cloud API Keys
@@ -192,25 +192,25 @@ export ANTHROPIC_API_KEY="sk-ant-..."
 # OR
 export GOOGLE_API_KEY="AIzaSy..."
 
-aiswarm run "Write a quicksort helper and unit tests"
+blynx run "Write a quicksort helper and unit tests"
 ```
 
 ### Running with Zero-Keys (Auto-Provisioned Local Ollama)
-If no cloud API keys or adapters are configured, AISwarm will automatically measure disk space, launch Ollama, download an optimal model, and execute the task completely locally:
+If no cloud API keys or adapters are configured, Blynx will automatically measure disk space, launch Ollama, download an optimal model, and execute the task completely locally:
 
 ```bash
 # Just run directly!
-aiswarm run "Write an AST parser in Python"
+blynx run "Write an AST parser in Python"
 ```
 
 ### CLI Command Reference
 
-*   `aiswarm run "<task_description>"`: Submit a software engineering task to the orchestrator.
+*   `blynx run "<task_description>"`: Submit a software engineering task to the orchestrator.
     *   `--adapter-url <url>`: Override the OpenAI-compatible local adapter endpoint.
     *   `--no-ollama`: Skip Ollama auto-provision fallbacks.
     *   `--notebook`: Run in resource-conserving notebook mode.
-*   `aiswarm providers`: List all configured LLM providers and their availability status.
-*   `aiswarm audit`: Output the last 50 entries from the immutable audit ledger.
+*   `blynx providers`: List all configured LLM providers and their availability status.
+*   `blynx audit`: Output the last 50 entries from the immutable audit ledger.
 
 ---
 
@@ -233,4 +233,4 @@ aiswarm run "Write an AST parser in Python"
 
 ## 📜 License
 
-AISwarm is open-source software licensed under the [MIT License](./LICENSE).
+Blynx is open-source software licensed under the [MIT License](./LICENSE).
