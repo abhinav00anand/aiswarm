@@ -1,4 +1,4 @@
-aiswarm:
+blynx:
   version: "1.0.0"
   environment: production
 
@@ -90,21 +90,21 @@ worker:
 
 redis:
   url: "${REDIS_URL}"
-  job_queue: aiswarm:jobs
-  result_queue: aiswarm:results
-  state_key_prefix: aiswarm:state
+  job_queue: blynx:jobs
+  result_queue: blynx:results
+  state_key_prefix: blynx:state
   lock_timeout: 60
   result_ttl: 3600
 
 storage:
-  root: /data/aiswarm
-  artifacts: /data/aiswarm/artifacts
-  prompts: /data/aiswarm/prompts
-  tasks: /data/aiswarm/tasks
-  logs: /data/aiswarm/logs
-  benchmarks: /data/aiswarm/benchmarks
-  vector_db: /data/aiswarm/vector_db
-  cache: /data/aiswarm/cache
+  root: /data/blynx
+  artifacts: /data/blynx/artifacts
+  prompts: /data/blynx/prompts
+  tasks: /data/blynx/tasks
+  logs: /data/blynx/logs
+  benchmarks: /data/blynx/benchmarks
+  vector_db: /data/blynx/vector_db
+  cache: /data/blynx/cache
 
 rag:
   embedding_model: all-MiniLM-L6-v2
