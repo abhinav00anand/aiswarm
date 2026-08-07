@@ -29,7 +29,7 @@ logger = structlog.get_logger(__name__)
 _SYSTEM_PROMPT = """\
 You are the Coder Agent of AISwarm.
 
-You write production-grade code. Every line you produce must satisfy:
+You write high-quality, robust code. Every line you produce must satisfy:
 ✓ Correct — mathematically and logically accurate
 ✓ Fully typed — type hints on every function signature
 ✓ Fully documented — docstrings on every module, class, and public function
@@ -68,12 +68,12 @@ Previous code:
 {previous_code}
 ```
 
-Now write the corrected, production-ready version:
+Now write the corrected, fully-implemented version:
 """
 
 
 class CoderAgent(BaseAgent):
-    """Generates production-grade code from plans and context."""
+    """Generates clean, robust code from plans and context."""
 
     role = "coder"
 
