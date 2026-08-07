@@ -70,7 +70,7 @@ class TestAPIKeyValidatorOllamaFallback:
     def test_auth_fallback_to_ollama_when_no_cloud_keys(self) -> None:
         # Clear cloud keys from environment
         keys_to_clear = [
-            "BLYNX_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY",
+            "ZYMIS_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY",
             "GOOGLE_API_KEY", "GEMINI_API_KEY", "NOVITA_API_KEY", "DEEPSEEK_API_KEY"
         ]
         with patch.dict(os.environ, {k: "" for k in keys_to_clear}, clear=False):
@@ -82,7 +82,7 @@ class TestAPIKeyValidatorOllamaFallback:
 
     def test_auth_raises_error_if_ollama_also_fails(self) -> None:
         keys_to_clear = [
-            "BLYNX_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY",
+            "ZYMIS_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY",
             "GOOGLE_API_KEY", "GEMINI_API_KEY", "NOVITA_API_KEY", "DEEPSEEK_API_KEY"
         ]
         with patch.dict(os.environ, {k: "" for k in keys_to_clear}, clear=False):
