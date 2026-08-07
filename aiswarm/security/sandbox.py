@@ -76,7 +76,7 @@ class ExecutionSandbox:
         allowlist: set[str] | None = None,
         allow_network: bool = False,
     ) -> None:
-        self.workspace_dir = Path(workspace_dir or tempfile.mkdtemp(prefix="aiswarm_sandbox_")).resolve()
+        self.workspace_dir = Path(workspace_dir or tempfile.mkdtemp(prefix="blynx_sandbox_")).resolve()
         self.workspace_dir.mkdir(parents=True, exist_ok=True)
         self.timeout = timeout
         self.max_output_bytes = max_output_bytes
