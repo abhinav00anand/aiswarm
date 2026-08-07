@@ -1,12 +1,12 @@
-# Blynx Local-First Configuration Profile
-blynx:
+# Zymis Local-First Configuration Profile
+zymis:
   version: "1.2.0"
   environment: local
 
 orchestrator:
   max_concurrent_tasks: 2
   task_timeout_seconds: 300
-  checkpoint_dir: "~/.blynx/checkpoints"
+  checkpoint_dir: "~/.zymis/checkpoints"
   enable_fast_path: true
   enable_parallel_critics: true
 
@@ -25,5 +25,5 @@ llm:
 
 security:
   sandbox_enabled: true
-  audit_ledger_path: "~/.blynx/audit.jsonl"
+  audit_ledger_path: "~/.zymis/audit.jsonl"
   secret_scrubbing: true
