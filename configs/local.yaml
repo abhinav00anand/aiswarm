@@ -1,12 +1,12 @@
-# AISwarm Local-First Configuration Profile
-aiswarm:
+# Blynx Local-First Configuration Profile
+blynx:
   version: "1.2.0"
   environment: local
 
 orchestrator:
   max_concurrent_tasks: 2
   task_timeout_seconds: 300
-  checkpoint_dir: "~/.aiswarm/checkpoints"
+  checkpoint_dir: "~/.blynx/checkpoints"
   enable_fast_path: true
   enable_parallel_critics: true
 
@@ -25,5 +25,5 @@ llm:
 
 security:
   sandbox_enabled: true
-  audit_ledger_path: "~/.aiswarm/audit.jsonl"
+  audit_ledger_path: "~/.blynx/audit.jsonl"
   secret_scrubbing: true
