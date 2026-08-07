@@ -136,11 +136,11 @@ async def test_gemini_adapter_preserves_system_and_history():
 
 @pytest.mark.asyncio
 async def test_provider_router_local_first_ordering():
-    """Verify BLYNX_LOCAL_FIRST=1 promotes local & adapter to front of provider list."""
+    """Verify ZYMIS_LOCAL_FIRST=1 promotes local & adapter to front of provider list."""
     router = ProviderRouter()
     messages = [LLMMessage(role="user", content="hi")]
 
-    with patch.dict(os.environ, {"BLYNX_LOCAL_FIRST": "1"}):
+    with patch.dict(os.environ, {"ZYMIS_LOCAL_FIRST": "1"}):
         target_provider = router._providers.get("local")
         with patch.object(target_provider, "is_available", return_value=True):
             with patch.object(target_provider, "chat", new_callable=AsyncMock) as mock_chat:
@@ -151,8 +151,8 @@ async def test_provider_router_local_first_ordering():
 
 
 def test_auth_deferred_init_mode():
-    """Verify BLYNX_DEFERRED_INIT=1 permits startup auth check."""
-    with patch.dict(os.environ, {"BLYNX_DEFERRED_INIT": "1"}, clear=True):
+    """Verify ZYMIS_DEFERRED_INIT=1 permits startup auth check."""
+    with patch.dict(os.environ, {"ZYMIS_DEFERRED_INIT": "1"}, clear=True):
         assert APIKeyValidator.verify_api_keys() is True
 
 
