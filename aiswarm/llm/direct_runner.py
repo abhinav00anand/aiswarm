@@ -1,5 +1,5 @@
 """
-Direct Model Coordinator for AISwarm-Next.
+Direct Model Coordinator for Blynx.
 
 Allows users to directly execute LLM prompts (OpenAI, Anthropic, Gemini, Ollama, DeepSeek)
 while AISwarm coordinates security scrubbing (SecretRedactor), budget tracking (EngineeringGovernor / CostGuard),
@@ -22,7 +22,7 @@ logger = get_logger(__name__)
 
 class DirectModelCoordinator:
     """
-    Direct Model Execution Engine coordinated with AISwarm security & audit infrastructure.
+    Direct Model Execution Engine coordinated with Blynx security & audit infrastructure.
     """
 
     def __init__(
@@ -38,7 +38,7 @@ class DirectModelCoordinator:
         self,
         prompt: str,
         model: str = "gpt-4o",
-        system_prompt: str = "You are a helpful AI assistant coordinated by AISwarm.",
+        system_prompt: str = "You are a helpful AI assistant coordinated by Blynx.",
         temperature: float = 0.7,
         user_role: str = "user",
     ) -> dict[str, Any]:
