@@ -1,12 +1,12 @@
-# AISwarm-Next Deep Architecture Specification
+# AISwarm Deep Architecture Specification
 
 ---
 
 ## 🏛 Executive Summary & Core Philosophy
 
-**AISwarm-Next** is designed as a distributed, event-driven multi-agent orchestration architecture. Unlike linear AI code generators, AISwarm-Next models a complete software engineering lifecycle—incorporating executive decision-making, planning, coding, multi-perspective critic auditing, subprocess sandboxing, and immutable event ledger auditing.
+**AISwarm** is designed as a distributed, event-driven multi-agent orchestration architecture. Unlike linear AI code generators, AISwarm models a complete software engineering lifecycle—incorporating executive decision-making, planning, coding, multi-perspective critic auditing, subprocess sandboxing, and immutable event ledger auditing.
 
-The design principles behind AISwarm-Next are:
+The design principles behind AISwarm are:
 1. **Multi-Lane Execution Efficiency**: Match the complexity of the task with the depth of the pipeline. Low-risk actions run fast; high-risk changes undergo full engineering debate.
 2. **Zero-Trust Process Isolation**: Assume all generated code is untrusted until compiled, sandboxed, tested, and audited.
 3. **Immutable Observability**: Every state transition, routing choice, token spend, and security evaluation must be recorded in an append-only ledger.
@@ -97,7 +97,7 @@ Executed concurrently during Stage 7:
 
 ---
 
-## 🔒 Enterprise Security Subsystem
+## 🔒 Security Subsystem
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
