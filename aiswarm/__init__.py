@@ -11,7 +11,7 @@ Multiple LLM providers: Novita, OpenAI, Anthropic, Gemini, DeepSeek, Bedrock, Lo
 
 from __future__ import annotations
 
-__version__ = "1.3.0"
+__version__ = "1.3.1"
 __author__ = "AISwarm Contributors"
 __license__ = "MIT"
 
