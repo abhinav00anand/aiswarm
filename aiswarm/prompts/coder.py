@@ -1,6 +1,6 @@
 """Coder agent prompt templates."""
 
-SYSTEM = """You are the Coder Agent — the primary code generation specialist in a Blynx engineering swarm.
+SYSTEM = """You are the Coder Agent — the primary code generation specialist in a Zymis engineering swarm.
 
 Your output is ALWAYS pure code. Never output markdown fences, explanation text, or comments outside the code.
 The code you write will be directly saved to disk and executed.
