@@ -28,7 +28,7 @@ except ImportError:
     _PROMETHEUS_AVAILABLE = False
 
 
-class BlynxMetrics:
+class ZymisMetrics:
     """Prometheus metrics registry for AISwarm."""
 
     def __init__(self) -> None:
@@ -36,66 +36,66 @@ class BlynxMetrics:
             return
 
         self.tasks_total = Counter(
-            "blynx_tasks_total",
+            "zymis_tasks_total",
             "Total tasks created",
             ["priority", "task_class"],
         )
         self.tasks_state = Counter(
-            "blynx_task_state_transitions_total",
+            "zymis_task_state_transitions_total",
             "Task state transitions",
             ["from_state", "to_state"],
         )
         self.tasks_merged = Counter(
-            "blynx_tasks_merged_total",
+            "zymis_tasks_merged_total",
             "Tasks successfully merged",
         )
         self.tasks_rejected = Counter(
-            "blynx_tasks_rejected_total",
+            "zymis_tasks_rejected_total",
             "Tasks rejected",
             ["reason"],
         )
         self.llm_calls = Counter(
-            "blynx_llm_calls_total",
+            "zymis_llm_calls_total",
             "LLM API calls",
             ["provider", "role", "model"],
         )
         self.llm_tokens = Counter(
-            "blynx_llm_tokens_total",
+            "zymis_llm_tokens_total",
             "LLM tokens consumed",
             ["provider", "role", "token_type"],
         )
         self.llm_cost = Counter(
-            "blynx_llm_cost_usd_total",
+            "zymis_llm_cost_usd_total",
             "Estimated LLM cost in USD",
             ["provider"],
         )
         self.llm_latency = Histogram(
-            "blynx_llm_latency_seconds",
+            "zymis_llm_latency_seconds",
             "LLM call latency",
             ["provider", "role"],
             buckets=[0.5, 1, 2, 5, 10, 30, 60, 120],
         )
         self.critic_decisions = Counter(
-            "blynx_critic_decisions_total",
+            "zymis_critic_decisions_total",
             "Critic agent decisions",
             ["critic", "decision"],
         )
         self.compile_results = Counter(
-            "blynx_compile_results_total",
+            "zymis_compile_results_total",
             "Compiler results",
             ["language", "success"],
         )
         self.test_results = Counter(
-            "blynx_test_results_total",
+            "zymis_test_results_total",
             "Test run results",
             ["success"],
         )
         self.active_tasks = Gauge(
-            "blynx_active_tasks",
+            "zymis_active_tasks",
             "Currently active tasks",
         )
         self.retry_count = Histogram(
-            "blynx_task_retry_count",
+            "zymis_task_retry_count",
             "Number of retries per task",
             buckets=[0, 1, 2, 3, 4, 5],
         )
@@ -124,4 +124,4 @@ class BlynxMetrics:
 
 
 # Singleton
-metrics = BlynxMetrics()
+metrics = ZymisMetrics()
