@@ -19,10 +19,10 @@ except ImportError:
     _OT_AVAILABLE = False
 
 
-class AISwarmTracer:
+class BlynxTracer:
     """Wraps OpenTelemetry tracing for AISwarm pipeline stages."""
 
-    def __init__(self, service_name: str = "aiswarm") -> None:
+    def __init__(self, service_name: str = "blynx") -> None:
         self._enabled = _OT_AVAILABLE and os.getenv("TRACING_ENABLED", "false").lower() == "true"
         self._tracer: Any = None
         if self._enabled:
@@ -51,4 +51,4 @@ class AISwarmTracer:
 
 
 # Singleton
-tracer = AISwarmTracer()
+tracer = BlynxTracer()
