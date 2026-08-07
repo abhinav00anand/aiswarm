@@ -12,13 +12,13 @@ def test_verify_api_key_explicit():
 
 def test_verify_api_key_environment(monkeypatch):
     """Setting environment variable should pass validation."""
-    monkeypatch.setenv("AISWARM_API_KEY", "aiswarm_secret_key_9999")
+    monkeypatch.setenv("BLYNX_API_KEY", "blynx_secret_key_9999")
     assert APIKeyValidator.verify_api_keys() is True
 
 
 def test_verify_api_key_missing(monkeypatch):
     """Missing all API keys should raise SecurityAuthError."""
-    for key in ["AISWARM_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_API_KEY", "GEMINI_API_KEY", "NOVITA_API_KEY", "DEEPSEEK_API_KEY"]:
+    for key in ["BLYNX_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_API_KEY", "GEMINI_API_KEY", "NOVITA_API_KEY", "DEEPSEEK_API_KEY"]:
         monkeypatch.delenv(key, raising=False)
 
     raised = False
