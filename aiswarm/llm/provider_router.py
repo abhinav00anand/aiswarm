@@ -294,7 +294,7 @@ class ProviderRouter:
             order.append("local")
 
         last_exc: Exception | None = None
-        is_notebook = os.getenv("BLYNX_NOTEBOOK_MODE") in ("1", "true", "True")
+        is_notebook = os.getenv("ZYMIS_NOTEBOOK_MODE") in ("1", "true", "True")
 
         for provider_name in order:
             provider = self._providers.get(provider_name)
