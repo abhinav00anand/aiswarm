@@ -1,6 +1,6 @@
-# Contributing to Blynx
+# Contributing to Zymis
 
-Thank you for your interest in contributing to **Blynx**! Follow this guide to set up your local development environment, run test suites, and submit pull requests.
+Thank you for your interest in contributing to **Zymis**! Follow this guide to set up your local development environment, run test suites, and submit pull requests.
 
 ---
 
@@ -8,8 +8,8 @@ Thank you for your interest in contributing to **Blynx**! Follow this guide to s
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/abhinav00anand/blynx.git
-cd blynx
+git clone https://github.com/abhinav00anand/zymis.git
+cd zymis
 ```
 
 ### 2. Create & Activate Virtual Environment
@@ -32,7 +32,7 @@ pip install -e ".[dev]"
 
 ## 🧪 Running Test Suites
 
-Blynx includes comprehensive unit, stress, and concurrency benchmark suites:
+Zymis includes comprehensive unit, stress, and concurrency benchmark suites:
 
 ```bash
 # 1. Run Unit Test Suite (210 tests)
