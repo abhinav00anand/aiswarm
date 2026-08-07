@@ -3,19 +3,19 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "blynx"
+name = "zymis"
 
 version = "0.1.0"
 description = "Lightweight multi-agent orchestration framework — Boss, Manager, Coder, Critics, and Worker pipeline"
 readme = "README.md"
-license = { file = "LICENSE" }
+license = { text = "Apache-2.0" }
 requires-python = ">=3.11"
-authors = [{ name = "Blynx Contributors" }]
+authors = [{ name = "Zymis Contributors", email = "indrohelpdesk@gmail.com" }]
 keywords = ["ai", "agents", "orchestration", "llm", "swarm", "code-generation", "multi-agent"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -99,14 +99,14 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/abhinav00anand/blynx"
-Documentation = "https://github.com/abhinav00anand/blynx#readme"
-Repository = "https://github.com/abhinav00anand/blynx.git"
-Issues = "https://github.com/abhinav00anand/blynx/issues"
+Homepage = "https://github.com/abhinav00anand/zymis"
+Documentation = "https://github.com/abhinav00anand/zymis#readme"
+Repository = "https://github.com/abhinav00anand/zymis.git"
+Issues = "https://github.com/abhinav00anand/zymis/issues"
 
 [project.scripts]
 
-blynx = "apps.cli.main:app"
+zymis = "apps.cli.main:app"
 
 [project.optional-dependencies]
 dev = [
@@ -142,5 +142,5 @@ testpaths = ["tests"]
 addopts = "-v --tb=short"
 
 [tool.coverage.run]
-source = ["blynx"]
+source = ["zymis"]
 omit = ["*/tests/*", "*/migrations/*"]
