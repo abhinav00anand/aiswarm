@@ -1,4 +1,4 @@
-aiswarm:
+blynx:
   version: "1.3.2"
   environment: development
 
@@ -99,9 +99,9 @@ worker:
 
 redis:
   url: redis://localhost:6379/0
-  job_queue: aiswarm:jobs
-  result_queue: aiswarm:results
-  state_key_prefix: aiswarm:state
+  job_queue: blynx:jobs
+  result_queue: blynx:results
+  state_key_prefix: blynx:state
   lock_timeout: 60
   result_ttl: 3600
 
