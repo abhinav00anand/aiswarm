@@ -160,6 +160,12 @@ class RedisTaskStore:
 
     # ── Stats ──────────────────────────────────────────────────────────────
 
+    async def get_summary(self) -> dict[str, Any]:
+        """Asynchronously hydrate from Redis and calculate accurate task summary metrics."""
+        if self._available:
+            await self.restore_from_redis()
+        return self.summary()
+
     def summary(self) -> dict[str, Any]:
         from aiswarm.core.state_machine import StateMachine
         states: dict[str, int] = {}
