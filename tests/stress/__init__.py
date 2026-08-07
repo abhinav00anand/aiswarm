@@ -1,1 +1,1 @@
-"""AISwarm stress test suite — production-grade resilience validation."""
+"""AISwarm stress test suite — resilience and concurrency validation."""
