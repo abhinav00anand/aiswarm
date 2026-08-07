@@ -112,16 +112,19 @@ class ContextSelectorAgent(BaseAgent):
         """Walk the repo and return relative paths of source and configuration files."""
         extensions = {
             ".py", ".ts", ".js", ".cpp", ".c", ".rs", ".go", ".java", ".h", ".hpp", ".md",
-            ".yaml", ".yml", ".json", ".toml", ".env", ".ini", ".xml", ".cfg", ".txt", ".sh", ".ps1"
+            ".yaml", ".yml", ".json", ".toml", ".ini", ".xml", ".cfg", ".txt", ".sh", ".ps1"
         }
         skip_dirs = {
             ".git", "__pycache__", "node_modules", ".venv", "venv",
             "dist", "build", ".mypy_cache", ".ruff_cache",
         }
+        sensitive_files = {".env", "credentials.json", "id_rsa", "id_ed25519", "secrets.yaml", "secrets.json"}
 
         files: list[str] = []
         for path in self._repo_root.rglob("*"):
             if any(part in skip_dirs for part in path.parts):
+                continue
+            if path.name.startswith(".env") or path.name.lower() in sensitive_files:
                 continue
             if path.is_file() and path.suffix in extensions:
                 try:
@@ -166,11 +169,19 @@ Select only the files the coder genuinely needs. Output JSON array only.
     def _read_file(
         self, path: str, lines: list[int] | None = None
     ) -> str | None:
+        p = Path(path)
+        sensitive_files = {".env", "credentials.json", "id_rsa", "id_ed25519", "secrets.yaml", "secrets.json"}
+        if p.name.startswith(".env") or p.name.lower() in sensitive_files:
+            logger.warning("context_selector.sensitive_file_blocked", path=path)
+            return None
+
         full_path = self._repo_root / path
         if not full_path.exists() or not full_path.is_file():
             return None
         try:
             content = full_path.read_text(encoding="utf-8", errors="replace")
+            from aiswarm.security.redaction import scrub
+            content = scrub(content)
             if lines and len(lines) == 2:
                 all_lines = content.splitlines()
                 start, end = max(0, lines[0] - 1), min(len(all_lines), lines[1])
