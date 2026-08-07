@@ -171,3 +171,33 @@ def test_local_model_resolution_passthrough():
     from aiswarm.llm.provider_router import _resolve_model
     res = _resolve_model("llama3.1:8b", "local")
     assert res == "llama3.1:8b"
+
+
+def test_context_selector_blocks_env_and_credentials(tmp_path):
+    """Verify ContextSelectorAgent excludes .env and credential files."""
+    from aiswarm.agents.context_selector.agent import ContextSelectorAgent
+    (tmp_path / ".env").write_text("SECRET_KEY=12345")
+    (tmp_path / "credentials.json").write_text('{"key": "val"}')
+    (tmp_path / "main.py").write_text("print('hello')")
+
+    agent = ContextSelectorAgent(router=MagicMock(), model="m", repo_root=str(tmp_path))
+    available = agent._list_available_files()
+
+    assert ".env" not in available
+    assert "credentials.json" not in available
+    assert "main.py" in available
+    assert agent._read_file(".env") is None
+
+
+@pytest.mark.asyncio
+async def test_redis_task_store_get_summary():
+    """Verify RedisTaskStore get_summary hydrates tasks from Redis."""
+    redis_mock = AsyncMock()
+    redis_mock.smembers = AsyncMock(return_value=[b"t1"])
+    redis_mock.get = AsyncMock(return_value='{"task_id": "t1", "title": "t", "description": "d", "prompt": "p", "state": "NEW"}')
+
+    store = RedisTaskStore(redis_client=redis_mock)
+    summary = await store.get_summary()
+
+    assert summary["total"] == 1
+    assert summary["by_state"]["NEW"] == 1
