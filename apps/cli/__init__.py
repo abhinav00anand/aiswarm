@@ -1,1 +1,1 @@
-"""Blynx CLI application."""
+"""Zymis CLI application."""
