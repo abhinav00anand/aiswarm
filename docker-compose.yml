@@ -32,7 +32,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: ["python", "-m", "aiswarm.worker.local_worker"]
+    command: ["python", "-m", "blynx.worker.local_worker"]
     environment:
       - REDIS_URL=redis://redis:6379/0
     depends_on:
