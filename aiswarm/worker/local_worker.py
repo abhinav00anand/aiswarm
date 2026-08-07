@@ -138,7 +138,7 @@ async def worker_main(redis_url: str = "redis://localhost:6379/0") -> None:
 
     while True:
         try:
-            raw = await r.brpop(["aiswarm:jobs"], timeout=5)
+            raw = await r.brpop(["blynx:jobs"], timeout=5)
             if raw:
                 import json
                 from aiswarm.worker.dispatcher import JobPayload
@@ -155,7 +155,7 @@ async def worker_main(redis_url: str = "redis://localhost:6379/0") -> None:
                     state_hash = data["state_hash"]
 
                 result = await worker.execute(_Payload())
-                result_key = f"aiswarm:result:{data['job_id']}"
+                result_key = f"blynx:result:{data['job_id']}"
                 await r.lpush(result_key, json.dumps(result))
                 await r.expire(result_key, 3600)
         except Exception as exc:  # noqa: BLE001
