@@ -1,5 +1,5 @@
 """
-C++ Compiler Subsystem for AISwarm-Next.
+C++ Compiler Subsystem for AISwarm.
 
 Supports g++, clang++, and MSVC cl.exe compilation, warning diagnostics parsing,
 and C++ GoogleTest/Catch2 test execution inside ExecutionSandbox.
