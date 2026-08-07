@@ -68,20 +68,30 @@ class OllamaManager:
         logger.info("ollama_manager.model_selected", free_gb=free_gb, selected_model=selected)
         return selected
 
-    def is_service_running(self) -> bool:
-        """Check if the local Ollama HTTP server is responsive."""
-        url = f"{self.base_url}/api/version"
-        req = urllib.request.Request(url, headers={"User-Agent": "AISwarm-OllamaCheck"})
-        try:
-            with urllib.request.urlopen(req, timeout=3) as res:
-                if res.status == 200:
-                    logger.info("ollama_manager.service_detected", url=self.base_url)
-                    return True
-        except Exception:
-            pass
-
-        # Secondary check: search PATH for ollama binary executable
+    def is_installed(self) -> bool:
+        """Check if the ollama binary is installed in PATH."""
         return shutil.which("ollama") is not None
+
+    def is_service_running(self) -> bool:
+        """
+        Check if the local Ollama or LM Studio HTTP server is responsive.
+        Probes both /api/version (Ollama) and /v1/models (LM Studio / OpenAI compatible).
+        """
+        endpoints = [f"{self.base_url}/api/version", f"{self.base_url}/v1/models"]
+        if self.base_url.endswith("/v1"):
+            endpoints.append(f"{self.base_url}/models")
+
+        for url in endpoints:
+            req = urllib.request.Request(url, headers={"User-Agent": "AISwarm-HealthCheck"})
+            try:
+                with urllib.request.urlopen(req, timeout=2) as res:
+                    if res.status == 200:
+                        logger.info("ollama_manager.service_detected", url=url)
+                        return True
+            except Exception:
+                continue
+
+        return False
 
     def start_ollama_service_if_needed(self) -> bool:
         """
@@ -90,11 +100,11 @@ class OllamaManager:
         if self.is_service_running():
             return True
 
-        ollama_bin = shutil.which("ollama")
-        if not ollama_bin:
+        if not self.is_installed():
             logger.warning("ollama_manager.binary_not_found")
             return False
 
+        ollama_bin = shutil.which("ollama")
         try:
             logger.info("ollama_manager.starting_service", binary=ollama_bin)
             subprocess.Popen(
