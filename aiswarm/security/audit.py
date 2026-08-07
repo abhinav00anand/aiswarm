@@ -47,13 +47,13 @@ class AuditLedger:
         self._lock = asyncio.Lock()
         
         # Configure persistence path
-        env_path = os.getenv("BLYNX_AUDIT_LOG_PATH")
+        env_path = os.getenv("ZYMIS_AUDIT_LOG_PATH")
         if persist_path:
             self._persist_path: Path | None = Path(persist_path)
         elif env_path:
             self._persist_path = Path(env_path)
         else:
-            self._persist_path = Path.home() / ".blynx" / "audit.jsonl"
+            self._persist_path = Path.home() / ".zymis" / "audit.jsonl"
             
         self._load_persisted_events()
 
