@@ -56,7 +56,7 @@ _MODEL_FALLBACK: dict[str, dict[str, str]] = {
         "anthropic": "claude-3-5-haiku-20241022",
         "gemini": "gemini-2.0-flash",
         "deepseek": "deepseek-chat",
-        "local": os.getenv("OLLAMA_SELECTED_MODEL", "llama3.1:8b"),
+        "local": "llama3",
     },
     "deepseek/deepseek-r1": {
         "openai": "gpt-4o",
@@ -149,6 +149,15 @@ def _resolve_model(requested_model: str, provider_name: str) -> str | None:
     # Check if requested_model is natively supported by this provider
     known_models = _KNOWN_PROVIDER_MODELS.get(provider_name, set())
     if requested_model in known_models:
+        return requested_model
+
+    # If provider is not a known provider with limited model list, allow the requested model to be used directly
+    if provider_name not in _KNOWN_PROVIDER_MODELS:
+        logger.debug(
+            "router.allowing_unknown_provider_model",
+            requested=requested_model,
+            provider=provider_name,
+        )
         return requested_model
 
     # Fallback default model for provider to avoid invalid model ID errors
@@ -285,7 +294,7 @@ class ProviderRouter:
             order.append("local")
 
         last_exc: Exception | None = None
-        is_notebook = os.getenv("AISWARM_NOTEBOOK_MODE") in ("1", "true", "True")
+        is_notebook = os.getenv("BLYNX_NOTEBOOK_MODE") in ("1", "true", "True")
 
         for provider_name in order:
             provider = self._providers.get(provider_name)
