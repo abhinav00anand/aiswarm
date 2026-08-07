@@ -24,7 +24,7 @@ class VectorMemory:
     Falls back gracefully if chromadb is not available.
     """
 
-    def __init__(self, collection_name: str = "aiswarm_memory") -> None:
+    def __init__(self, collection_name: str = "blynx_memory") -> None:
         self._collection_name = collection_name
         self._client: Any = None
         self._collection: Any = None
