@@ -1,5 +1,5 @@
 """
-Orchestrator — the central control plane of AISwarm.
+Orchestrator — the central control plane of Blynx.
 
 Responsibilities:
 - Receives high-level tasks from Boss/Manager
@@ -33,7 +33,7 @@ logger = get_logger(__name__)
 
 class Orchestrator:
     """
-    The AISwarm control plane.
+    The Blynx control plane.
 
     Usage::
 
