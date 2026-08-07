@@ -23,13 +23,13 @@ test-all:
 	$(PYTEST) tests/ -v --tb=short
 
 lint:
-	python3 -m ruff check aiswarm/ apps/ tests/ --fix
+	python3 -m ruff check blynx/ apps/ tests/ --fix
 
 format:
-	python3 -m ruff format aiswarm/ apps/ tests/
+	python3 -m ruff format blynx/ apps/ tests/
 
 typecheck:
-	python3 -m mypy aiswarm/ --ignore-missing-imports
+	python3 -m mypy blynx/ --ignore-missing-imports
 
 clean:
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
@@ -41,10 +41,10 @@ run-api:
 	$(PYTHON) -m uvicorn apps.api.main:app --host 0.0.0.0 --port 8000 --reload
 
 run-worker:
-	$(PYTHON) -m aiswarm.worker.local_worker
+	$(PYTHON) -m blynx.worker.local_worker
 
 index:
-	aiswarm index --root .
+	blynx index --root .
 
 docker-up:
 	docker compose up -d
@@ -56,7 +56,7 @@ docker-logs:
 	docker compose logs -f
 
 help:
-	@echo "AISwarm Makefile targets:"
+	@echo "Blynx Makefile targets:"
 	@echo "  install          Install all dependencies"
 	@echo "  test             Run unit tests"
 	@echo "  test-integration Run integration tests (requires API keys)"
