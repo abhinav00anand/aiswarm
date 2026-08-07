@@ -45,7 +45,15 @@ class WorkflowEngine:
         try:
             # Ensure Host-1 routing decision is attached
             from aiswarm.schemas.routing import ExecutionMode
-            router = getattr(self._orc, "host1_router", None) or self._orc.get_agent("host1_router")
+            router = getattr(self._orc, "host1_router", None)
+            if router is None and hasattr(self._orc, "get_agent"):
+                try:
+                    router = self._orc.get_agent("host1_router")
+                except (KeyError, ValueError):
+                    try:
+                        router = self._orc.get_agent("host1")
+                    except (KeyError, ValueError):
+                        router = None
             metadata = getattr(task, "metadata", {}) or {}
             decision = metadata.get("route_decision")
             if decision is None and router is not None:
