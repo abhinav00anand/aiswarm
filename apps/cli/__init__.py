@@ -1,1 +1,1 @@
-"""AISwarm CLI application."""
+"""Blynx CLI application."""
