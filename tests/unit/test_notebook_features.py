@@ -46,8 +46,8 @@ def test_verify_api_keys_selection_priority(monkeypatch):
     with patch("aiswarm.security.auth.validate_adapter_url", return_value=True):
         assert APIKeyValidator.verify_api_keys() is True
 
-    # 3. If validation fails and AISWARM_NO_OLLAMA is set, raises SecurityAuthError
-    monkeypatch.setenv("AISWARM_NO_OLLAMA", "1")
+    # 3. If validation fails and BLYNX_NO_OLLAMA is set, raises SecurityAuthError
+    monkeypatch.setenv("BLYNX_NO_OLLAMA", "1")
     with patch("aiswarm.security.auth.validate_adapter_url", return_value=False):
         with pytest.raises(SecurityAuthError):
             APIKeyValidator.verify_api_keys()
@@ -68,8 +68,8 @@ def test_provider_router_adapter_override(monkeypatch):
 
 
 def test_notebook_mode_environment_and_model_overrides(monkeypatch):
-    """Test build_orchestrator configurations when AISWARM_NOTEBOOK_MODE=1 is set."""
-    monkeypatch.setenv("AISWARM_NOTEBOOK_MODE", "1")
+    """Test build_orchestrator configurations when BLYNX_NOTEBOOK_MODE=1 is set."""
+    monkeypatch.setenv("BLYNX_NOTEBOOK_MODE", "1")
     monkeypatch.setenv("OPENAI_API_ADAPTER_URL", "http://127.0.0.1:8000")
     
     # Prevent real authentication checks failing
