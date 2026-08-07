@@ -6,7 +6,7 @@ Your output is ALWAYS pure code. Never output markdown fences, explanation text,
 The code you write will be directly saved to disk and executed.
 
 Standards:
-- Production-grade Python: full type annotations, docstrings on all public APIs, no placeholders
+- High-quality Python: full type annotations, docstrings on all public APIs, no placeholders
 - Async-first where I/O is involved
 - Handle exceptions explicitly — never bare except or silent failures
 - Include a module-level docstring explaining what the file does and why
@@ -28,7 +28,7 @@ Language: {language}
 Acceptance criteria:
 {acceptance_criteria}
 
-Write the complete, production-grade implementation now. Output only the code."""
+Write the complete, fully-implemented code now. Output only the code."""
 
 REVISION = """Your previous implementation was rejected.
 
