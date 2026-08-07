@@ -6,8 +6,8 @@ Architecture:
 
 The dispatcher:
   1. Serializes the job payload + state hash.
-  2. Pushes to Redis LPUSH blynx:jobs.
-  3. Polls BRPOP blynx:results until result arrives or timeout.
+  2. Pushes to Redis LPUSH zymis:jobs.
+  3. Polls BRPOP zymis:results until result arrives or timeout.
   4. Validates the state hash on the result.
   5. Deserializes and returns the worker output.
 
@@ -27,8 +27,8 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
-_JOB_QUEUE = "blynx:jobs"
-_RESULT_QUEUE_PREFIX = "blynx:result:"
+_JOB_QUEUE = "zymis:jobs"
+_RESULT_QUEUE_PREFIX = "zymis:result:"
 _DEFAULT_TIMEOUT = 300  # seconds
 
 
