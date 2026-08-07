@@ -62,7 +62,7 @@ def build_orchestrator(
     cfg = config or {}
     
     is_notebook_mode = (
-        os.getenv("AISWARM_NOTEBOOK_MODE") in ("1", "true", "True") or 
+        os.getenv("BLYNX_NOTEBOOK_MODE") in ("1", "true", "True") or 
         cfg.get("profile") == "notebook"
     )
     adapter_url = os.getenv("OPENAI_API_ADAPTER_URL")
