@@ -42,24 +42,27 @@ _MODEL_FALLBACK: dict[str, dict[str, str]] = {
         "anthropic": "claude-3-5-sonnet-20241022",
         "gemini": "gemini-2.0-flash",
         "deepseek": "deepseek-chat",
+        "local": os.getenv("OLLAMA_SELECTED_MODEL", "llama3.1:8b"),
     },
     "meta-llama/llama-3.1-70b-instruct": {
         "openai": "gpt-4o-mini",
         "anthropic": "claude-3-5-haiku-20241022",
         "gemini": "gemini-2.0-flash",
         "deepseek": "deepseek-chat",
+        "local": os.getenv("OLLAMA_SELECTED_MODEL", "llama3.1:8b"),
     },
     "meta-llama/llama-3.1-8b-instruct": {
         "openai": "gpt-4o-mini",
         "anthropic": "claude-3-5-haiku-20241022",
         "gemini": "gemini-2.0-flash",
         "deepseek": "deepseek-chat",
-        "local": "llama3",
+        "local": os.getenv("OLLAMA_SELECTED_MODEL", "llama3.1:8b"),
     },
     "deepseek/deepseek-r1": {
         "openai": "gpt-4o",
         "anthropic": "claude-3-5-sonnet-20241022",
         "deepseek": "deepseek-reasoner",
+        "local": os.getenv("OLLAMA_SELECTED_MODEL", "llama3.1:8b"),
     },
 }
 
@@ -69,7 +72,7 @@ _KNOWN_PROVIDER_MODELS: dict[str, set[str]] = {
     "anthropic": {"claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022", "claude-3-opus-20240229", "claude-3-sonnet-20240229", "claude-3-haiku-20240307"},
     "gemini": {"gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"},
     "deepseek": {"deepseek-chat", "deepseek-reasoner"},
-    "local": {"llama3", "llama3:70b", "mistral", "qwen"},
+    "local": {"llama3.1:8b", "llama3.2:3b", "llama3.2:1b", "llama3.1:70b", "llama3", "llama3:70b", "mistral", "qwen", "distilgpt2"},
 }
 
 _PROVIDER_DEFAULT_MODELS: dict[str, str] = {
@@ -117,8 +120,9 @@ def _resolve_model(requested_model: str, provider_name: str) -> str | None:
     """
     Resolve the correct model ID for a given provider.
 
-    - For "novita": use the requested model ID directly.
-    - For other providers: check explicit mapping, native model set, or fallback default.
+    - For "adapter": use advertised model ID or requested model.
+    - For "novita": use requested model ID directly.
+    - For "local": check explicit mapping or allow direct pass-through for local models.
     """
     if provider_name == "adapter":
         adv = get_adapter_model()
@@ -126,7 +130,10 @@ def _resolve_model(requested_model: str, provider_name: str) -> str | None:
             return adv
         return requested_model
 
-    if provider_name == "novita":
+    if provider_name in ("novita", "local"):
+        mapping = _MODEL_FALLBACK.get(requested_model, {})
+        if provider_name in mapping:
+            return mapping[provider_name]
         return requested_model
 
     # Check explicit mapping table
