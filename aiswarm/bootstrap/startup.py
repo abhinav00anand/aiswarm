@@ -291,6 +291,7 @@ def build_orchestrator(
     orchestrator.register_agent("compiler", _CompilerAgent())
     orchestrator.register_agent("tester", _TesterAgent())
     orchestrator.register_agent("host1", host1_router)
+    orchestrator.register_agent("host1_router", host1_router)
     orchestrator.register_agent("host2", host2_manager)
     orchestrator.register_agent("governor", governor)
     orchestrator.register_agent("self_healing", self_healing)
