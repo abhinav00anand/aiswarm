@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "aiswarm-next"
 
-version = "1.3.1"
+version = "1.3.2"
 description = "Production-grade AI agent orchestration system — Boss, Manager, Coder, Critics, and Worker pipeline"
 readme = "README.md"
 license = { file = "LICENSE" }
