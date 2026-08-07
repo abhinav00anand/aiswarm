@@ -1,17 +1,69 @@
-# 🐝 AISwarm-Next
+# aiswarm – AI‑Swarm Framework 🚀
+
+[![PyPI version](https://img.shields.io/pypi/v/aiswarm.svg)](https://pypi.org/project/aiswarm/)
+[![License](https://img.shields.io/github/license/abhinav00anand/aiswarm.svg)](https://github.com/abhinav00anand/aiswarm/blob/main/LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/abhinav00anand/aiswarm.svg?style=social)](https://github.com/abhinav00anand/aiswarm)
+
+## What is **aiswarm**?
+
+`aiswarm` is a **light‑weight, modular framework** that lets you compose **multiple autonomous LLM agents** (boss, manager, coder, critic, worker, …) into a coherent swarm.  It ships with a **clean CLI**, a **FastAPI server**, and a **plug‑in system** so you can extend it without touching the core.
+
+> **Why use aiswarm?**
+> * **Framework, not a black‑box app** – you get the orchestration engine and can build your own agents on top.
+> * **Zero‑install for experimentation** – install from PyPI and run a single command to see a swarm in action.
+> * **Typed, async‑first** – fully typed with `pydantic`, async‑ready, and works on Python 3.11+.
+
+---
+
+## Quick Start
+
+```bash
+# Install the package
+python -m pip install aiswarm
+
+# Run the demo swarm (boss + worker)
+aiswarm run demo
+```
+
+You’ll see a colourful console output while the boss coordinator assigns tasks to workers, collects results, and prints a summary.
+
+---
+
+## Documentation
+
+* **[Architecture Overview](docs/ARCHITECTURE.md)** – deep dive into the swarm topology.
+* **[Getting Started Guide](docs/GETTING_STARTED.md)** – step‑by‑step tutorial.
+* **[CLI Reference](docs/CLI_REFERENCE.md)** – full list of commands and options.
+* **[API Reference](docs/API_REFERENCE.md)** – type‑annotated modules you can import.
+
+---
+
+## Contributing
+
+We love contributions! Please read our **[CONTRIBUTING.md](CONTRIBUTING.md)** for the workflow, coding style, and how to submit a pull request.
+
+---
+
+## License
+
+`aiswarm` is licensed under the **MIT License** – see the `LICENSE` file.
+
+---
+
+*Enjoy building intelligent swarms!*
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/abhinav00anand/aiswarm-next/main/assets/logo.jpg" alt="AISwarm logo" width="160" height="160" style="border-radius:24px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);">
+  <img src="https://raw.githubusercontent.com/abhinav00anand/aiswarm/main/assets/logo.jpg" alt="AISwarm logo" width="160" height="160" style="border-radius:24px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);">
 </p>
 
 <p align="center">
-  <b>Enterprise Multi-Agent AI Software Engineering Swarm</b><br>
-  Transforming high-level objectives into compiled, fully-tested, security-scrubbed, native C++ & Python code bases.
+  <b>Lightweight Multi-Agent AI Swarm Framework</b><br>
+  A usable orchestration framework implementing Boss, Manager, Coder, Critic, and Worker agents.
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/aiswarm-next/"><img src="https://img.shields.io/pypi/v/aiswarm-next.svg?style=for-the-badge&logo=pypi&logoColor=white&color=blue" alt="PyPI Package"></a>
-  <a href="https://github.com/abhinav00anand/aiswarm-next"><img src="https://img.shields.io/badge/github-aiswarm--next-black.svg?style=for-the-badge&logo=github" alt="GitHub Repository"></a>
+  <a href="https://pypi.org/project/aiswarm/"><img src="https://img.shields.io/pypi/v/aiswarm.svg?style=for-the-badge&logo=pypi&logoColor=white&color=blue" alt="PyPI Package"></a>
+  <a href="https://github.com/abhinav00anand/aiswarm"><img src="https://img.shields.io/badge/github-aiswarm-black.svg?style=for-the-badge&logo=github" alt="GitHub Repository"></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-3776AB.svg?style=for-the-badge&logo=python&logoColor=white" alt="Python Version"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge" alt="License: MIT"></a>
 </p>
@@ -90,7 +142,7 @@ During the verification phase of the Production Lane, 8 specialized Critic agent
 
 ## 🔌 Running in Notebooks (Kaggle / Colab)
 
-To run AISwarm-Next in offline or memory-restricted notebook environments, you can start a lightweight local Hugging Face adapter and point the orchestrator directly to it:
+To run AISwarm in offline or memory-restricted notebook environments, you can start a lightweight local Hugging Face adapter and point the orchestrator directly to it:
 
 ### 1. Launch the Secure Local HF Adapter
 In a separate background process or cell, start our provided secure FastAPI proxy hosting a model like `distilgpt2`:
@@ -126,7 +178,7 @@ aiswarm run "Write an efficient factorial function and tests"
 ### Installation
 
 ```bash
-pip install aiswarm-next
+pip install aiswarm
 ```
 
 ### Running with Cloud API Keys
@@ -144,7 +196,7 @@ aiswarm run "Write a quicksort helper and unit tests"
 ```
 
 ### Running with Zero-Keys (Auto-Provisioned Local Ollama)
-If no cloud API keys or adapters are configured, AISwarm-Next will automatically measure disk space, launch Ollama, download an optimal model, and execute the task completely locally:
+If no cloud API keys or adapters are configured, AISwarm will automatically measure disk space, launch Ollama, download an optimal model, and execute the task completely locally:
 
 ```bash
 # Just run directly!
@@ -181,4 +233,4 @@ aiswarm run "Write an AST parser in Python"
 
 ## 📜 License
 
-AISwarm-Next is open-source software licensed under the [MIT License](./LICENSE).
+AISwarm is open-source software licensed under the [MIT License](./LICENSE).
