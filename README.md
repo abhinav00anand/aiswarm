@@ -2,7 +2,7 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/blynx.svg)](https://pypi.org/project/blynx/)
 [![License](https://img.shields.io/github/license/abhinav00anand/blynx.svg)](https://github.com/abhinav00anand/blynx/blob/main/LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/abhinav00anand/blynx.svg?style=social)](https://github.com/abhinav00anand/aiswarm)
+[![GitHub stars](https://img.shields.io/github/stars/abhinav00anand/blynx.svg?style=social)](https://github.com/abhinav00anand/blynx)
 
 ## What is **blynx**?
 
