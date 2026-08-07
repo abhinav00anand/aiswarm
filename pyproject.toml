@@ -5,8 +5,8 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "aiswarm-next"
 
-version = "1.3.2"
-description = "Production-grade AI agent orchestration system — Boss, Manager, Coder, Critics, and Worker pipeline"
+version = "1.3.3"
+description = "Lightweight multi-agent orchestration framework — Boss, Manager, Coder, Critics, and Worker pipeline"
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.11"
@@ -23,6 +23,13 @@ classifiers = [
     "Topic :: Software Development :: Code Generators",
     "Typing :: Typed",
 ]
+
+# dependencies and rest of file unchanged
+
+
+
+
+
 
 dependencies = [
 
