@@ -128,3 +128,22 @@ class Host1Router:
         )
 
         return decision
+
+    async def route_task(self, task: Any) -> RouteDecision:
+        """
+        Convenience adapter method taking a Task object or dict, generating a RouteDecision.
+        """
+        if hasattr(task, "task_id"):
+            payload = {
+                "task_id": getattr(task, "task_id", "unknown"),
+                "title": getattr(task, "title", ""),
+                "description": getattr(task, "description", ""),
+                "target_files": getattr(task, "target_files", []),
+                "budget_tier": getattr(task, "budget_tier", "normal"),
+            }
+        elif isinstance(task, dict):
+            payload = task
+        else:
+            payload = {"title": str(task)}
+
+        return self.evaluate_task(payload)
