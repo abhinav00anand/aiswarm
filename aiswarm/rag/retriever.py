@@ -89,7 +89,10 @@ class RAGRetriever:
                     "content": doc,
                     "similarity": 1.0 - dist,
                 })
-            return items
+            if items:
+                return items
+            # No semantic results – fall back to keyword search
+            return self._keyword_fallback(query)
         except Exception as exc:  # noqa: BLE001
             logger.error("rag.retrieve_error", error=str(exc))
             return self._keyword_fallback(query)
