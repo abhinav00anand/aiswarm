@@ -61,7 +61,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 app = FastAPI(
     title="AISwarm API",
-    description="Production-grade AI agent orchestration system",
+    description="Lightweight multi-agent orchestration framework",
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -285,7 +285,7 @@ async def rag_status() -> dict[str, Any]:
 class DirectModelRequest(BaseModel):
     prompt: str
     model: str = "gpt-4o"
-    system_prompt: str = "You are a helpful AI assistant coordinated by AISwarm-Next."
+    system_prompt: str = "You are a helpful AI assistant coordinated by AISwarm."
     temperature: float = 0.7
 
 
