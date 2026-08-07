@@ -68,9 +68,17 @@ class Orchestrator:
         )
         self._running = False
         self._background_tasks: list[asyncio.Task] = []  # type: ignore[type-arg]
+        self._task_store: Any | None = None
 
         # Register deadlock callback
         self._deadlock_detector.on_deadlock(self._on_deadlock)
+
+    # ── Task store ────────────────────────────────────────────────────────────
+
+    def set_task_store(self, store: Any) -> None:
+        """Attach a shared TaskStore (e.g. RedisTaskStore) to the orchestrator."""
+        self._task_store = store
+        logger.info("orchestrator.task_store_set", store_type=type(store).__name__)
 
     # ── Agent registry ────────────────────────────────────────────────────────
 
@@ -180,6 +188,9 @@ class Orchestrator:
         task.started_at = datetime.now(timezone.utc)
         self._deadlock_detector.notify_state_change(task)
 
+        if self._task_store and hasattr(self._task_store, "put"):
+            await self._task_store.put(task)
+
         await self._bus.publish(Event(
             event_type=EventType.TASK_CREATED,
             source="orchestrator",
@@ -203,6 +214,11 @@ class Orchestrator:
                 logger.error("orchestrator.execute_error", task_id=task.task_id, error=str(exc))
             finally:
                 save_task(task)
+                if self._task_store and hasattr(self._task_store, "put"):
+                    try:
+                        await self._task_store.put(task)
+                    except Exception as exc:
+                        logger.warning("orchestrator.task_store_update_error", task_id=task.task_id, error=str(exc))
                 state_event_map = {
                     TaskState.MERGED: EventType.TASK_COMPLETED,
                     TaskState.REJECTED: EventType.TASK_REJECTED,
