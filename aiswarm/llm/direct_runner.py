@@ -38,7 +38,7 @@ class DirectModelCoordinator:
         self,
         prompt: str,
         model: str = "gpt-4o",
-        system_prompt: str = "You are a helpful AI assistant coordinated by AISwarm-Next.",
+        system_prompt: str = "You are a helpful AI assistant coordinated by AISwarm.",
         temperature: float = 0.7,
         user_role: str = "user",
     ) -> dict[str, Any]:
