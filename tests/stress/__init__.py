@@ -1,1 +1,1 @@
-"""AISwarm stress test suite — resilience and concurrency validation."""
+"""Blynx stress test suite — resilience and concurrency validation."""
