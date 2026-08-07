@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 # Redis key namespaces
-REDIS_JOB_QUEUE = "aiswarm:jobs"
-REDIS_RESULT_PREFIX = "aiswarm:result:"
+REDIS_JOB_QUEUE = "blynx:jobs"
+REDIS_RESULT_PREFIX = "blynx:result:"
 REDIS_STATE_PREFIX = "aiswarm:state:"
 REDIS_LOCK_PREFIX = "aiswarm:lock:"
 
