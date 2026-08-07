@@ -1,236 +1,143 @@
-# blynx – AI‑Swarm Framework 🚀
+# ⚡ Zymis
 
-[![PyPI version](https://img.shields.io/pypi/v/blynx.svg)](https://pypi.org/project/blynx/)
-[![License](https://img.shields.io/github/license/abhinav00anand/blynx.svg)](https://github.com/abhinav00anand/blynx/blob/main/LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/abhinav00anand/blynx.svg?style=social)](https://github.com/abhinav00anand/blynx)
+[![PyPI version](https://img.shields.io/pypi/v/zymis.svg)](https://pypi.org/project/zymis/)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![CI Validation](https://github.com/abhinav00anand/aiswarm/actions/workflows/ci.yml/badge.svg)](https://github.com/abhinav00anand/aiswarm/actions)
 
-## What is **blynx**?
-
-`blynx` is a **light‑weight, modular framework** that lets you compose **multiple autonomous LLM agents** (boss, manager, coder, critic, worker, …) into a coherent swarm.  It ships with a **clean CLI**, a **FastAPI server**, and a **plug‑in system** so you can extend it without touching the core.
-
-> **Why use blynx?**
-> * **Framework, not a black‑box app** – you get the orchestration engine and can build your own agents on top.
-> * **Zero‑install for experimentation** – install from PyPI and run a single command to see a swarm in action.
-> * **Typed, async‑first** – fully typed with `pydantic`, async‑ready, and works on Python 3.11+.
-
----
-
-## Quick Start
-
-```bash
-# Install the package
-python -m pip install blynx
-
-# Run the demo swarm (boss + worker)
-blynx run demo
+```text
+  _____           _     
+ |__  /_   _ _ __ (_)___ 
+   / /| | | | '_ \| / __|
+  / /_| |_| | | | | \__ \
+ /____|\__, |_| |_|_|___/
+       |___/             
 ```
 
-You’ll see a colourful console output while the boss coordinator assigns tasks to workers, collects results, and prints a summary.
+> **The Autonomous, Safeguarded Swarm Orchestra for Software Engineering.**
+>
+> Zymis is a usable, lightweight, and modular multi-agent orchestration framework designed to plan, code, review, compile, and validate software within sandboxed boundaries.
 
 ---
 
-## Documentation
+## 🎭 The Orchestra Architecture
 
-* **[Architecture Overview](docs/ARCHITECTURE.md)** – deep dive into the swarm topology.
-* **[Getting Started Guide](docs/GETTING_STARTED.md)** – step‑by‑step tutorial.
-* **[CLI Reference](docs/CLI_REFERENCE.md)** – full list of commands and options.
-* **[API Reference](docs/API_REFERENCE.md)** – type‑annotated modules you can import.
-
----
-
-## Contributing
-
-We love contributions! Please read our **[CONTRIBUTING.md](CONTRIBUTING.md)** for the workflow, coding style, and how to submit a pull request.
-
----
-
-## License
-
-`blynx` is licensed under the **MIT License** – see the `LICENSE` file.
-
----
-
-*Enjoy building intelligent swarms!*
-
-<p align="center">
-  <img src="https://github.com/abhinav00anand/blynx/blob/main/assets/logo.jpg?raw=true" alt="Blynx logo" width="160" height="160" style="border-radius:24px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);">
-</p>
-
-<p align="center">
-  <b>Lightweight Multi-Agent AI Swarm Framework</b><br>
-  A usable orchestration framework implementing Boss, Manager, Coder, Critic, and Worker agents.
-</p>
-
-<p align="center">
-  <a href="https://pypi.org/project/blynx/"><img src="https://img.shields.io/pypi/v/blynx.svg?style=for-the-badge&logo=pypi&logoColor=white&color=blue" alt="PyPI Package"></a>
-  <a href="https://github.com/abhinav00anand/blynx"><img src="https://img.shields.io/badge/github-blynx-black.svg?style=for-the-badge&logo=github" alt="GitHub Repository"></a>
-  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-3776AB.svg?style=for-the-badge&logo=python&logoColor=white" alt="Python Version"></a>
-  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge" alt="License: MIT"></a>
-</p>
-
----
-
-## 🚀 Key Features
-
-*   **🦙 Zero-Cloud-Key Local Fallback**: Dynamic disk measurement auto-provisions Ollama (`llama3.1:8b`, `llama3.2:3b`, or `llama3.2:1b`) when no cloud API keys are present.
-*   **🔌 Explicit Local Adapter URL**: Seamlessly point to any in-notebook OpenAI-compatible API endpoint (e.g. running vLLM, Hugging Face, or local model servers) via `--adapter-url` or `OPENAI_API_ADAPTER_URL`.
-*   **📓 Optimized Notebook Mode**: Turn on `--notebook` or `BLYNX_NOTEBOOK_MODE=1` to disable Ollama auto-installations, limit CPU thread contention (`OMP`/`MKL`), cap generation tokens, and fall back to safe small models.
-*   **🛡️ Multi-Agent Auditing**: Production pipeline routes code through **8 domain-specialized Critic Agents** (Security, Architecture, Performance, Maintainability, Reliability, Style, Testing, and Documentation).
-*   **🔒 Zero-Trust Execution Sandbox**: Scopes files and process isolation, allowlisting compilation processes to strictly prevent environment breakouts.
-*   **📜 Audit Ledger**: Generates a cryptographically traceable, JSONL-formatted immutable audit log of all system decisions.
-
----
-
-## 🏗️ Swarm Architecture & Execution Lanes
-
-Tasks submitted to the Swarm automatically pass through the **Host-1 Router** to decide the optimal execution lane:
+Zymis organizes AI agents into a structured hierarchical pipeline where every agent plays a distinct instrument:
 
 ```mermaid
 graph TD
-    NLTask[Submit Natural Language Task] --> Router[Host-1 Router]
+    User([User Request]) --> Boss[Boss Agent]
+    Boss --> Router{Host-1 Global Router}
     
-    subgraph Execution Lanes
-        Router -->|Fast Lane| Host2[Host-2 C++ Engine]
-        Router -->|Production Lane| Boss[Boss Validation]
-        Router -->|Hybrid Lane| Decomposer[Hybrid Decomposer]
-    end
+    Router -->|FAST Path| CapManager[Host-2 Capability Manager]
+    Router -->|PRODUCTION Path| Manager[Manager Agent]
     
-    Host2 --> Scaffolder[SCScaffolder] --> Sandbox[Isolated Sandbox]
+    Manager --> Planner[Task Planner]
+    Planner --> RAG[Context Selector & RAG]
+    RAG --> Coder[Coder Agent]
+    Coder --> Sandbox[Execution Sandbox & Pre-Check]
+    Sandbox --> Critics[Style / Performance / Security / Reliability Critics]
+    Critics --> Compiler[Compiler / Python/C++/Rust build checks]
+    Compiler --> TestRunner[Unit & Stress Test runner]
+    TestRunner --> MergeController{5-Gate Merge Controller}
     
-    Boss --> Mgr[Manager Planning] --> Coder[Coder Generation] --> Compiler[Compiler Verify]
-    Compiler --> Critics[8 Parallel Critics] --> Cond[Confidence & Self-Healing] --> Sandbox
-    
-    Decomposer --> Segment[Subtask Segmentation] --> Host2
-    Decomposer --> Segment --> Boss
-    
-    Sandbox --> Audit[Immutable Audit Ledger]
+    MergeController -->|Pass| Success([Merged & Confirmed Code])
+    MergeController -->|Fail| SelfHealing[Self-Healing & Retry Loop]
+    SelfHealing --> Coder
 ```
-
-### 1. Fast Lane (`FAST`)
-- **Latency**: ~0.1 seconds
-- **Best For**: Direct code scaffolding, minor edits, and utility functions.
-- **Engine**: Invokes compiled C++ Native module engines (`host2_engine.cpp`) via the `Host2CapabilityManager`.
-
-### 2. Production Lane (`PRODUCTION`)
-- **Latency**: Variable (LLM execution dependent)
-- **Best For**: Complex features, security boundaries, and multi-file codebases.
-- **Engine**: Executes the complete 12-Stage Swarm pipeline driven by the Boss, Manager, Coder, and 8 Parallel Critics.
-
-### 3. Hybrid Lane (`HYBRID`)
-- **Latency**: Variable
-- **Best For**: Complex goals that combine boilerplate structure with core critical algorithms.
-- **Engine**: Boss Agent decomposes the objective, delegating basic tasks to Host-2 while reserving main execution blocks for the Boss pipeline.
 
 ---
 
-## 🧐 The 8 Domain Critics
+## 🚀 Key Orchestral Features
 
-During the verification phase of the Production Lane, 8 specialized Critic agents validate the code concurrently:
-
-| Critic Agent | Focus Area | Veto Power | Critical Scopes Checked |
-| :--- | :--- | :---: | :--- |
-| 🛡️ **Security Critic** | Security & Compliance | **YES** | Audits for Injection, XSS, Path Traversal, secrets leaks, and unsafe imports. |
-| 🏛️ **Architecture Critic** | Structure & Modularity | No | Enforces SOLID design principles, modularity, and clean layer separation. |
-| ⚡ **Performance Critic** | Memory & Speed | No | Assesses CPU bottlenecks, space/time complexity, and loop efficiency. |
-| 🧹 **Maintainability Critic** | Style & Cleanliness | No | Tracks cyclomatic complexity, code duplication, and clean naming conventions. |
-| 🛡️ **Reliability Critic** | Error Resilience | No | Enforces robust exception boundaries, fallback mechanisms, and null checks. |
-| 🎨 **Style Critic** | Standards Consistency | No | Assesses strict compliance with PEP 8 and Python/C++ type declarations. |
-| 🧪 **Testing Critic** | Unit Testing Depth | No | Validates unit coverage, mocking parameters, and edge-case boundaries. |
-| 📝 **Documentation Critic** | Clarity & Docs | No | Checks docstrings, inline code comments, and API explanations. |
+*   **Host-1 Global Router**: Smart task routing with multiple execution paths:
+    *   `FAST` lane (~0.1s latency) for trivial file operations or simple completions.
+    *   `PRODUCTION` lane (12-stage Boss pipeline) for complex codebases and full swarms.
+    *   `HYBRID` lane dynamically scaling based on task risk assessment.
+*   **Execution Sandbox**: Subprocess code isolation with built-in path-traversal protection and restricted commands allowlisting (`python`, `pytest`, `git`, `pip`).
+*   **Security Subsystem**:
+    *   `APIKeyValidator`: Fail-fast startup checks.
+    *   `SecretRedactor`: Filters API keys (OpenAI, Anthropic, Google, AWS, GitHub) from output logs.
+    *   `EngineeringGovernor`: Spending limits, cost safeguards, and usage tracking.
+    *   `AuditLedger`: Thread-safe, append-only logs kept locally in `~/.zymis/audit.jsonl`.
+*   **5-Gate Merge Controller**: Strict automated validation checks on compilation, unit tests, code quality, and style before merging files.
+*   **Rich Telemetry**: Built-in Prometheus metrics (`/metrics`) and OpenTelemetry-compatible tracing wrappers.
 
 ---
 
-## 🔌 Running in Notebooks (Kaggle / Colab)
+## 📦 Installation
 
-To run Blynx in offline or memory-restricted notebook environments, you can start a lightweight local Hugging Face adapter and point the orchestrator directly to it:
-
-### 1. Launch the Secure Local HF Adapter
-In a separate background process or cell, start our provided secure FastAPI proxy hosting a model like `distilgpt2`:
-
-```python
-# Set environment config
-import os
-os.environ["ADAPTER_MODEL_NAME"] = "distilgpt2"
-os.environ["ADAPTER_API_KEY"] = "my-secure-notebook-token"
-
-# Start the adapter
-!python examples/local_adapter.py
-```
-
-### 2. Run Blynx pointed to the local Adapter
-Configure the orchestrator using environment variables or CLI flags:
+Install Zymis from PyPI:
 
 ```bash
-export OPENAI_API_ADAPTER_URL="http://127.0.0.1:8000"
-export OPENAI_API_KEY="my-secure-notebook-token"
-export BLYNX_NO_OLLAMA=1
-export BLYNX_NOTEBOOK_MODE=1
-
-blynx run "Write an efficient factorial function and tests"
+pip install zymis
 ```
 
-*See the comprehensive [`examples/kaggle.ipynb`](./examples/kaggle.ipynb) notebook for a complete, runnable notebook environment script.*
+To enable development dependencies:
+
+```bash
+pip install "zymis[dev]"
+```
 
 ---
 
-## ⚡ Quick Start Guide
+## 🛠️ Quick Start
 
-### Installation
-
-```bash
-pip install blynx
-```
-
-### Running with Cloud API Keys
-
-Configure any supported cloud provider key:
+### 1. Configure Credentials
+Set your credentials in your shell or create a `.env` file in your workspace directory:
 
 ```bash
-export OPENAI_API_KEY="sk-proj-..."
-# OR
-export ANTHROPIC_API_KEY="sk-ant-..."
-# OR
-export GOOGLE_API_KEY="AIzaSy..."
-
-blynx run "Write a quicksort helper and unit tests"
+# Zymis API configuration
+ZYMIS_API_KEY=your-zymis-key
+OPENAI_API_KEY=your-openai-api-key
+# Or use Anthropic, Google (Gemini), Bedrock, etc.
 ```
 
-### Running with Zero-Keys (Auto-Provisioned Local Ollama)
-If no cloud API keys or adapters are configured, Blynx will automatically measure disk space, launch Ollama, download an optimal model, and execute the task completely locally:
+### 2. Command Line Interface (CLI)
+Zymis includes a powerful command line tool to run swarms directly:
 
 ```bash
-# Just run directly!
-blynx run "Write an AST parser in Python"
+# Run a simple coding task in fast mode
+zymis run "create a database schema for user profiles" --desc "Using SQLite and SQLAlchemy" --file models.py
+
+# Cancel a running task
+zymis cancel <task_id>
+
+# Check active swarm task statuses
+zymis status
 ```
 
-### CLI Command Reference
+### 3. FastAPI Web Server
+Spin up the FastAPI integration server to interact with Zymis via REST API endpoints:
 
-*   `blynx run "<task_description>"`: Submit a software engineering task to the orchestrator.
-    *   `--adapter-url <url>`: Override the OpenAI-compatible local adapter endpoint.
-    *   `--no-ollama`: Skip Ollama auto-provision fallbacks.
-    *   `--notebook`: Run in resource-conserving notebook mode.
-*   `blynx providers`: List all configured LLM providers and their availability status.
-*   `blynx audit`: Output the last 50 entries from the immutable audit ledger.
+```bash
+# Start the API server on port 8000
+python -m apps.api.main
+```
 
 ---
 
-## 📊 System Benchmarks
+## ⚙️ Environment Variables
 
-| Benchmark Suite | Total Runs | Passed | Skipped | Pass Rate |
-| :--- | :---: | :---: | :---: | :---: |
-| **Unit Test Suite** | 231 | **228** | 3 | **100%** |
-| **Stress & Fuzzing Suite** | 134 | **131** | 3 | **100%** |
-| **Concurrency Benchmark** | 5 | **5** | 0 | **100%** |
-| **TOTAL** | **370** | **364** | **6** | **100%** |
+Customize the behavior of the Zymis engine:
 
-### Event Core Performance
-- **EventBus Throughput**: `6,700` events/sec
-- **TaskScheduler Throughput**: `23,800` tasks/sec
-- **AuditLedger Write Speed**: `12,300` events/sec
-- **SecretRedactor Scrub Speed**: `18,200` secrets/sec
+| Variable | Description | Default |
+| :--- | :--- | :--- |
+| `ZYMIS_API_KEY` | Secret token to authenticate local execution clients. | None |
+| `ZYMIS_NO_OLLAMA` | Disable local Ollama provisioning and model auto-pulls. | `0` |
+| `ZYMIS_NOTEBOOK_MODE` | Enable lightweight notebook-friendly stdout stream formats. | `0` |
+| `ZYMIS_AUDIT_LOG_PATH` | Override target folder for the local audit ledger. | `~/.zymis/audit.jsonl` |
+| `ZYMIS_LOCAL_FIRST` | Prioritize local models or custom OpenAI-compatible adapters. | `0` |
 
 ---
 
-## 📜 License
+## 👥 Contributing
 
-Blynx is open-source software licensed under the [MIT License](./LICENSE).
+Contributions are welcome! Please refer to the [Contributing Guide](CONTRIBUTING.md) and adhere to the [Code of Conduct](CODE_OF_CONDUCT.md).
+
+## 📄 License
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+
+[http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
+
+For support, contact us at [indrohelpdesk@gmail.com](mailto:indrohelpdesk@gmail.com).
