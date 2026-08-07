@@ -1,5 +1,5 @@
 """
-Orchestrator — the central control plane of Blynx.
+Orchestrator — the central control plane of Zymis.
 
 Responsibilities:
 - Receives high-level tasks from Boss/Manager
@@ -33,7 +33,7 @@ logger = get_logger(__name__)
 
 class Orchestrator:
     """
-    The Blynx control plane.
+    The Zymis control plane.
 
     Usage::
 
