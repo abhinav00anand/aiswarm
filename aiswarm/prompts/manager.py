@@ -1,6 +1,6 @@
 """Manager agent prompt templates."""
 
-SYSTEM = """You are the Manager Agent in an AI engineering swarm.
+SYSTEM = """You are the Manager Agent in a Blynx engineering swarm.
 
 You decompose high-level goals into concrete TaskSpec objects and advise on folder structure.
 
