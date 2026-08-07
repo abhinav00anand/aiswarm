@@ -1,5 +1,5 @@
 """
-Blynx CLI — interact with the orchestrator from the command line.
+Zymis CLI — interact with the orchestrator from the command line.
 
 Commands:
   run     — submit a task and stream its progress
@@ -29,8 +29,8 @@ from aiswarm.security.auth import APIKeyValidator
 from aiswarm.security.audit import get_audit_ledger
 
 app = typer.Typer(
-    name="blynx",
-    help="Blynx — Lightweight multi-agent orchestration framework",
+    name="zymis",
+    help="Zymis — Lightweight multi-agent orchestration framework",
     rich_markup_mode="rich",
 )
 console = Console()
@@ -53,7 +53,7 @@ def run(
     priority: str = typer.Option("NORMAL", "--priority", "-p", help="CRITICAL|HIGH|NORMAL|LOW"),
     max_retries: int = typer.Option(5, "--retries", help="Max retry attempts"),
     wait: bool = typer.Option(True, "--wait/--no-wait", help="Wait for completion"),
-    api_key: str | None = typer.Option(None, "--api-key", "-k", help="Blynx or Provider API Key"),
+    api_key: str | None = typer.Option(None, "--api-key", "-k", help="Zymis or Provider API Key"),
     adapter_url: str | None = typer.Option(None, "--adapter-url", help="OpenAI-compatible adapter URL"),
     no_ollama: bool = typer.Option(False, "--no-ollama", help="Disable Ollama auto-provisioning"),
     notebook: bool = typer.Option(False, "--notebook", help="Run in lightweight notebook mode"),
@@ -63,9 +63,9 @@ def run(
     if adapter_url:
         os.environ["OPENAI_API_ADAPTER_URL"] = adapter_url
     if no_ollama:
-        os.environ["BLYNX_NO_OLLAMA"] = "1"
+        os.environ["ZYMIS_NO_OLLAMA"] = "1"
     if notebook:
-        os.environ["BLYNX_NOTEBOOK_MODE"] = "1"
+        os.environ["ZYMIS_NOTEBOOK_MODE"] = "1"
 
     APIKeyValidator.enforce_startup_auth(api_key)
     asyncio.run(_run_task(
@@ -115,7 +115,7 @@ async def _run_task(
     console.print(f"[cyan]Task ID:[/cyan] {submitted.task_id}")
 
     if not wait_for_completion:
-        console.print("[yellow]Task submitted. Use 'blynx status' to check progress.[/yellow]")
+        console.print("[yellow]Task submitted. Use 'zymis status' to check progress.[/yellow]")
         await lifecycle.shutdown()
         return
 
