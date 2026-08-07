@@ -60,7 +60,13 @@ class Host2CapabilityManager:
         import shutil
         from pathlib import Path
 
-        cpp_src = Path(r"C:\Users\lenovo\.gemini\antigravity\scratch\aiswarm\aiswarm\host2_cpp\host2_engine.cpp")
+        base_pkg = Path(__file__).parents[2]
+        cpp_src = base_pkg / "host2_cpp" / "host2_engine.cpp"
+        if not cpp_src.exists():
+            # Fallback check relative to cwd
+            alt_src = Path.cwd() / "aiswarm" / "host2_cpp" / "host2_engine.cpp"
+            if alt_src.exists():
+                cpp_src = alt_src
         bin_name = "host2_engine.exe" if sys.platform == "win32" else "host2_engine"
         bin_path = cpp_src.parent / bin_name
 
