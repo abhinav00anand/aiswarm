@@ -57,7 +57,25 @@ class WorkflowEngine:
             metadata = getattr(task, "metadata", {}) or {}
             decision = metadata.get("route_decision")
             if decision is None and router is not None:
-                decision = await router.route_task(task)
+                import inspect
+                res = None
+                if hasattr(router, "route_task"):
+                    res = router.route_task(task)
+                elif hasattr(router, "evaluate_task"):
+                    payload = {
+                        "task_id": getattr(task, "task_id", "unknown"),
+                        "title": getattr(task, "title", ""),
+                        "description": getattr(task, "description", ""),
+                        "target_files": getattr(task, "target_files", []),
+                        "budget_tier": getattr(task, "budget_tier", "normal"),
+                    }
+                    res = router.evaluate_task(payload)
+
+                if inspect.isawaitable(res):
+                    decision = await res
+                else:
+                    decision = res
+
                 if task.metadata is None:
                     task.metadata = {}
                 task.metadata["route_decision"] = decision
