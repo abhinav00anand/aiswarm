@@ -138,6 +138,14 @@ class APIKeyValidator:
             except Exception as exc:
                 logger.warning("auth.ollama_auto_provision_failed", error=str(exc))
 
+        # 4. Check for deferred / offline local mode
+        deferred_mode = os.environ.get("AISWARM_DEFERRED_INIT", "").strip() in ("1", "true", "True") or \
+                        os.environ.get("AISWARM_LOCAL_MODE", "").strip() in ("1", "true", "True") or \
+                        os.environ.get("AISWARM_ALLOW_OFFLINE", "").strip() in ("1", "true", "True")
+        if deferred_mode:
+            logger.info("auth.deferred_offline_mode_active")
+            return True
+
         msg = (
             "CRITICAL SECURITY ERROR: AISwarm requires a valid API key, adapter, or active local Ollama setup to start.\n"
             "No API key/adapter was detected or successfully validated, and local Ollama fallback is unavailable or failed.\n\n"
