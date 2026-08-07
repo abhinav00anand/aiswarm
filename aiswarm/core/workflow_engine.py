@@ -43,14 +43,17 @@ class WorkflowEngine:
         logger.info("workflow.started", task_id=task.task_id, title=task.title)
 
         try:
-            # Check route decision
+            # Ensure Host-1 routing decision is attached
             from aiswarm.schemas.routing import ExecutionMode
-            route = ExecutionMode.PRODUCTION
-            if getattr(self._orc, "host1_router", None) is not None:
-                metadata = getattr(task, "metadata", {}) or {}
-                decision = metadata.get("route_decision")
-                if decision:
-                    route = getattr(decision, "route", ExecutionMode.PRODUCTION)
+            router = getattr(self._orc, "host1_router", None) or self._orc.get_agent("host1_router")
+            metadata = getattr(task, "metadata", {}) or {}
+            decision = metadata.get("route_decision")
+            if decision is None and router is not None:
+                decision = await router.route_task(task)
+                if task.metadata is None:
+                    task.metadata = {}
+                task.metadata["route_decision"] = decision
+            route = getattr(decision, "route", ExecutionMode.PRODUCTION) if decision else ExecutionMode.PRODUCTION
 
             if route == ExecutionMode.FAST:
                 logger.info("workflow.route_fast", task_id=task.task_id)
