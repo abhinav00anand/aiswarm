@@ -1,5 +1,5 @@
 """
-AISwarm — Production-grade AI agent orchestration system.
+AISwarm — Lightweight multi-agent orchestration framework.
 
 Hierarchy:
   Boss → Manager → Task Planner → Context Selector (RAG)
@@ -11,7 +11,7 @@ Multiple LLM providers: Novita, OpenAI, Anthropic, Gemini, DeepSeek, Bedrock, Lo
 
 from __future__ import annotations
 
-__version__ = "1.3.2"
+__version__ = "1.3.3"
 __author__ = "AISwarm Contributors"
 __license__ = "MIT"
 
