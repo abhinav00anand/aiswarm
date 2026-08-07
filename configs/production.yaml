@@ -1,4 +1,4 @@
-blynx:
+zymis:
   version: "1.0.0"
   environment: production
 
@@ -90,21 +90,21 @@ worker:
 
 redis:
   url: "${REDIS_URL}"
-  job_queue: blynx:jobs
-  result_queue: blynx:results
-  state_key_prefix: blynx:state
+  job_queue: zymis:jobs
+  result_queue: zymis:results
+  state_key_prefix: zymis:state
   lock_timeout: 60
   result_ttl: 3600
 
 storage:
-  root: /data/blynx
-  artifacts: /data/blynx/artifacts
-  prompts: /data/blynx/prompts
-  tasks: /data/blynx/tasks
-  logs: /data/blynx/logs
-  benchmarks: /data/blynx/benchmarks
-  vector_db: /data/blynx/vector_db
-  cache: /data/blynx/cache
+  root: /data/zymis
+  artifacts: /data/zymis/artifacts
+  prompts: /data/zymis/prompts
+  tasks: /data/zymis/tasks
+  logs: /data/zymis/logs
+  benchmarks: /data/zymis/benchmarks
+  vector_db: /data/zymis/vector_db
+  cache: /data/zymis/cache
 
 rag:
   embedding_model: all-MiniLM-L6-v2
