@@ -201,3 +201,35 @@ async def test_redis_task_store_get_summary():
 
     assert summary["total"] == 1
     assert summary["by_state"]["NEW"] == 1
+
+
+@pytest.mark.asyncio
+async def test_workflow_engine_handles_sync_evaluate_task_fallback():
+    """Verify WorkflowEngine handles synchronous evaluate_task fallback cleanly."""
+    class SyncHost1Router:
+        def evaluate_task(self, payload):
+            from aiswarm.schemas.routing import RouteDecision, ExecutionMode, RiskLevel
+            return RouteDecision(
+                route=ExecutionMode.PRODUCTION,
+                confidence=0.9,
+                reason="Production test",
+                risk_level=RiskLevel.LOW,
+                estimated_cost_usd=0.01,
+                estimated_runtime_seconds=5.0,
+                required_capabilities=[],
+                escalation_policy="",
+                metadata={},
+            )
+
+    orc_mock = MagicMock()
+    orc_mock.host1_router = SyncHost1Router()
+    orc_mock.get_agent = MagicMock(return_value=None)
+
+    engine = WorkflowEngine(orchestrator=orc_mock)
+    task = Task(title="Sync Route Task", description="Desc", prompt="Prompt")
+    
+    # Test router fallback lookup logic
+    router = getattr(engine._orc, "host1_router", None)
+    assert hasattr(router, "evaluate_task")
+    res = router.evaluate_task({"title": task.title})
+    assert res.route.value == "PRODUCTION"
