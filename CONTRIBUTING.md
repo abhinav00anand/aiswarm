@@ -1,6 +1,6 @@
-# Contributing to AISwarm-Next
+# Contributing to AISwarm
 
-Thank you for your interest in contributing to **AISwarm-Next**! Follow this guide to set up your local development environment, run test suites, and submit pull requests.
+Thank you for your interest in contributing to **AISwarm**! Follow this guide to set up your local development environment, run test suites, and submit pull requests.
 
 ---
 
@@ -8,8 +8,8 @@ Thank you for your interest in contributing to **AISwarm-Next**! Follow this gui
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/abhinav00anand/aiswarm-next.git
-cd aiswarm-next
+git clone https://github.com/abhinav00anand/aiswarm.git
+cd aiswarm
 ```
 
 ### 2. Create & Activate Virtual Environment
@@ -32,7 +32,7 @@ pip install -e ".[dev]"
 
 ## 🧪 Running Test Suites
 
-AISwarm-Next includes comprehensive unit, stress, and concurrency benchmark suites:
+AISwarm includes comprehensive unit, stress, and concurrency benchmark suites:
 
 ```bash
 # 1. Run Unit Test Suite (210 tests)
