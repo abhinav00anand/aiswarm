@@ -22,7 +22,7 @@ logger = get_logger(__name__)
 
 class DirectModelCoordinator:
     """
-    Direct Model Execution Engine coordinated with Blynx security & audit infrastructure.
+    Direct Model Execution Engine coordinated with Zymis security & audit infrastructure.
     """
 
     def __init__(
@@ -38,7 +38,7 @@ class DirectModelCoordinator:
         self,
         prompt: str,
         model: str = "gpt-4o",
-        system_prompt: str = "You are a helpful AI assistant coordinated by Blynx.",
+        system_prompt: str = "You are a helpful AI assistant coordinated by Zymis.",
         temperature: float = 0.7,
         user_role: str = "user",
     ) -> dict[str, Any]:
