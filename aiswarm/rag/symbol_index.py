@@ -1,9 +1,8 @@
-"""Symbol index — fast lookup of symbols across the entire codebase."""
+"""Symbol index."""
 
 from __future__ import annotations
 
 from aiswarm.rag.ast_index import ASTIndex
-
 
 class SymbolIndex:
     """
