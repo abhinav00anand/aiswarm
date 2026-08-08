@@ -1,4 +1,4 @@
-"""Task Memory — persists task descriptions and outcomes for future reference."""
+"""Task Memory."""
 
 from __future__ import annotations
 
@@ -13,7 +13,6 @@ logger = structlog.get_logger(__name__)
 
 _STORE_PATH = Path("./storage/task_memory.json")
 
-
 @dataclass
 class TaskRecord:
     task_id: str
@@ -27,7 +26,6 @@ class TaskRecord:
     merged: bool
     created_at: float = field(default_factory=time.time)
     tags: list[str] = field(default_factory=list)
-
 
 class TaskMemory:
     """Stores a searchable log of completed task outcomes."""
