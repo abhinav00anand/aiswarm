@@ -1,9 +1,4 @@
-"""
-Retry engine with exponential back-off, jitter, and per-task caps.
-
-Hard caps prevent infinite critic loops. Every failed attempt is logged
-and its reason preserved so the Boss agent can compose a deadlock summary.
-"""
+"""Retry engine with exponential back."""
 
 from __future__ import annotations
 
@@ -17,7 +12,6 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
-
 @dataclass
 class RetryPolicy:
     max_attempts: int = 5
@@ -27,14 +21,12 @@ class RetryPolicy:
     jitter: bool = True
     retriable_exceptions: tuple[type[Exception], ...] = (Exception,)
 
-
 @dataclass
 class RetryRecord:
     attempt: int
     error: str
     timestamp: float = field(default_factory=time.time)
     delay_before_retry: float = 0.0
-
 
 class RetryExhausted(Exception):
     """Raised when a task has exhausted all retry attempts."""
@@ -46,7 +38,6 @@ class RetryExhausted(Exception):
             f"Task {task_id} exhausted {len(history)} retry attempts. "
             f"Last error: {history[-1].error if history else 'unknown'}"
         )
-
 
 class RetryEngine:
     """
