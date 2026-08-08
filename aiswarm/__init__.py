@@ -11,7 +11,7 @@ Multiple LLM providers: Novita, OpenAI, Anthropic, Gemini, DeepSeek, Bedrock, Lo
 
 from __future__ import annotations
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 __author__ = "Zymis Contributors"
 __license__ = "Apache-2.0"
 
