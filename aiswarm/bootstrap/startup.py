@@ -1,13 +1,4 @@
-"""
-Application startup — wires together all components using dependency injection.
-
-Creates and configures:
-  - ProviderRouter (all LLM providers, with CostGuard + RateLimiter)
-  - All agent instances (Boss, Manager, Planner, ContextSelector, Coder, all Critics)
-  - Compiler, UnitRunner, BenchmarkRunner
-  - Orchestrator with all agents registered
-  - LifecycleManager
-"""
+"""Application startup."""
 
 from __future__ import annotations
 
@@ -30,7 +21,6 @@ from aiswarm.security.auth import APIKeyValidator
 
 logger = structlog.get_logger(__name__)
 
-
 def _try_build_redis() -> Any:
     """Attempt to connect to Redis. Returns None if Redis is unavailable."""
     import importlib
@@ -43,7 +33,6 @@ def _try_build_redis() -> Any:
     except Exception as exc:  # noqa: BLE001
         logger.warning("startup.redis_unavailable", error=str(exc))
         return None
-
 
 def build_orchestrator(
     config: dict[str, Any] | None = None,
@@ -73,16 +62,13 @@ def build_orchestrator(
 
     agents_cfg = cfg.get("agents", {})
 
-    # ── Logging ───────────────────────────────────────────────────────────────
     configure_logging(
         level=os.getenv("LOG_LEVEL", "INFO"),
         log_format=os.getenv("LOG_FORMAT", "console"),
     )
 
-    # ── Redis (optional) ──────────────────────────────────────────────────────
     redis_client = _try_build_redis()
 
-    # ── Production safety ─────────────────────────────────────────────────────
     cost_guard = CostGuard(
         max_daily_usd=float(os.getenv("MAX_DAILY_SPEND_USD", "100.0")),
         max_session_usd=float(os.getenv("MAX_SESSION_SPEND_USD", "10.0")),
@@ -91,7 +77,6 @@ def build_orchestrator(
     rate_limiter = ProviderRateLimiter()
     task_store = RedisTaskStore(redis_client=redis_client)
 
-    # ── LLM Router ────────────────────────────────────────────────────────────
     router = ProviderRouter(
         cost_guard=cost_guard,
         rate_limiter=rate_limiter,
@@ -101,7 +86,6 @@ def build_orchestrator(
         providers=router.list_available(),
     )
 
-    # ── Agents ────────────────────────────────────────────────────────────────
     from aiswarm.agents.boss.agent import BossAgent
     from aiswarm.agents.manager.agent import ManagerAgent
     from aiswarm.agents.planner.agent import PlannerAgent
@@ -138,7 +122,6 @@ def build_orchestrator(
                 pref = ["adapter"] + pref
         return pref
 
-    # ── Host-2 Capability Manager & Security Governance ─────────────────────
     from aiswarm.agents.host2.manager import Host2CapabilityManager
     from aiswarm.runtime.capability_registry import CapabilityRegistry
     from aiswarm.security.governor import EngineeringGovernor
@@ -196,7 +179,6 @@ def build_orchestrator(
         max_tokens=1024,
     )
 
-    # ── All 8 Critics ─────────────────────────────────────────────────────────
     _critic_model = _model("critics", "meta-llama/llama-3.1-70b-instruct")
     _critic_pref = _pref("critics")
 
@@ -225,7 +207,6 @@ def build_orchestrator(
         router=router, model=_critic_model, provider_preference=_critic_pref, temperature=0.0,
     )
 
-    # ── Compiler / test / benchmark ───────────────────────────────────────────
     py_compiler = PythonCompiler(timeout=30.0)
     unit_runner = UnitRunner(repo_root=repo_root, timeout=120.0)
     bench_runner = BenchmarkRunner(repo_root=repo_root, timeout=120.0)
@@ -249,7 +230,6 @@ def build_orchestrator(
         async def run(self, task: Any) -> None:
             await bench_runner.run(task)
 
-    # ── Enterprise Subsystems — created BEFORE Orchestrator so they can be injected ──
     from aiswarm.agents.host1.router import Host1Router
     from aiswarm.core.self_healing import SelfHealingEngine
     from aiswarm.core.confidence_engine import ConfidenceEngine
@@ -260,7 +240,6 @@ def build_orchestrator(
     self_healing = SelfHealingEngine()
     confidence_engine = ConfidenceEngine()
 
-    # ── Orchestrator — receives host1_router + governor for routing integration ──
     orchestrator = Orchestrator(
         config=cfg.get("orchestrator", {}),
         host1_router=host1_router,
@@ -298,7 +277,6 @@ def build_orchestrator(
     orchestrator.register_agent("confidence_engine", confidence_engine)
     orchestrator.register_agent("merge_controller", merge_controller)
 
-    # ── Lifecycle ─────────────────────────────────────────────────────────────
     lifecycle = LifecycleManager()
     lifecycle.register("orchestrator", orchestrator, priority=10)
     lifecycle.register("notifications", NotificationRouter(), priority=90)
