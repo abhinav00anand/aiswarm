@@ -1,4 +1,4 @@
-"""AST index — indexes Python source at function/class granularity."""
+"""AST index."""
 
 from __future__ import annotations
 
@@ -10,7 +10,6 @@ import structlog
 from aiswarm.repository.parser import parse_python_file
 
 logger = structlog.get_logger(__name__)
-
 
 class ASTIndex:
     """
