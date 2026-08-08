@@ -1,14 +1,4 @@
-"""
-Deadlock detector — monitors tasks for infinite loops and stall conditions.
-
-A task is considered deadlocked when:
-  1. It has exceeded max_retries without reaching MERGED.
-  2. It has been in the same state for longer than deadlock_timeout.
-  3. The Boss agent explicitly flags it.
-
-On detection, the task transitions to DEADLOCK and a summary packet is
-assembled for Boss escalation.
-"""
+"""Deadlock detector."""
 
 from __future__ import annotations
 
@@ -21,7 +11,6 @@ from aiswarm.schemas.task import Task, TaskState
 from aiswarm.core.state_machine import StateMachine
 
 logger = structlog.get_logger(__name__)
-
 
 class DeadlockPacket:
     """Summary packet sent to the Boss agent when a deadlock is detected."""
@@ -67,7 +56,6 @@ class DeadlockPacket:
             "=== END DEADLOCK PACKET ===",
         ]
         return "\n".join(lines)
-
 
 class DeadlockDetector:
     """
