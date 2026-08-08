@@ -1,1 +1,1 @@
-"""Documentation agent — generates and maintains docs."""
+"""Documentation agent."""
