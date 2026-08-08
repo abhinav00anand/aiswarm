@@ -1,4 +1,4 @@
-"""File ownership tracker — records which agent last modified each file."""
+"""File ownership tracker."""
 
 from __future__ import annotations
 
