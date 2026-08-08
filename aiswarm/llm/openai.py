@@ -15,7 +15,6 @@ except ImportError:
     RateLimitError = Exception
     APITimeoutError = Exception
 
-
 from aiswarm.llm.adapter import BaseLLMAdapter, LLMMessage, LLMResponse
 
 logger = structlog.get_logger(__name__)
@@ -27,7 +26,6 @@ _COST_TABLE: dict[str, tuple[float, float]] = {
     "o1-preview": (0.015, 0.060),
     "o1-mini": (0.003, 0.012),
 }
-
 
 class OpenAIAdapter(BaseLLMAdapter):
     """Adapter for OpenAI and OpenAI-compatible APIs (e.g. Novita, DeepSeek)."""
