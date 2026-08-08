@@ -1,1 +1,1 @@
-"""Optimizer agent — performance optimization specialist."""
+"""Optimizer agent."""
