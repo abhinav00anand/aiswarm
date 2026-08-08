@@ -3,6 +3,14 @@
 All notable changes to **Zymis** are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - 2026-08-08
+
+### 🐛 Security & PreCheck Metadata Aggregation Fix
+- **Comprehensive Metadata Violation Aggregation**: Expanded `Task.rejection_reasons()` in `aiswarm/schemas/task.py` to unconditionally collect `security_violations`, `scan_violations`, `precheck_issues`, `violations`, `precheck_errors`, and `security_issues` directly from `task.metadata`.
+- **PreCheck Gate Context Guarantee**: Guaranteed that all security scan findings and static analysis errors logged in metadata are formatted and returned to the Coder Agent upon retry loops.
+
+---
+
 ## [0.1.1] - 2026-08-08
 
 ### 🐛 Post-Mortem Bug Fixes & Architectural Enhancements
