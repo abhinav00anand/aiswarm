@@ -1,1 +1,1 @@
-"""Documentation critic — docstring completeness and accuracy."""
+"""Documentation critic."""
