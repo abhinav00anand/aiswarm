@@ -1,14 +1,4 @@
-"""
-Redis-backed task store — makes the Orchestrator stateless and horizontally scalable.
-
-Falls back gracefully to in-memory when Redis is unavailable (dev/test mode).
-Every write is also checkpointed to disk for durability.
-
-Key schema:
-  aiswarm:task:{task_id}          → JSON-serialised Task (hash)
-  aiswarm:tasks:active            → sorted set of active task_ids (score = created_at timestamp)
-  aiswarm:tasks:all               → set of all known task_ids
-"""
+"""Redis."""
 
 from __future__ import annotations
 
@@ -28,10 +18,8 @@ _KEY_ACTIVE = "aiswarm:tasks:active"
 _KEY_ALL    = "aiswarm:tasks:all"
 _TTL_TERMINAL = 60 * 60 * 24 * 7  # keep terminal tasks for 7 days
 
-
 def _task_key(task_id: str) -> str:
     return _KEY_TASK.format(task_id)
-
 
 class RedisTaskStore:
     """
@@ -52,8 +40,6 @@ class RedisTaskStore:
                 "redis_task_store.memory_mode",
                 reason="No Redis client provided — using in-memory fallback",
             )
-
-    # ── Write ──────────────────────────────────────────────────────────────
 
     async def save(self, task: Task) -> None:
         """Persist a task. Always succeeds — Redis failures fall back to memory."""
@@ -90,8 +76,6 @@ class RedisTaskStore:
             await self._redis.srem(_KEY_ALL, task_id)
         except Exception as exc:  # noqa: BLE001
             logger.warning("redis_task_store.delete_error", task_id=task_id, error=str(exc))
-
-    # ── Read ───────────────────────────────────────────────────────────────
 
     async def get(self, task_id: str) -> Task | None:
         # Prefer in-memory copy (always most up-to-date within process)
@@ -157,8 +141,6 @@ class RedisTaskStore:
         if restored:
             logger.info("redis_task_store.restored", count=restored)
         return restored
-
-    # ── Stats ──────────────────────────────────────────────────────────────
 
     async def get_summary(self) -> dict[str, Any]:
         """Asynchronously hydrate from Redis and calculate accurate task summary metrics."""
