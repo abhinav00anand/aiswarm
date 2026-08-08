@@ -1,9 +1,4 @@
-"""
-Self-Healing & Replay Engine — Automatic Failure Classification & Auto-Repair.
-
-Analyzes compiler/test execution output to classify failure patterns (e.g. missing imports,
-syntax errors, type mismatches) and applies safe auto-repairs or targeted retries.
-"""
+"""Self."""
 
 from __future__ import annotations
 
@@ -14,7 +9,6 @@ from aiswarm.utils.compat_log import get_logger
 
 logger = get_logger(__name__)
 
-
 class FailureCategory:
     MISSING_IMPORT = "MISSING_IMPORT"
     SYNTAX_ERROR = "SYNTAX_ERROR"
@@ -22,7 +16,6 @@ class FailureCategory:
     ASSERTION_FAILURE = "ASSERTION_FAILURE"
     TIMEOUT = "TIMEOUT"
     UNKNOWN = "UNKNOWN"
-
 
 class SelfHealingEngine:
     """Classifies runtime and compiler failures and suggests deterministic repairs."""
