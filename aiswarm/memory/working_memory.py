@@ -1,16 +1,10 @@
-"""
-Working Memory — short-lived, session-scoped state for the current task.
-
-Stores intermediate results: current prompt, last response, active context.
-Cleared when a task completes or is rejected.
-"""
+"""Working Memory."""
 
 from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
 from typing import Any
-
 
 @dataclass
 class WorkingMemory:
@@ -34,7 +28,6 @@ class WorkingMemory:
         self.current_prompt = ""
         self.last_response = ""
         self.active_context_paths = []
-
 
 class WorkingMemoryStore:
     """Registry of per-task working memory instances."""
