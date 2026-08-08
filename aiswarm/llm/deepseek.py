@@ -14,7 +14,6 @@ _DEEPSEEK_COSTS: dict[str, tuple[float, float]] = {
     "deepseek-reasoner": (0.00055, 0.00219),
 }
 
-
 class DeepSeekAdapter(OpenAIAdapter):
     """DeepSeek — uses the OpenAI-compatible endpoint."""
 
