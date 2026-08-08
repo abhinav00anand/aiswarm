@@ -39,7 +39,6 @@ Agents involved: {agents}
 Analyze this deadlock and provide a concrete resolution directive.
 Focus on: root cause, which agent should proceed, and specific instructions to break the cycle."""
 
-
 TASK_REVIEW = """Review this task request for quality and feasibility:
 
 Title: {title}
