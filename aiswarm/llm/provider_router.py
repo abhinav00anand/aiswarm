@@ -123,44 +123,37 @@ def get_adapter_model() -> str:
 
 def _resolve_model(requested_model: str, provider_name: str) -> str | None:
     """
-    Resolve the correct model ID for a given provider.
+    Resolve the correct model ID for a given provider dynamically.
 
     - For "adapter": use advertised model ID or requested model.
-    - For "novita": use requested model ID directly.
-    - For "local": check explicit mapping or allow direct pass-through for local models.
+    - For explicit mappings in _MODEL_FALLBACK: use mapped model ID.
+    - For unknown/custom providers (e.g. "sambanova", "novita", "local"): pass requested_model directly.
+    - For known providers (openai, anthropic, etc.): pass if known natively, else fallback to default.
     """
+    if not requested_model:
+        return _PROVIDER_DEFAULT_MODELS.get(provider_name)
+
     if provider_name == "adapter":
         adv = get_adapter_model()
         if adv and adv != "adapter-default":
             return adv
         return requested_model
 
-    if provider_name in ("novita", "local"):
-        mapping = _MODEL_FALLBACK.get(requested_model, {})
-        if provider_name in mapping:
-            return mapping[provider_name]
-        return requested_model
-
-    # Check explicit mapping table
+    # 1. Check explicit mapping table first
     mapping = _MODEL_FALLBACK.get(requested_model, {})
     if provider_name in mapping:
         return mapping[provider_name]
 
-    # Check if requested_model is natively supported by this provider
+    # 2. Check if requested_model is natively supported by this provider
     known_models = _KNOWN_PROVIDER_MODELS.get(provider_name, set())
     if requested_model in known_models:
         return requested_model
 
-    # If provider is not a known provider with limited model list, allow the requested model to be used directly
-    if provider_name not in _KNOWN_PROVIDER_MODELS:
-        logger.debug(
-            "router.allowing_unknown_provider_model",
-            requested=requested_model,
-            provider=provider_name,
-        )
+    # 3. For novita, local, or custom/unregistered providers (e.g., SambaNova), pass requested_model through
+    if provider_name in ("novita", "local") or provider_name not in _KNOWN_PROVIDER_MODELS:
         return requested_model
 
-    # Fallback default model for provider to avoid invalid model ID errors
+    # 4. For known providers with restricted model sets, fallback to default model to prevent 404 errors
     fallback_default = _PROVIDER_DEFAULT_MODELS.get(provider_name)
     if fallback_default:
         logger.info(
@@ -171,12 +164,7 @@ def _resolve_model(requested_model: str, provider_name: str) -> str | None:
         )
         return fallback_default
 
-    logger.debug(
-        "router.no_model_mapping",
-        requested=requested_model,
-        provider=provider_name,
-    )
-    return None
+    return requested_model
 
 
 
@@ -287,9 +275,19 @@ class ProviderRouter:
             CostLimitExceeded: When daily/session budget is exhausted.
             RuntimeError: When all providers fail.
         """
-        order = list(provider_preference) if provider_preference else ["novita", "openai", "anthropic", "deepseek", "local"]
-        if os.getenv("OPENAI_API_ADAPTER_URL") and "adapter" not in order:
-            order = ["adapter"] + order
+        # Respect explicit provider_preference or cloud credentials if present
+        has_cloud_keys = any(
+            os.getenv(k) for k in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_API_KEY", "DEEPSEEK_API_KEY", "SAMBANOVA_API_KEY", "NOVITA_API_KEY")
+        )
+        if provider_preference:
+            order = list(provider_preference)
+        else:
+            order = ["novita", "openai", "anthropic", "deepseek", "local"]
+            if os.getenv("OPENAI_API_ADAPTER_URL") and not has_cloud_keys:
+                order = ["adapter"] + order
+
+        if os.getenv("OPENAI_API_ADAPTER_URL") and "adapter" not in order and not has_cloud_keys:
+            order.append("adapter")
         if "local" not in order:
             order.append("local")
 
@@ -365,8 +363,11 @@ class ProviderRouter:
                 self._failures[provider_name] = self._failures.get(provider_name, 0) + 1
 
                 # Notify rate limiter if we received HTTP 429
-                if "429" in err_str or "rate limit" in err_str.lower():
+                if "429" in err_str or "rate limit" in err_str.lower() or "too many requests" in err_str.lower():
                     self._rate_limiter.notify_rate_limited(provider_name)
+                    cooloff = min(3.0 * (2 ** (self._failures.get(provider_name, 1) - 1)), 15.0)
+                    logger.info("router.rate_limit_cooling_off", provider=provider_name, delay_sec=cooloff)
+                    await asyncio.sleep(cooloff)
 
                 logger.warning(
                     "router.provider_failed",
