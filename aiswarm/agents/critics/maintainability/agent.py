@@ -1,4 +1,4 @@
-"""Maintainability Critic Agent — reviews code for long-term maintenance quality."""
+"""Maintainability Critic Agent."""
 
 from __future__ import annotations
 
@@ -56,7 +56,6 @@ Output ONLY valid JSON:
   "overall_score": 0-100
 }
 """
-
 
 class MaintainabilityCritic(BaseAgent):
     """Reviews code readability and long-term maintainability."""
