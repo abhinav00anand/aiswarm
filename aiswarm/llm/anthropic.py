@@ -14,7 +14,6 @@ except ImportError:
     APIError = Exception
     RateLimitError = Exception
 
-
 from aiswarm.llm.adapter import BaseLLMAdapter, LLMMessage, LLMResponse
 
 logger = structlog.get_logger(__name__)
@@ -24,7 +23,6 @@ _COST_TABLE: dict[str, tuple[float, float]] = {
     "claude-3-5-haiku-20241022": (0.001, 0.005),
     "claude-3-opus-20240229": (0.015, 0.075),
 }
-
 
 class AnthropicAdapter(BaseLLMAdapter):
     """Adapter for Anthropic Claude models."""
