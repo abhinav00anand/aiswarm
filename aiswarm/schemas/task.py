@@ -254,21 +254,23 @@ class Task(BaseModel):
         return False
 
     def rejection_reasons(self) -> list[str]:
-        """Collect all fatal flaws from rejecting critics, precheck failures, and build errors."""
+        """Collect all fatal flaws from rejecting critics, precheck failures, scan violations, and build errors."""
         reasons = [
             f"[{r.critic_role}] {r.fatal_flaw}: {r.mandatory_fix}"
             for r in self.reviews
             if r.decision == ReviewDecision.REJECT and r.fatal_flaw
         ]
-        if self.precheck_passed is False:
-            precheck_issues = self.metadata.get("precheck_issues", [])
-            if isinstance(precheck_issues, list):
-                for issue in precheck_issues:
-                    reasons.append(f"[PreCheck] {issue}")
-            scan_violations = self.metadata.get("scan_violations", [])
-            if isinstance(scan_violations, list):
-                for v in scan_violations:
-                    reasons.append(f"[SecurityScan] {v}")
+
+        # Aggregate all metadata security violations, scan violations, & precheck issues
+        if self.metadata:
+            for key in ("precheck_issues", "scan_violations", "security_violations", "violations", "precheck_errors", "security_issues"):
+                items = self.metadata.get(key, [])
+                if isinstance(items, list):
+                    for item in items:
+                        msg = f"[PreCheck/Security] {item}"
+                        if msg not in reasons:
+                            reasons.append(msg)
+
         if self.compiler_output and not self.compiler_output.success and self.compiler_output.stderr:
             reasons.append(f"[CompilerError] {self.compiler_output.stderr[:500]}")
         if self.test_output and not self.test_output.passed and self.test_output.stdout:
