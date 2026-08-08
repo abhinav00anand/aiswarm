@@ -1,12 +1,4 @@
-"""
-Python compiler/runner — validates Python source by importing and optionally running it.
-
-Steps:
-  1. Write code to a temp file.
-  2. Parse with ast.parse() for syntax check.
-  3. Run `python -c "import <module>"` in a subprocess to catch import errors.
-  4. Capture stdout, stderr, exit code, and duration.
-"""
+"""Python compiler/runner."""
 
 from __future__ import annotations
 
@@ -23,7 +15,6 @@ from aiswarm.schemas.task import Task, CompilerOutput
 
 logger = structlog.get_logger(__name__)
 
-
 class PythonCompiler:
     """Validates and executes Python code."""
 
@@ -38,7 +29,6 @@ class PythonCompiler:
         code = task.generated_code or ""
         t0 = time.monotonic()
 
-        # ── Step 1: AST parse ─────────────────────────────────────────────────
         try:
             ast.parse(code)
         except SyntaxError as exc:
@@ -52,7 +42,6 @@ class PythonCompiler:
             task.compiler_output = output
             return output
 
-        # ── Step 2: Write to temp file and import ─────────────────────────────
         with tempfile.NamedTemporaryFile(suffix=".py", delete=False, mode="w") as f:
             f.write(code)
             tmp_path = f.name
