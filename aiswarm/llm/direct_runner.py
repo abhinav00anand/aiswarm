@@ -1,10 +1,4 @@
-"""
-Direct Model Coordinator for Blynx.
-
-Allows users to directly execute LLM prompts (OpenAI, Anthropic, Gemini, Ollama, DeepSeek)
-while AISwarm coordinates security scrubbing (SecretRedactor), budget tracking (EngineeringGovernor / CostGuard),
-and immutable event audit logging (AuditLedger).
-"""
+"""Direct Model Coordinator for Blynx."""
 
 from __future__ import annotations
 
@@ -18,7 +12,6 @@ from aiswarm.security.redaction import scrub
 from aiswarm.utils.compat_log import get_logger
 
 logger = get_logger(__name__)
-
 
 class DirectModelCoordinator:
     """
