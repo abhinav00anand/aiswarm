@@ -1,16 +1,4 @@
-"""
-Coder Agent — the primary code generator in AISwarm.
-
-The Coder:
-  - Receives the task, blueprint, and RAG-selected context files
-  - Generates complete, production-ready code (no placeholders, no TODOs)
-  - Incorporates rejection feedback from Critics and compiler errors
-  - Respects the immutable environment policy (allowed imports, compiler versions)
-  - Produces exactly the code for the target files — nothing more
-
-The Coder is the most expensive agent and should only receive the
-minimum necessary context as determined by the ContextSelector.
-"""
+"""Coder Agent."""
 
 from __future__ import annotations
 
@@ -75,7 +63,6 @@ Previous code:
 
 Now write the corrected, fully-implemented version:
 """
-
 
 class CoderAgent(BaseAgent):
     """Generates clean, robust code from plans and context."""
