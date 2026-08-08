@@ -21,7 +21,7 @@ logger = structlog.get_logger(__name__)
 @dataclass
 class RetryPolicy:
     max_attempts: int = 5
-    base_delay: float = 1.0      # seconds
+    base_delay: float = 3.0      # seconds (protects rate limits on free-tier APIs)
     max_delay: float = 60.0      # seconds
     exponential_base: float = 2.0
     jitter: bool = True
