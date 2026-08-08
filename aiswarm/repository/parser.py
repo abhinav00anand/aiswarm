@@ -1,11 +1,10 @@
-"""Source code parser — extracts AST-level information from Python files."""
+"""Source code parser."""
 
 from __future__ import annotations
 
 import ast
 from dataclasses import dataclass, field
 from pathlib import Path
-
 
 @dataclass
 class FunctionInfo:
@@ -18,7 +17,6 @@ class FunctionInfo:
     return_annotation: str = ""
     is_async: bool = False
 
-
 @dataclass
 class ModuleInfo:
     path: str
@@ -26,7 +24,6 @@ class ModuleInfo:
     classes: list[str] = field(default_factory=list)
     imports: list[str] = field(default_factory=list)
     has_module_docstring: bool = False
-
 
 def parse_python_file(path: str) -> ModuleInfo | None:
     """Parse a Python source file and return structured module info."""
