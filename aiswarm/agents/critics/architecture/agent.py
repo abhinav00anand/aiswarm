@@ -1,10 +1,4 @@
-"""
-Architecture Critic Agent — reviews code for structural correctness.
-
-Evaluates: SOLID, DRY, KISS, YAGNI, separation of concerns, coupling,
-cohesion, abstraction quality, dependency direction, and module design.
-Emits a structured JSON review with veto power on architectural violations.
-"""
+"""Architecture Critic Agent."""
 
 from __future__ import annotations
 
@@ -65,7 +59,6 @@ Output ONLY valid JSON:
 
 Be strict. A score below 70 should be REJECT.
 """
-
 
 class ArchitectureCritic(BaseAgent):
     """Reviews code structural and architectural quality."""
