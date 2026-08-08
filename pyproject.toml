@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "zymis"
 
-version = "0.1.0"
+version = "0.1.1"
 description = "Lightweight multi-agent orchestration framework — Boss, Manager, Coder, Critics, and Worker pipeline"
 readme = "README.md"
 license = { text = "Apache-2.0" }
