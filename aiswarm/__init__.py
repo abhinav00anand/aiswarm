@@ -1,13 +1,4 @@
-"""
-Zymis — Lightweight multi-agent orchestration framework.
-
-Hierarchy:
-  Boss → Manager → Task Planner → Context Selector (RAG)
-       → Coder → Pre-Check → Critics → Worker
-       → Compiler → Tests → Benchmark → Merge Controller
-
-Multiple LLM providers: Novita, OpenAI, Anthropic, Gemini, DeepSeek, Bedrock, Local.
-"""
+"""Zymis."""
 
 from __future__ import annotations
 
