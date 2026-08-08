@@ -1,13 +1,4 @@
-"""
-Task Planner Agent — turns a Manager-assigned task into a precise deliverable.
-
-The planner:
-  - Analyzes the task description and target files
-  - Identifies which existing code is relevant
-  - Writes an implementation blueprint (NOT code — that's the Coder's job)
-  - Determines what tests need to be written alongside the implementation
-  - Classifies the task for the right critic rubric
-"""
+"""Task Planner Agent."""
 
 from __future__ import annotations
 
@@ -43,7 +34,6 @@ Output JSON:
 
 Be precise. Do not invent requirements not in the task description.
 """
-
 
 class PlannerAgent(BaseAgent):
     """Produces implementation blueprints before the coder writes code."""
