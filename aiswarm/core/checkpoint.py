@@ -1,9 +1,4 @@
-"""
-Checkpoint system — periodically serializes all task state to disk.
-
-Enables recovery after a crash without replaying the entire workflow.
-Each checkpoint is written atomically (write-then-rename).
-"""
+"""Checkpoint system."""
 
 from __future__ import annotations
 
@@ -22,10 +17,8 @@ logger = structlog.get_logger(__name__)
 _CHECKPOINT_DIR = Path("./storage/checkpoints")
 _CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
 
-
 def _checkpoint_path(task_id: str) -> Path:
     return _CHECKPOINT_DIR / f"{task_id}.json"
-
 
 def save_task(task: Task) -> Path:
     """Atomically serialize a task to disk."""
@@ -36,7 +29,6 @@ def save_task(task: Task) -> Path:
 
     logger.debug("checkpoint.saved", task_id=task.task_id, path=str(path))
     return path
-
 
 def load_task(task_id: str) -> Task | None:
     """Load a task from its checkpoint file, or return None if not found."""
@@ -52,18 +44,15 @@ def load_task(task_id: str) -> Task | None:
         logger.error("checkpoint.load_error", task_id=task_id, error=str(exc))
         return None
 
-
 def list_checkpoints() -> list[str]:
     """Return all saved task IDs."""
     return [p.stem for p in _CHECKPOINT_DIR.glob("*.json")]
-
 
 def delete_checkpoint(task_id: str) -> None:
     path = _checkpoint_path(task_id)
     if path.exists():
         path.unlink()
         logger.debug("checkpoint.deleted", task_id=task_id)
-
 
 class CheckpointManager:
     """
