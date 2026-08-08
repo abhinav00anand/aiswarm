@@ -1,4 +1,4 @@
-"""Embedding store — persistent vector storage for code embeddings."""
+"""Embedding store."""
 
 from __future__ import annotations
 
@@ -8,7 +8,6 @@ from typing import Any
 import structlog
 
 logger = structlog.get_logger(__name__)
-
 
 class EmbeddingStore:
     """Manages code embeddings backed by ChromaDB."""
