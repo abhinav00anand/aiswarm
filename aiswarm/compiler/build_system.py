@@ -1,9 +1,8 @@
-"""Build system router — dispatches to the right compiler based on language."""
+"""Build system router."""
 
 from __future__ import annotations
 
 from aiswarm.schemas.task import Task, CompilerOutput
-
 
 class BuildSystem:
     """Routes compilation tasks to the appropriate language compiler."""
