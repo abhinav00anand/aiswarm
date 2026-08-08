@@ -1,4 +1,4 @@
-"""Rust compiler adapter — wraps rustc/cargo for Rust source files."""
+"""Rust compiler adapter."""
 
 from __future__ import annotations
 
@@ -9,7 +9,6 @@ import time
 from pathlib import Path
 
 from aiswarm.schemas.task import Task, CompilerOutput
-
 
 class RustCompiler:
     """Compiles Rust source using rustc."""
