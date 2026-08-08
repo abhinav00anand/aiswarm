@@ -1,9 +1,8 @@
-"""Plugin system — extensible hooks for custom agents and providers."""
+"""Plugin system."""
 
 from __future__ import annotations
 
 from typing import Any
-
 
 class PluginRegistry:
     """Simple plugin registry for custom extensions."""
@@ -19,7 +18,6 @@ class PluginRegistry:
 
     def list_all(self) -> list[str]:
         return list(self._plugins.keys())
-
 
 # Global registry singleton
 registry = PluginRegistry()
