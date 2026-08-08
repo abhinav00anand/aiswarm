@@ -19,7 +19,6 @@ _COST_TABLE: dict[str, tuple[float, float]] = {
     "gemini-1.5-flash": (0.000075, 0.0003),
 }
 
-
 class GeminiAdapter(BaseLLMAdapter):
     """Adapter for Google Gemini models via google-generativeai SDK."""
 
