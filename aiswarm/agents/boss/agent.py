@@ -1,17 +1,4 @@
-"""
-Boss Agent — the supreme authority in AISwarm.
-
-Responsibilities:
-  - Receives high-level goals and decomposes them into Manager-level assignments.
-  - Oversees the entire system: reads logs, detects anomalies, intervenes.
-  - Resolves deadlocks by reading the full deadlock packet and issuing corrective directives.
-  - Can override any agent decision with a documented reason.
-  - Has direct access to the main codebase (repo_root) for read/write operations.
-  - Escalates critical failures to operators via notifications.
-
-The Boss operates at the highest abstraction level and should never
-be bogged down in implementation details.
-"""
+"""Boss Agent."""
 
 from __future__ import annotations
 
@@ -55,7 +42,6 @@ When resolving deadlocks, your output MUST be a JSON object:
   "new_acceptance_criteria": ["updated criteria if needed"]
 }
 """
-
 
 class BossAgent(BaseAgent):
     """
@@ -109,7 +95,6 @@ class BossAgent(BaseAgent):
             parameters=parameters,
         )
         return await self._host2_manager.execute_capability(request)
-
 
     async def execute_hybrid_task(self, task: Task) -> dict[str, Any]:
         """
@@ -167,7 +152,6 @@ Output a JSON object with key "subtasks" as a list of subtask instruction string
             "subtasks_completed": len(results),
             "results": results
         }
-
 
     async def handle_deadlock(self, task: Task) -> dict[str, Any]:
         """
