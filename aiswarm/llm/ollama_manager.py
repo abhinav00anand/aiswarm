@@ -1,9 +1,4 @@
-"""
-Ollama Auto-Provisioning & Dynamic Model Management Engine.
-
-Provides automatic environment discovery, disk space analysis, optimal model selection,
-local server liveness checks, dynamic model pulling, and Ollama service initialization.
-"""
+"""Ollama Auto."""
 
 from __future__ import annotations
 
@@ -27,7 +22,6 @@ MEDIUM_MODEL_DISK_THRESHOLD_GB = 8.0
 MODEL_LARGE = "llama3.1:8b"
 MODEL_MEDIUM = "llama3.2:3b"
 MODEL_SMALL = "llama3.2:1b"
-
 
 class OllamaManager:
     """
