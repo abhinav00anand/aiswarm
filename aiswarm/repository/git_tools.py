@@ -1,4 +1,4 @@
-"""Git tools — diff generation, commit history, branch management."""
+"""Git tools."""
 
 from __future__ import annotations
 
@@ -9,7 +9,6 @@ from typing import Any
 import structlog
 
 logger = structlog.get_logger(__name__)
-
 
 class GitTools:
     """Wraps common git operations needed by the orchestrator."""
