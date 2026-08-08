@@ -1,10 +1,4 @@
-"""
-Workflow engine — executes the full task pipeline as a directed graph.
-
-Each pipeline stage is a node. The engine drives a task from NEW to
-MERGED (or a terminal failure state), respecting the state machine,
-retry policy, and deadlock detector.
-"""
+"""Workflow engine."""
 
 from __future__ import annotations
 
@@ -22,7 +16,6 @@ if TYPE_CHECKING:
     from aiswarm.core.orchestrator import Orchestrator
 
 logger = structlog.get_logger(__name__)
-
 
 class WorkflowEngine:
     """
@@ -119,12 +112,8 @@ class WorkflowEngine:
                         logger.warning("workflow.fast_quality_gate_failed", task_id=task.task_id, reason=str(merge_exc))
                         route = ExecutionMode.PRODUCTION
 
-
-
-            # ── Stage 1: Plan & contextualize ──────────────────────────────
             await self._stage_plan(task)
 
-            # ── Retry loop: Prompt → Generate → PreCheck → Review → Compile → Test → Bench ──
             while True:
                 if task.retry_count >= task.max_retries:
                     task.transition(
@@ -135,41 +124,33 @@ class WorkflowEngine:
                     break
 
                 try:
-                    # Stage 2: Prompt coder
                     await self._stage_prompt(task)
-                    # Stage 3: Generate code
                     await self._stage_generate(task)
-                    # Stage 4: Pre-check (syntax, basic sanity)
                     if not await self._stage_precheck(task):
                         task.retry_count += 1
                         self._retry.record_failure(task.task_id, "Pre-check failed")
                         await self._retry.wait(task.task_id)
                         continue
-                    # Stage 5: Critic review
                     if not await self._stage_review(task):
                         task.retry_count += 1
                         self._retry.record_failure(task.task_id, "Critic review failed")
                         await self._retry.wait(task.task_id)
                         continue
-                    # Stage 6: Compile
                     if not await self._stage_compile(task):
                         task.retry_count += 1
                         self._retry.record_failure(task.task_id, "Compilation failed")
                         await self._retry.wait(task.task_id)
                         continue
-                    # Stage 7: Test
                     if not await self._stage_test(task):
                         task.retry_count += 1
                         self._retry.record_failure(task.task_id, "Testing failed")
                         await self._retry.wait(task.task_id)
                         continue
-                    # Stage 8: Benchmark
                     if not await self._stage_benchmark(task):
                         task.retry_count += 1
                         self._retry.record_failure(task.task_id, "Benchmarking failed")
                         await self._retry.wait(task.task_id)
                         continue
-                    # Stage 9: Merge
                     await self._stage_merge(task)
                     self._retry.mark_success(task.task_id)
                     break
@@ -205,8 +186,6 @@ class WorkflowEngine:
         )
         return task
 
-    # ── Stage implementations ─────────────────────────────────────────────────
-
     async def _stage_plan(self, task: Task) -> None:
         planner = self._orc.get_agent("planner")
         ctx_selector = self._orc.get_agent("context_selector")
@@ -218,7 +197,6 @@ class WorkflowEngine:
     async def _stage_prompt(self, task: Task) -> None:
         if task.state != TaskState.PROMPTED:
             StateMachine.transition(task, TaskState.PROMPTED, "Preparing prompt", agent="workflow_engine")
-
 
     async def _stage_generate(self, task: Task) -> None:
         coder = self._orc.get_agent("coder")
