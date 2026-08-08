@@ -1,8 +1,4 @@
-"""
-Lifecycle manager — startup and shutdown sequencing for AISwarm.
-
-Ensures all subsystems initialize and terminate in the correct order.
-"""
+"""Lifecycle manager."""
 
 from __future__ import annotations
 
@@ -13,7 +9,6 @@ from typing import Any
 import structlog
 
 logger = structlog.get_logger(__name__)
-
 
 class LifecycleManager:
     """
