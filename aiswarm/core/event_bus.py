@@ -1,10 +1,4 @@
-"""
-Async in-process event bus.
-
-All subsystems communicate through typed, versioned, idempotent events.
-Subscribers register handlers for specific EventTypes.
-The bus guarantees at-least-once delivery within a process.
-"""
+"""Async in."""
 
 from __future__ import annotations
 
@@ -19,7 +13,6 @@ from aiswarm.schemas.events import Event, EventType
 logger = structlog.get_logger(__name__)
 
 Handler = Callable[[Event], Awaitable[None]]
-
 
 class EventBus:
     """
@@ -74,7 +67,6 @@ class EventBus:
                     logger.error("event_bus.unknown_event_type", raw_type=raw_type)
                     raise ValueError(f"Unrecognized event_type '{raw_type}' in EventBus.publish()") from err
             event = EventSchema.model_validate(event)
-
 
         self._published += 1
         handlers = list(self._handlers.get(event.event_type, []))
