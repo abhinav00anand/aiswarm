@@ -1,10 +1,4 @@
-"""
-Performance Critic Agent — reviews code for efficiency and scalability.
-
-Evaluates: time/space complexity, memory allocation patterns, I/O bottlenecks,
-concurrency issues, cache locality, vectorization, zero-copy opportunities,
-hot-path bottlenecks, and algorithmic choices.
-"""
+"""Performance Critic Agent."""
 
 from __future__ import annotations
 
@@ -63,7 +57,6 @@ Output ONLY valid JSON:
   "overall_score": 0-100
 }
 """
-
 
 class PerformanceCritic(BaseAgent):
     """Reviews code efficiency and performance characteristics."""
