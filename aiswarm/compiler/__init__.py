@@ -1,1 +1,1 @@
-"""Compiler subsystem — Python, C++, Rust execution wrappers."""
+"""Compiler subsystem."""
