@@ -1,13 +1,4 @@
-"""
-Security Critic Agent — reviews code for vulnerabilities and risks.
-
-HAS UNCONDITIONAL VETO POWER. A security rejection always blocks the merge,
-regardless of what other critics say.
-
-Evaluates: injection risks, authentication issues, authorization flaws,
-sensitive data exposure, insecure deserialization, cryptographic misuse,
-dependency vulnerabilities, input validation, and OWASP Top 10.
-"""
+"""Security Critic Agent."""
 
 from __future__ import annotations
 
@@ -72,7 +63,6 @@ Output ONLY valid JSON:
 If ANY critical security flaw exists, decision MUST be REJECT.
 Security is non-negotiable.
 """
-
 
 class SecurityCritic(BaseAgent):
     """Reviews code for security vulnerabilities — has veto power."""
