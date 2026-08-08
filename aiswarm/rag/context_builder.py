@@ -1,9 +1,8 @@
-"""Context builder — assembles the final prompt context from retrieved files."""
+"""Context builder."""
 
 from __future__ import annotations
 
 from aiswarm.schemas.task import Task, FileContext
-
 
 class ContextBuilder:
     """Assembles file contexts into a prompt-ready string."""
