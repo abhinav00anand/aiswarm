@@ -1,4 +1,4 @@
-"""Documentation Critic Agent — reviews code for documentation completeness."""
+"""Documentation Critic Agent."""
 
 from __future__ import annotations
 
@@ -55,7 +55,6 @@ Output ONLY valid JSON:
   "overall_score": 0-100
 }
 """
-
 
 class DocumentationCritic(BaseAgent):
     """Reviews code documentation completeness and quality."""
