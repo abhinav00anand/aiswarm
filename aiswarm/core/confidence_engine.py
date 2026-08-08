@@ -1,9 +1,4 @@
-"""
-Confidence Engine Subsystem — Multi-Dimensional Output Confidence Evaluation.
-
-Evaluates Correctness, Security, Architecture, Test Coverage, and Performance
-to provide a readable confidence score for developers.
-"""
+"""Confidence Engine Subsystem."""
 
 from __future__ import annotations
 
@@ -11,7 +6,6 @@ from typing import Any
 from aiswarm.utils.compat_log import get_logger
 
 logger = get_logger(__name__)
-
 
 class ConfidenceEngine:
     """Computes holistic confidence scores across engineering quality dimensions."""
