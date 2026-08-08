@@ -1,9 +1,4 @@
-"""
-C++ Compiler Subsystem for AISwarm.
-
-Supports g++, clang++, and MSVC cl.exe compilation, warning diagnostics parsing,
-and C++ GoogleTest/Catch2 test execution inside ExecutionSandbox.
-"""
+"""C++ Compiler Subsystem for AISwarm."""
 
 from __future__ import annotations
 
@@ -15,7 +10,6 @@ from aiswarm.security.sandbox import ExecutionSandbox
 from aiswarm.utils.compat_log import get_logger
 
 logger = get_logger(__name__)
-
 
 class CppCompiler:
     """C++ Compiler and Test Execution Engine."""
