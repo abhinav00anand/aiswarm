@@ -71,6 +71,15 @@ class TestTask:
         assert "security" in reasons[0]
         assert "eval on input" in reasons[0]
 
+    def test_rejection_reasons_includes_security_violations_and_metadata(self) -> None:
+        task = Task(title="Security scan test", description="Testing metadata violations")
+        task.metadata["security_violations"] = ["HIGH: Hardcoded secret"]
+        task.metadata["precheck_issues"] = ["Syntax error on line 4"]
+        reasons = task.rejection_reasons()
+        assert len(reasons) == 2
+        assert any("HIGH: Hardcoded secret" in r for r in reasons)
+        assert any("Syntax error on line 4" in r for r in reasons)
+
     def test_serialization_roundtrip(self) -> None:
         task = Task(title="Round-trip test", description="Testing serialization")
         task.generated_code = "def hello(): return 'world'"
