@@ -1,9 +1,8 @@
-"""Impact analysis — determines which tests need re-running after a change."""
+"""Impact analysis."""
 
 from __future__ import annotations
 
 from pathlib import Path
-
 
 def find_affected_tests(changed_files: list[str], test_root: str = "tests") -> list[str]:
     """
