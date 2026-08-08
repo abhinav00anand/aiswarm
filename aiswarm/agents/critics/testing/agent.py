@@ -1,4 +1,4 @@
-"""Testing Critic Agent — reviews code for testability and test coverage quality."""
+"""Testing Critic Agent."""
 
 from __future__ import annotations
 
@@ -52,7 +52,6 @@ Output ONLY valid JSON:
   "overall_score": 0-100
 }
 """
-
 
 class TestingCritic(BaseAgent):
     """Reviews code testability and test suite quality."""
