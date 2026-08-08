@@ -1,16 +1,4 @@
-"""
-Cost Guard — circuit breaker for LLM API spend.
-
-Enforces:
-  - Per-session token/cost limits
-  - Daily spend cap with persistent accounting (Redis-backed when available)
-  - Alert thresholds (e.g. 80% of daily cap triggers a warning)
-  - Per-provider spend tracking
-  - Hard stop when limits are breached — raises CostLimitExceeded
-
-This is a mandatory production safety mechanism. Without it, a prompt
-templating bug or infinite retry loop could exhaust API budgets silently.
-"""
+"""Cost Guard."""
 
 from __future__ import annotations
 
@@ -23,10 +11,8 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
-
 class CostLimitExceeded(Exception):
     """Raised when a cost or token limit is breached."""
-
 
 class CostGuard:
     """
@@ -64,7 +50,6 @@ class CostGuard:
         self._redis = redis_client
         self._governor = governor
 
-
         # In-process accumulators (source of truth when Redis unavailable)
         self._session_cost: float = 0.0
         self._session_tokens: int = 0
@@ -74,8 +59,6 @@ class CostGuard:
         self._alerted_daily = False
         self._alerted_session = False
         self._lock = asyncio.Lock()
-
-    # ── Public API ─────────────────────────────────────────────────────────
 
     async def record(
         self,
@@ -117,7 +100,6 @@ class CostGuard:
                 task_id=task_id,
             )
 
-            # ── Alert thresholds ──────────────────────────────────────────
             if not self._alerted_daily and daily_total >= self._max_daily * self._alert_pct:
                 self._alerted_daily = True
                 logger.warning(
@@ -139,7 +121,6 @@ class CostGuard:
                     pct=self._alert_pct * 100,
                 )
 
-            # ── Hard limits ───────────────────────────────────────────────
             if daily_total > self._max_daily:
                 raise CostLimitExceeded(
                     f"Daily spend limit exceeded: ${daily_total:.4f} > ${self._max_daily:.2f}. "
@@ -170,8 +151,6 @@ class CostGuard:
                 k: round(v, 6) for k, v in self._provider_cost.items()
             },
         }
-
-    # ── Redis daily accounting ─────────────────────────────────────────────
 
     async def _get_daily_total(self, increment: float) -> float:
         """
