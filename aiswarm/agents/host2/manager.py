@@ -1,9 +1,4 @@
-"""
-Host-2 Fast-Mode Executive & Capability Manager.
-
-Orchestrates Fast-Mode task execution, manages dynamic capabilities (models, tools, workers),
-and builds structured EscalationPackets to promote tasks to Boss when complexity or risk increases.
-"""
+"""Host."""
 
 from __future__ import annotations
 
@@ -17,7 +12,6 @@ from aiswarm.security.governor import EngineeringGovernor
 from aiswarm.utils.compat_log import get_logger
 
 logger = get_logger(__name__)
-
 
 class Host2CapabilityManager:
     """
@@ -176,7 +170,6 @@ class Host2CapabilityManager:
                     "handle": handle.model_dump(),
                     "escalated": False,
                 }
-
 
             retry_count += 1
             completed_steps.append(f"Attempt {retry_count} failed: {handle.output}")
