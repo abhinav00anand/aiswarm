@@ -1,9 +1,4 @@
-"""
-Task scheduler — prioritizes and orders tasks for the orchestrator.
-
-Uses a min-heap keyed on (priority_weight, created_at) so CRITICAL tasks
-are always dispatched first. Supports concurrency windows and backpressure.
-"""
+"""Task scheduler."""
 
 from __future__ import annotations
 
@@ -26,13 +21,11 @@ _PRIORITY_WEIGHT = {
     TaskPriority.LOW: 3,
 }
 
-
 @dataclass(order=True)
 class _QueueEntry:
     weight: int
     enqueued_at: float
     task: Task = field(compare=False)
-
 
 class TaskScheduler:
     """
