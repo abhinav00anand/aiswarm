@@ -1,16 +1,4 @@
-"""
-Manager Agent — the engineering manager of AISwarm.
-
-Responsibilities:
-  - Receives a high-level goal from the Boss.
-  - Decomposes it into file-level tasks with precise deliverables.
-  - Assigns tasks to the workflow engine queue.
-  - Monitors task progress and reassigns stuck tasks.
-  - Defines target file structure and folder conventions.
-  - Provides explicit acceptance criteria for each sub-task.
-
-The Manager never writes code. It decomposes, assigns, and tracks.
-"""
+"""Manager Agent."""
 
 from __future__ import annotations
 
@@ -59,7 +47,6 @@ Rules:
 - Security tasks must name the specific threat model
 """
 
-
 @dataclass
 class TaskSpec:
     """A raw task specification before it becomes a Task object."""
@@ -77,7 +64,6 @@ class TaskSpec:
         self.acceptance_criteria = self.acceptance_criteria or []
         self.context_hints = self.context_hints or []
         self.dependencies = self.dependencies or []
-
 
 class ManagerAgent(BaseAgent):
     """
