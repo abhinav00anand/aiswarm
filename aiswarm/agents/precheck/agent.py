@@ -1,15 +1,4 @@
-"""
-Pre-Check Agent — lightweight, fast validation before sending code to Critics.
-
-Catches obvious issues before spending expensive critic tokens:
-  - Syntax errors (via compile() for Python)
-  - Forbidden import patterns
-  - Placeholder / TODO detection
-  - Minimum length sanity check
-  - Basic structural checks (class/function presence)
-
-Uses a micro-model for speed and cost efficiency.
-"""
+"""Pre."""
 
 from __future__ import annotations
 
@@ -58,7 +47,6 @@ Output JSON:
 If passed=false, the coder must rewrite before critics see the code.
 """
 
-
 class PreCheckAgent(BaseAgent):
     """Lightweight pre-validation before critic review."""
 
@@ -77,7 +65,6 @@ class PreCheckAgent(BaseAgent):
             logger.warning("precheck.empty_code", task_id=task.task_id)
             return False
 
-        # ── Security scan (hard gate — fail-closed on CRITICAL/HIGH) ─────────
         scan_result = self._scanner.scan(code, language=task.target_language)
         if not scan_result.clean:
             task.precheck_passed = False
@@ -93,7 +80,6 @@ class PreCheckAgent(BaseAgent):
         if scan_result.warnings:
             task.metadata["scan_warnings"] = scan_result.warnings
 
-        # ── Static checks (no LLM needed) ────────────────────────────────────
         static_issues = self._static_check(code, task.target_language)
         if static_issues:
             task.precheck_passed = False
@@ -106,7 +92,6 @@ class PreCheckAgent(BaseAgent):
             )
             return False
 
-        # ── LLM-assisted check ────────────────────────────────────────────────
         messages = [
             LLMMessage(role="system", content=_SYSTEM_PROMPT),
             LLMMessage(
