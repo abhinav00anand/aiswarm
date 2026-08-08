@@ -1,15 +1,4 @@
-"""
-Merge Controller — final gatekeeper before code lands in the repository.
-
-All merge gates must pass:
-  1. Generated code is on disk (hash verified).
-  2. Majority critic approval (≥2/3) with no security veto.
-  3. Compilation succeeded.
-  4. All tests passed (including numeric equivalence).
-  5. Benchmark within tolerance.
-
-If any gate fails, the task is NOT merged and the failure is recorded.
-"""
+"""Merge Controller."""
 
 from __future__ import annotations
 
@@ -26,10 +15,8 @@ from aiswarm.core.state_machine import StateMachine
 
 logger = structlog.get_logger(__name__)
 
-
 class MergeGateError(Exception):
     """Raised when a merge gate is not satisfied."""
-
 
 class MergeController:
     """
@@ -38,8 +25,6 @@ class MergeController:
 
     def __init__(self, repo_root: str = ".") -> None:
         self._repo_root = Path(repo_root)
-
-    # ── Gate checks ──────────────────────────────────────────────────────────
 
     def _gate_code_present(self, task: Task) -> None:
         if not task.generated_code:
@@ -111,8 +96,6 @@ class MergeController:
                 f"Profiler output:\n{task.benchmark_output.profiler_output[:500]}"
             )
 
-    # ── File writing ─────────────────────────────────────────────────────────
-
     def _safe_dest(self, file_path: str) -> Path:
         """
         Resolve destination path and enforce it stays within repo_root.
@@ -152,8 +135,6 @@ class MergeController:
             written.append(dest)
             logger.info("merge.file_written", path=str(dest), task_id=task.task_id)
         return written
-
-    # ── Public API ────────────────────────────────────────────────────────────
 
     async def attempt_merge(self, task: Task) -> list[Path]:
         """
