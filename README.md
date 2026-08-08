@@ -25,7 +25,7 @@
 
 Traditional LLM coding tools rely on single-prompt generations or simple linear chains that break when faced with complex, multi-file codebases, syntax errors, or subtle security flaws. 
 
-**Zymis operates as a hierarchical AI Swarm Orchestra.** Instead of relying on a single AI agent, Zymis orchestrates a team of specialized agents—Boss, Manager, Task Planner, Context Selector (RAG), Coder, Execution Sandbox, Pre-Check Scanner, 8 Specialized Critics, Compiler Engine, Test Runner, and 5-Gate Merge Controller—working in harmony.
+**Zymis operates as a hierarchical AI Swarm Orchestra.** Instead of relying on a single AI agent, Zymis orchestrates a control plane starting with the **Host-1 Global Router**, **Engineering Governor**, **Host-2 Capability Manager**, **Boss Agent**, **Manager Agent**, **Task Planner**, **Context Selector (RAG)**, **Coder Agent**, **Execution Sandbox & Pre-Check Scanner**, **8 Specialized Critics**, **Compiler Engine**, **Test Runner**, and **5-Gate Merge Controller** working in harmony.
 
 ### Core Architecture Goals:
 1. **Zero-Trust Code Generation**: Every line of code written by the Coder Agent must pass static security scanning, 8 panel reviews, compilation, and unit tests before touching disk or git repositories.
@@ -56,13 +56,13 @@ Zymis routes and executes tasks through a structured multi-lane highway:
 
 ```mermaid
 graph TD
-    User([User Prompt / Task]) --> Boss[Boss Agent 👑]
-    Boss --> Router{Host-1 Global Router 🚀}
+    User([User Prompt / Task]) --> Router{Host-1 Global Router 🚀}
+    Router -->|Check Admission| Gov[Engineering Governor 🛡️]
     
-    Router -->|FAST Path ~0.1s| CapManager[Host-2 Capability Manager]
-    Router -->|PRODUCTION Path| Manager[Manager Agent 💼]
+    Gov -->|FAST Path ~0.1s| CapManager[Host-2 Capability Manager]
+    Gov -->|PRODUCTION Path| Boss[Boss Agent 👑 / Manager 💼]
     
-    Manager --> Planner[Task Planner 🧠]
+    Boss --> Planner[Task Planner 🧠]
     Planner --> RAG[Context Selector & RAG 🔍]
     RAG --> Coder[Coder Agent 💻]
     Coder --> Sandbox[Execution Sandbox & Pre-Check 🛡️]
@@ -84,30 +84,32 @@ graph TD
 Below is the step-by-step illumination sequence executed when a task moves through the Zymis Swarm Engine:
 
 ```text
-[STEP 1: RECEPTION]      [USER PROMPT] ──▶ [BOSS ORCHESTRA] ⚡
-                                               │
-[STEP 2: ROUTING]             ┌────────────────┴────────────────┐
-                              ▼                                 ▼
-                       [HOST-1 ROUTER] 🚀             [HOST-2 FAST PATH] ⚡
-                              │                                 │
-[STEP 3: PLANNING]     [TASK PLANNER] 🧠                       │
-                              │                                 │
-[STEP 4: RAG RECALL]   [CONTEXT SELECTOR (RAG)] 🔍               │
-                              │                                 │
-[STEP 5: GENERATION]   [CODER AGENT] 💻 ◄──────┐                │
-                              │               │                │
-[STEP 6: PRE-CHECK]    [PRE-CHECK & SCANNER] 🛡️ │                │
-                              │               │                │
-[STEP 7: CRITIC PANEL] [8 CRITIC AGENTS] 🔬 ──┤ (REJECT LOOP)   │
-                              │               │                │
-[STEP 8: COMPILATION]  [BUILD & COMPILER] ⚙️  │                │
-                              │               │                │
-[STEP 9: TESTING]      [TEST RUNNER] 🧪 ──────┘                │
-                              │                                 │
-[STEP 10: VERIFICATION][5-GATE MERGE CONTROLLER] 🔒 ◄───────────┘
-                              │
-                              ▼
-[STEP 11: MERGED]      [PRODUCTION CODE MERGED] 🎉
+[STEP 1: ENTRY & ROUTING] [USER PROMPT] ──▶ [HOST-1 GLOBAL ROUTER] 🚀
+                                                  │
+[STEP 2: GOVERNANCE]             ┌────────────────┴────────────────┐
+                                 ▼                                 ▼
+                       [ENGINEERING GOVERNOR] 🛡️         [HOST-2 FAST PATH] ⚡
+                                 │                                 │
+[STEP 3: SUPERVISION]    [BOSS / MANAGER AGENT] 👑                 │
+                                 │                                 │
+[STEP 4: PLANNING]       [TASK PLANNER] 🧠                         │
+                                 │                                 │
+[STEP 5: RAG RECALL]     [CONTEXT SELECTOR (RAG)] 🔍                 │
+                                 │                                 │
+[STEP 6: GENERATION]     [CODER AGENT] 💻 ◄──────┐                 │
+                                 │               │                 │
+[STEP 7: PRE-CHECK]      [PRE-CHECK & SCANNER] 🛡️ │                 │
+                                 │               │                 │
+[STEP 8: CRITIC PANEL]   [8 CRITIC AGENTS] 🔬 ──┤ (REJECT LOOP)    │
+                                 │               │                 │
+[STEP 9: COMPILATION]    [BUILD & COMPILER] ⚙️  │                 │
+                                 │               │                 │
+[STEP 10: TESTING]       [TEST RUNNER] 🧪 ──────┘                 │
+                                 │                                 │
+[STEP 11: VERIFICATION]  [5-GATE MERGE CONTROLLER] 🔒 ◄────────────┘
+                                 │
+                                 ▼
+[STEP 12: MERGED]        [PRODUCTION CODE MERGED] 🎉
 ```
 
 ---
