@@ -1,16 +1,14 @@
-"""Repository scanner — discovers and categorizes source files."""
+"""Repository scanner."""
 
 from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
 
-
 _SKIP_DIRS = {".git", "__pycache__", "node_modules", ".venv", "venv", "dist", "build", "storage"}
 _SOURCE_EXT = {".py", ".ts", ".js", ".cpp", ".rs", ".h", ".hpp"}
 _TEST_PATTERNS = {"test_", "_test.", "spec.", ".test."}
 _CONFIG_EXT = {".yaml", ".yml", ".toml", ".json", ".env"}
-
 
 def classify_file(path: str) -> str:
     """Classify a file as: source | test | config | generated | other."""
@@ -23,7 +21,6 @@ def classify_file(path: str) -> str:
     if ext in _SOURCE_EXT:
         return "source"
     return "other"
-
 
 def scan_repository(root: str = ".") -> dict[str, list[str]]:
     """Walk a repository and return files grouped by classification."""
