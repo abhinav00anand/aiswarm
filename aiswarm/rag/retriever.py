@@ -1,9 +1,4 @@
-"""
-RAG Retriever — semantic + structural file retrieval.
-
-Uses sentence-transformers for embedding and ChromaDB for retrieval.
-Falls back to keyword search if embeddings are unavailable.
-"""
+"""RAG Retriever."""
 
 from __future__ import annotations
 
@@ -13,7 +8,6 @@ from typing import Any
 import structlog
 
 logger = structlog.get_logger(__name__)
-
 
 class RAGRetriever:
     """
@@ -106,7 +100,6 @@ class RAGRetriever:
             ".yaml", ".yml", ".json", ".toml", ".env", ".ini", ".xml", ".cfg", ".txt"
         }
         skip = {".git", "__pycache__", "node_modules", ".venv", "dist", "build"}
-
 
         for path in self._root.rglob("*"):
             if any(p in skip for p in path.parts):
