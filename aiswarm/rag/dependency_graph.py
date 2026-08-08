@@ -1,11 +1,10 @@
-"""Dependency graph — models import relationships between modules."""
+"""Dependency graph."""
 
 from __future__ import annotations
 
 import ast
 from pathlib import Path
 from typing import Any
-
 
 class DependencyGraph:
     """
