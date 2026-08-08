@@ -1,9 +1,4 @@
-"""
-Finite state machine for task lifecycle.
-
-Valid transitions are defined explicitly; any attempt to move to an
-invalid state raises TaskStateError to prevent silent corruption.
-"""
+"""Finite state machine for task lifecycle."""
 
 from __future__ import annotations
 
@@ -73,10 +68,8 @@ VALID_TRANSITIONS: set[tuple[TaskState, TaskState]] = {
     },
 }
 
-
 class TaskStateError(Exception):
     """Raised when an invalid state transition is attempted."""
-
 
 class StateMachine:
     """
@@ -109,7 +102,6 @@ class StateMachine:
                 f"Invalid transition {task.state!r} -> {target!r} "
                 f"for task {task.task_id}"
             )
-
 
         logger.info(
             "task.state_transition",
