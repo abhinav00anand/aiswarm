@@ -1,10 +1,4 @@
-"""
-Failure Memory — persists patterns from past failures so the Boss and
-orchestrator can apply known solutions earlier in future tasks.
-
-Every deadlock or repeated rejection is stored with its resolution.
-Next time a similar pattern appears, the system surfaces the prior fix.
-"""
+"""Failure Memory."""
 
 from __future__ import annotations
 
@@ -19,7 +13,6 @@ logger = structlog.get_logger(__name__)
 
 _STORE_PATH = Path("./storage/failure_memory.json")
 
-
 @dataclass
 class FailureRecord:
     task_id: str
@@ -30,7 +23,6 @@ class FailureRecord:
     resolved_at: float = field(default_factory=time.time)
     retry_count_at_resolution: int = 0
     tags: list[str] = field(default_factory=list)
-
 
 class FailureMemory:
     """
