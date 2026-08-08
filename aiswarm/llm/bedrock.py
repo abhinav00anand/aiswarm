@@ -13,7 +13,6 @@ from aiswarm.llm.adapter import BaseLLMAdapter, LLMMessage, LLMResponse
 
 logger = structlog.get_logger(__name__)
 
-
 class BedrockAdapter(BaseLLMAdapter):
     """Adapter for AWS Bedrock — supports Claude on Bedrock."""
 
