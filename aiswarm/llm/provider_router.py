@@ -1,14 +1,4 @@
-"""
-Provider router — selects, initializes, and fails over between LLM providers.
-
-Every agent uses the router; never a provider directly.
-The router applies:
-  1. Role-specific provider preference order from config.
-  2. Automatic fallback if the primary provider fails or is unavailable.
-  3. Per-provider rate limiting (token bucket + concurrency cap).
-  4. Cost guard circuit breaker — halts on budget breach.
-  5. Cost and token tracking aggregated per session.
-"""
+"""Provider router."""
 
 from __future__ import annotations
 
@@ -30,7 +20,6 @@ from aiswarm.core.rate_limiter import ProviderRateLimiter
 
 logger = structlog.get_logger(__name__)
 
-# ── Per-provider model ID mapping ─────────────────────────────────────────────
 # When the router falls back from Novita→OpenAI→Anthropic, the Novita model ID
 # (e.g. "meta-llama/llama-3.1-70b-instruct") is invalid on OpenAI or Anthropic.
 # This table maps a Novita model ID to an equivalent model on each provider.
@@ -66,7 +55,6 @@ _MODEL_FALLBACK: dict[str, dict[str, str]] = {
     },
 }
 
-
 _KNOWN_PROVIDER_MODELS: dict[str, set[str]] = {
     "openai": {"gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo", "o1", "o1-mini", "o3-mini"},
     "anthropic": {"claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022", "claude-3-opus-20240229", "claude-3-sonnet-20240229", "claude-3-haiku-20240307"},
@@ -88,9 +76,7 @@ _PROVIDER_DEFAULT_MODELS: dict[str, str] = {
     "local": os.getenv("OLLAMA_SELECTED_MODEL", "llama3.2:3b"),
 }
 
-
 _ADAPTER_MODEL_CACHE: str | None = None
-
 
 def get_adapter_model() -> str:
     """Retrieve the advertised model ID from the adapter's /v1/models endpoint."""
@@ -119,7 +105,6 @@ def get_adapter_model() -> str:
         
     _ADAPTER_MODEL_CACHE = "adapter-default"
     return _ADAPTER_MODEL_CACHE
-
 
 def _resolve_model(requested_model: str, provider_name: str) -> str | None:
     """
@@ -166,8 +151,6 @@ def _resolve_model(requested_model: str, provider_name: str) -> str | None:
 
     return requested_model
 
-
-
 # Novita uses the OpenAI-compatible adapter
 _NOVITA_COSTS: dict[str, tuple[float, float]] = {
     "meta-llama/llama-3.1-405b-instruct": (0.0028, 0.0028),
@@ -176,7 +159,6 @@ _NOVITA_COSTS: dict[str, tuple[float, float]] = {
     "deepseek/deepseek-r1": (0.0014, 0.0019),
     "mistralai/mistral-nemo": (0.0001, 0.0001),
 }
-
 
 def _build_providers() -> dict[str, BaseLLMAdapter]:
     """Construct all provider adapters from environment configuration."""
@@ -218,7 +200,6 @@ def _build_providers() -> dict[str, BaseLLMAdapter]:
         )
 
     return providers
-
 
 class ProviderRouter:
     """
@@ -328,7 +309,6 @@ class ProviderRouter:
                     if "do_sample" not in kwargs:
                         kwargs["do_sample"] = False
 
-                # ── Rate limit: acquire slot before calling provider ───────
                 async with self._rate_limiter.acquire(provider_name):
                     response = await provider.chat(
                         messages=messages,
@@ -343,7 +323,6 @@ class ProviderRouter:
                 self._call_count += 1
                 self._failures.pop(provider_name, None)
 
-                # ── Cost guard: record spend after every successful call ───
                 await self._cost_guard.record(
                     provider=provider_name,
                     tokens=response.total_tokens,
