@@ -1,9 +1,4 @@
-"""
-LLM Adapter — unified interface over all provider implementations.
-
-Every provider must implement BaseLLMAdapter. Callers always use the
-adapter interface and never touch provider SDKs directly.
-"""
+"""LLM Adapter."""
 
 from __future__ import annotations
 
@@ -11,12 +6,10 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any
 
-
 @dataclass
 class LLMMessage:
     role: str   # "system" | "user" | "assistant"
     content: str
-
 
 @dataclass
 class LLMResponse:
@@ -30,7 +23,6 @@ class LLMResponse:
     latency_ms: float
     cost_usd: float = 0.0
     raw: Any = None
-
 
 class BaseLLMAdapter(ABC):
     """Abstract base for all LLM provider adapters."""
