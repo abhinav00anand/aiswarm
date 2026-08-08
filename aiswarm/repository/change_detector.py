@@ -1,4 +1,4 @@
-"""Change detector — identifies which files have changed since last run."""
+"""Change detector."""
 
 from __future__ import annotations
 
@@ -7,7 +7,6 @@ import json
 from pathlib import Path
 
 _STATE_FILE = Path("./storage/file_hashes.json")
-
 
 class ChangeDetector:
     """Detects changed source files using content hashing."""
