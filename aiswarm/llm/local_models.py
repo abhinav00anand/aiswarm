@@ -1,6 +1,4 @@
-"""
-Local model adapter — Ollama / LM Studio (OpenAI-compatible) with Security & Audit Layers.
-"""
+"""Local model adapter."""
 
 from __future__ import annotations
 
@@ -15,7 +13,6 @@ from aiswarm.security.redaction import scrub
 from aiswarm.utils.compat_log import get_logger
 
 logger = get_logger(__name__)
-
 
 class LocalModelAdapter(OpenAIAdapter):
     """
