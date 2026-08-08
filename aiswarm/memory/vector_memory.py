@@ -1,9 +1,4 @@
-"""
-Vector Memory — semantic similarity store backed by ChromaDB.
-
-Stores embeddings of past task descriptions, code snippets, and decisions.
-Enables the context selector and planner to retrieve relevant past work.
-"""
+"""Vector Memory."""
 
 from __future__ import annotations
 
@@ -15,7 +10,6 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 _PERSIST_DIR = "./storage/vector_db"
-
 
 class VectorMemory:
     """
