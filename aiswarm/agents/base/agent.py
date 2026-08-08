@@ -1,13 +1,4 @@
-"""
-BaseAgent — the abstract foundation for every agent in AISwarm.
-
-Every agent:
-  - Has a fixed role and a configured model/provider.
-  - Uses the ProviderRouter (never a provider directly).
-  - Emits structured LLMMessage prompts via the PromptBuilder.
-  - Records its token usage, latency, and cost onto the Task.
-  - Never exceeds its granted context window.
-"""
+"""BaseAgent."""
 
 from __future__ import annotations
 
@@ -23,7 +14,6 @@ from aiswarm.schemas.task import Task, PromptLedger
 from aiswarm.schemas.metrics import AgentMetrics
 
 logger = structlog.get_logger(__name__)
-
 
 class BaseAgent(ABC):
     """Abstract base class for all AISwarm agents."""
