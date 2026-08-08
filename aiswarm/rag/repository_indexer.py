@@ -1,12 +1,4 @@
-"""
-Repository Indexer — crawls and indexes a codebase into the RAG store.
-
-Indexing strategy:
-  1. Walk all source files (skipping generated, binary, and VCS dirs).
-  2. Chunk large files by function/class boundary using AST.
-  3. Embed each chunk and upsert into the vector store.
-  4. Record file metadata: path, language, last_modified, symbol count.
-"""
+"""Repository Indexer."""
 
 from __future__ import annotations
 
@@ -27,8 +19,6 @@ _SOURCE_EXTENSIONS = {
     ".py", ".ts", ".js", ".cpp", ".c", ".rs", ".go", ".java", ".h", ".hpp", ".md",
     ".yaml", ".yml", ".json", ".toml", ".env", ".ini", ".xml", ".cfg", ".txt"
 }
-
-
 
 class RepositoryIndexer:
     """
