@@ -1,13 +1,4 @@
-"""
-Per-provider rate limiter — token-bucket implementation.
-
-Prevents hammering any single LLM provider with concurrent requests.
-Each provider gets its own semaphore and request-per-minute window.
-
-Configuration via environment variables:
-  RATE_LIMIT_<PROVIDER>_RPM   — requests per minute  (default 60)
-  RATE_LIMIT_<PROVIDER>_CONC  — max concurrent calls (default 5)
-"""
+"""Per."""
 
 from __future__ import annotations
 
@@ -30,7 +21,6 @@ _DEFAULTS: dict[str, dict[str, int]] = {
     "bedrock":   {"rpm": 30,  "concurrency": 3},
     "local":     {"rpm": 999, "concurrency": 2},
 }
-
 
 class ProviderRateLimiter:
     """
@@ -137,7 +127,6 @@ class ProviderRateLimiter:
             }
             for provider in _DEFAULTS
         }
-
 
 class _AcquireCtx:
     """Async context manager returned by ProviderRateLimiter.acquire()."""
