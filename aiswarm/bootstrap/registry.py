@@ -1,9 +1,8 @@
-"""Agent registry — maps role names to agent instances."""
+"""Agent registry."""
 
 from __future__ import annotations
 
 from typing import Any
-
 
 class AgentRegistry:
     """Central registry for all agent instances by role name."""
