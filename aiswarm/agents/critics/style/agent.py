@@ -1,4 +1,4 @@
-"""Style Critic Agent — reviews code for style, formatting, and convention compliance."""
+"""Style Critic Agent."""
 
 from __future__ import annotations
 
@@ -55,7 +55,6 @@ Output ONLY valid JSON:
   "overall_score": 0-100
 }
 """
-
 
 class StyleCritic(BaseAgent):
     """Reviews code style and formatting convention compliance."""
