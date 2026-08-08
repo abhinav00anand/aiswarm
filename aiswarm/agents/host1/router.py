@@ -1,9 +1,4 @@
-"""
-Host-1 Global Router & Policy Gate.
-
-Analyzes incoming missions, calculates blast radius, evaluates security risk,
-and routes tasks to FAST, PRODUCTION, or HYBRID execution lanes.
-"""
+"""Host."""
 
 from __future__ import annotations
 
@@ -34,7 +29,6 @@ _SECURITY_SURFACES = [
 ]
 
 _SECURITY_REGEX = re.compile("|".join(_SECURITY_SURFACES), re.IGNORECASE)
-
 
 class Host1Router:
     """
