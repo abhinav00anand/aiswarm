@@ -1,14 +1,4 @@
-"""
-Orchestrator — the central control plane of Zymis.
-
-Responsibilities:
-- Receives high-level tasks from Boss/Manager
-- Maintains the task registry (in-memory + checkpointed)
-- Dispatches tasks to the WorkflowEngine
-- Routes events through the EventBus
-- Runs background services: DeadlockDetector, CheckpointManager
-- Exposes the agent registry so any component can resolve an agent by role
-"""
+"""Orchestrator."""
 
 from __future__ import annotations
 
@@ -29,7 +19,6 @@ from aiswarm.security.governor import EngineeringGovernor
 from aiswarm.security.audit import get_audit_ledger
 
 logger = get_logger(__name__)
-
 
 class Orchestrator:
     """
@@ -73,14 +62,10 @@ class Orchestrator:
         # Register deadlock callback
         self._deadlock_detector.on_deadlock(self._on_deadlock)
 
-    # ── Task store ────────────────────────────────────────────────────────────
-
     def set_task_store(self, store: Any) -> None:
         """Attach a shared TaskStore (e.g. RedisTaskStore) to the orchestrator."""
         self._task_store = store
         logger.info("orchestrator.task_store_set", store_type=type(store).__name__)
-
-    # ── Agent registry ────────────────────────────────────────────────────────
 
     def register_agent(self, role: str, agent: Any) -> None:
         self._agents[role] = agent
@@ -88,8 +73,6 @@ class Orchestrator:
 
     def get_agent(self, role: str) -> Any | None:
         return self._agents.get(role)
-
-    # ── Lifecycle ─────────────────────────────────────────────────────────────
 
     async def start(self) -> None:
         """Start the orchestrator and all background services."""
@@ -139,8 +122,6 @@ class Orchestrator:
             payload={"tasks_saved": len(self._tasks)},
         ))
         logger.info("orchestrator.shutdown_complete")
-
-    # ── Task management ───────────────────────────────────────────────────────
 
     async def submit_task(self, task: Task) -> Task:
         """
@@ -234,7 +215,6 @@ class Orchestrator:
                     payload={"final_state": task.state.value},
                 ))
 
-
     async def get_task(self, task_id: str) -> Task | None:
         return self._tasks.get(task_id)
 
@@ -252,8 +232,6 @@ class Orchestrator:
             task.transition(TaskState.CANCELLED, "Cancelled by operator", agent="orchestrator")
             save_task(task)
         return True
-
-    # ── Helpers ───────────────────────────────────────────────────────────────
 
     async def _get_active_tasks(self) -> list[Task]:
         return [
