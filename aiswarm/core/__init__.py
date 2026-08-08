@@ -1,1 +1,1 @@
-"""Core orchestration layer — the control plane of Zymis."""
+"""Core orchestration layer."""
