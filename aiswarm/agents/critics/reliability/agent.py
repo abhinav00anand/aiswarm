@@ -1,4 +1,4 @@
-"""Reliability Critic Agent — reviews code for fault tolerance and resilience."""
+"""Reliability Critic Agent."""
 
 from __future__ import annotations
 
@@ -55,7 +55,6 @@ Output ONLY valid JSON:
   "overall_score": 0-100
 }
 """
-
 
 class ReliabilityCritic(BaseAgent):
     """Reviews code fault tolerance and resilience."""
