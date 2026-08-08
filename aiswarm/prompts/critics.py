@@ -1,4 +1,4 @@
-"""Critic agent prompt templates — Architecture, Performance, Security."""
+"""Critic agent prompt templates."""
 
 ARCHITECTURE_SYSTEM = """You are the Architecture Critic in an AI software engineering review board.
 
