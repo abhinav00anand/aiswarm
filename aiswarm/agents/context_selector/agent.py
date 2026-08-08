@@ -1,13 +1,4 @@
-"""
-Context Selector Agent — RAG-powered context retrieval.
-
-Policy engine (not just search):
-  - Knows the difference between public API files, implementation internals,
-    test fixtures, and generated artifacts.
-  - Selects the smallest useful set of files.
-  - Never sends the entire repository unless Boss explicitly approves it.
-  - Records every selection decision in the prompt ledger.
-"""
+"""Context Selector Agent."""
 
 from __future__ import annotations
 
@@ -49,7 +40,6 @@ Output a JSON array:
 
 If you need only specific functions from a large file, specify the line range.
 """
-
 
 class ContextSelectorAgent(BaseAgent):
     """Selects the minimum necessary context files for a task."""
