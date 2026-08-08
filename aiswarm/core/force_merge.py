@@ -1,14 +1,4 @@
-"""
-Force-merge operator — allows operators to bypass all critic/test gates.
-
-This is a break-glass mechanism for exceptional situations where:
-- Critics are systematically wrong about an algorithm
-- Tests cannot be fixed without merging the code first
-- A deadline requires immediate deployment with documented risk
-
-Every force-merge is permanently logged with a mandatory reason.
-Force-merges are tracked separately from normal merges in metrics.
-"""
+"""Force."""
 
 from __future__ import annotations
 
@@ -20,7 +10,6 @@ from aiswarm.schemas.task import Task, TaskState
 from aiswarm.core.state_machine import StateMachine
 
 logger = structlog.get_logger(__name__)
-
 
 class ForceMergeOperator:
     """
