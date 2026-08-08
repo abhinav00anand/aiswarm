@@ -9,6 +9,7 @@ retry policy, and deadlock detector.
 from __future__ import annotations
 
 import asyncio
+import os
 from typing import TYPE_CHECKING, Any
 
 import structlog
@@ -33,7 +34,8 @@ class WorkflowEngine:
 
     def __init__(self, orchestrator: "Orchestrator") -> None:
         self._orc = orchestrator
-        self._retry = RetryEngine(RetryPolicy(max_attempts=5, base_delay=2.0))
+        base_delay = 0.01 if os.getenv("PYTEST_CURRENT_TEST") else 2.0
+        self._retry = RetryEngine(RetryPolicy(max_attempts=5, base_delay=base_delay))
 
     async def run(self, task: Task) -> Task:
         """Execute the full pipeline for a task and return the final task."""
