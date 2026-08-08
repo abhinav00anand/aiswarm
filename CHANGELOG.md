@@ -3,6 +3,15 @@
 All notable changes to **Zymis** are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2026-08-08
+
+### 🐛 Post-Mortem Bug Fixes & Architectural Enhancements
+- **Silent Rejection Bug Resolution**: `Task.rejection_reasons()` now aggregates `[PreCheck]` static/LLM issues, `[SecurityScan]` violations, and build/test failures into the Coder revision prompt.
+- **Strict Production-Grade Coder Prompt**: Updated Coder agent prompts to mandate 100% type hints, explicit `try/except` error handling, zero dummy fallback secrets, and no `TODO`/placeholder code upfront.
+- **Dynamic Model Pass-Through**: Updated `ProviderRouter` so custom model strings (e.g. SambaNova model IDs, fine-tuned models) pass through directly without being overridden by default model fallbacks.
+- **Notebook Mode Hijacking Fix**: Fixed notebook environment detection in `ProviderRouter` so cloud API requests (SambaNova, OpenAI, Anthropic, etc.) are not redirected to local adapter ports when cloud credentials exist.
+- **Rate-Limit Resilience & Cooling-Off**: Added exponential backoff sleep on HTTP 429 rate limits and enforced guaranteed inter-agent cooling-off periods to protect free-tier API quotas.
+
 ---
 
 ## [0.1.0] - 2026-08-08
