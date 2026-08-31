@@ -15,6 +15,7 @@ from aiswarm.llm.gemini import GeminiAdapter
 from aiswarm.llm.deepseek import DeepSeekAdapter
 from aiswarm.llm.bedrock import BedrockAdapter
 from aiswarm.llm.local_models import LocalModelAdapter
+from aiswarm.llm.zephyr import ZephyrAdapter
 from aiswarm.core.cost_guard import CostGuard, CostLimitExceeded
 from aiswarm.core.rate_limiter import ProviderRateLimiter
 
@@ -60,6 +61,7 @@ _KNOWN_PROVIDER_MODELS: dict[str, set[str]] = {
     "anthropic": {"claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022", "claude-3-opus-20240229", "claude-3-sonnet-20240229", "claude-3-haiku-20240307"},
     "gemini": {"gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"},
     "deepseek": {"deepseek-chat", "deepseek-reasoner"},
+    "zephyr": {"zephyr/llama-3.1-70b", "zephyr/qwen2.5-coder-32b", "zephyr/codestral", "llama3.1:8b", "llama3"},
     "local": {
         "llama3.1:8b", "llama3.2:3b", "llama3.2:1b", "llama3.1:70b", "llama3.1:latest",
         "llama3.2:latest", "llama3:latest", "llama3", "llama3:70b", "codestral:latest",
@@ -73,6 +75,7 @@ _PROVIDER_DEFAULT_MODELS: dict[str, str] = {
     "anthropic": "claude-3-5-sonnet-20241022",
     "gemini": "gemini-2.0-flash",
     "deepseek": "deepseek-chat",
+    "zephyr": os.getenv("ZEPHYR_SELECTED_MODEL", "zephyr/llama-3.1-70b"),
     "local": os.getenv("OLLAMA_SELECTED_MODEL", "llama3.2:3b"),
 }
 
@@ -187,6 +190,10 @@ def _build_providers() -> dict[str, BaseLLMAdapter]:
             api_key=os.getenv("DEEPSEEK_API_KEY", ""),
         ),
         "bedrock": BedrockAdapter(),
+        "zephyr": ZephyrAdapter(
+            api_key=os.getenv("ZEPHYR_API_KEY") or os.getenv("ZEPHYR_BOOTSTRAP_KEY"),
+            base_url=os.getenv("ZEPHYR_API_URL"),
+        ),
         "local": LocalModelAdapter(),
     }
 
@@ -258,12 +265,14 @@ class ProviderRouter:
         """
         # Respect explicit provider_preference or cloud credentials if present
         has_cloud_keys = any(
-            os.getenv(k) for k in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_API_KEY", "DEEPSEEK_API_KEY", "SAMBANOVA_API_KEY", "NOVITA_API_KEY")
+            os.getenv(k) for k in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_API_KEY", "DEEPSEEK_API_KEY", "SAMBANOVA_API_KEY", "NOVITA_API_KEY", "ZEPHYR_API_KEY", "ZEPHYR_BOOTSTRAP_KEY")
         )
         if provider_preference:
             order = list(provider_preference)
         else:
-            order = ["novita", "openai", "anthropic", "deepseek", "local"]
+            order = ["novita", "zephyr", "openai", "anthropic", "deepseek", "local"]
+            if os.getenv("ZEPHYR_API_KEY") or os.getenv("ZEPHYR_API_URL"):
+                order = ["zephyr"] + [p for p in order if p != "zephyr"]
             if os.getenv("OPENAI_API_ADAPTER_URL") and not has_cloud_keys:
                 order = ["adapter"] + order
 
