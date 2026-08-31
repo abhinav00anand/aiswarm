@@ -209,51 +209,79 @@ def query_antigravity_gemini(
     prompt: str,
     system_instruction: str,
     api_key: str,
-    model_name: str = "gemini-2.5-pro",
+    model_name: str | None = None,
 ) -> str:
-    """Query Google Antigravity / Gemini model for code review analysis."""
-    # Attempt using google.generativeai
+    """Query Google Antigravity / Gemini model for code review analysis with multi-model fallback."""
+    candidate_models = [model_name] if model_name else []
+    for candidate in (
+        "gemini-2.5-flash",
+        "gemini-3.1-pro-preview",
+        "gemini-1.5-pro",
+        "gemini-1.5-flash",
+    ):
+        if candidate not in candidate_models:
+            candidate_models.append(candidate)
+
+    # First try using google.generativeai SDK
     try:
         import google.generativeai as genai
 
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel(
-            model_name=model_name,
-            system_instruction=system_instruction,
-            generation_config={"response_mime_type": "application/json", "temperature": 0.2},
-        )
-        response = model.generate_content(prompt)
-        return response.text or "{}"
+        for m_name in candidate_models:
+            try:
+                model = genai.GenerativeModel(
+                    model_name=m_name,
+                    system_instruction=system_instruction,
+                    generation_config={
+                        "response_mime_type": "application/json",
+                        "temperature": 0.2,
+                    },
+                )
+                response = model.generate_content(prompt)
+                if response and response.text:
+                    print(f"[Info] Successfully generated review using model '{m_name}' via SDK.")
+                    return response.text
+            except Exception as exc:
+                print(
+                    f"[Warning] Model '{m_name}' failed via SDK ({exc}). Trying next candidate..."
+                )
     except ImportError:
         pass
 
     # Fallback to direct Gemini REST API call via httpx
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
-    payload = {
-        "system_instruction": {"parts": [{"text": system_instruction}]},
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {
-            "temperature": 0.2,
-            "responseMimeType": "application/json",
-        },
-    }
-    resp = httpx.post(url, json=payload, timeout=120.0)
-    if resp.status_code != 200:
-        # Fallback to gemini-1.5-pro if 2.5-pro is unavailable
-        if "not found" in resp.text.lower() or resp.status_code == 404:
-            fallback_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key={api_key}"
-            resp = httpx.post(fallback_url, json=payload, timeout=120.0)
+    for m_name in candidate_models:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{m_name}:generateContent?key={api_key}"
+        payload = {
+            "system_instruction": {"parts": [{"text": system_instruction}]},
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {
+                "temperature": 0.2,
+                "responseMimeType": "application/json",
+            },
+        }
+        try:
+            resp = httpx.post(url, json=payload, timeout=120.0)
+            if resp.status_code == 200:
+                data = resp.json()
+                candidates = data.get("candidates", [])
+                if candidates:
+                    content = candidates[0].get("content", {})
+                    parts = content.get("parts", [])
+                    if parts and parts[0].get("text"):
+                        print(
+                            f"[Info] Successfully generated review using model '{m_name}' via REST."
+                        )
+                        return parts[0]["text"]
+            else:
+                print(
+                    f"[Warning] Model '{m_name}' REST returned {resp.status_code}. Trying next candidate..."
+                )
+        except Exception as exc:
+            print(f"[Warning] Model '{m_name}' REST call failed ({exc}). Trying next candidate...")
 
-    resp.raise_for_status()
-    data = resp.json()
-    candidates = data.get("candidates", [])
-    if candidates:
-        content = candidates[0].get("content", {})
-        parts = content.get("parts", [])
-        if parts:
-            return parts[0].get("text", "{}")
-
-    raise RuntimeError("Failed to retrieve response from Antigravity/Gemini API.")
+    raise RuntimeError(
+        "Failed to retrieve response from Antigravity/Gemini API across all candidate models."
+    )
 
 
 def build_review_markdown(review_data: dict[str, Any], pr_title: str, pr_number: int) -> str:
