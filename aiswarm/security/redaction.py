@@ -28,6 +28,8 @@ class SecretRedactor:
         ("anthropic_key", r"sk-ant-[a-zA-Z0-9\-]{30,}", "***ANTHROPIC_KEY***"),
         ("github_pat", r"ghp_[a-zA-Z0-9]{36}", "***GH_PAT***"),
         ("google_api_key", r"AIza[0-9A-Za-z\-_]{35}", "***GOOGLE_KEY***"),
+        ("zephyr_temp_key", r"zph_tmp_[a-zA-Z0-9_\-]{16,}", "***ZEPHYR_TMP_KEY***"),
+        ("zephyr_job_key", r"zph_job_[a-zA-Z0-9_\-]{16,}", "***ZEPHYR_JOB_KEY***"),
         ("generic_secret", r"(?i)(api[_-]?key|secret|token|password|bearer)\s*[=:]\s*['\"]?([a-zA-Z0-9_\-\.]{16,})['\"]?", r"\1=***REDACTED***"),
         ("aws_key", r"AKIA[0-9A-Z]{16}", "***AWS_KEY***"),
         ("env_assignment", r"(?m)^([A-Z_]{4,}_KEY|[A-Z_]{4,}_SECRET|[A-Z_]{4,}_TOKEN)=.+$", r"\1=***REDACTED***"),
