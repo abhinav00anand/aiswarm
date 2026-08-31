@@ -27,9 +27,10 @@ class SecretRedactor:
     """Multi-pattern secret scrubber for all platform output channels."""
 
     _DEFAULT_RULES: list[tuple[str, str, str]] = [
-        ("openai_key", r"sk-[a-zA-Z0-9]{32,}", "***OPENAI_KEY***"),
         ("anthropic_key", r"sk-ant-[a-zA-Z0-9\-]{30,}", "***ANTHROPIC_KEY***"),
+        ("openai_key", r"sk-[a-zA-Z0-9_\-]{32,}", "***OPENAI_KEY***"),
         ("github_pat", r"ghp_[a-zA-Z0-9]{36}", "***GH_PAT***"),
+        ("pypi_token", r"pypi-[a-zA-Z0-9_\-]{50,}", "***PYPI_TOKEN***"),
         ("google_api_key", r"AIza[0-9A-Za-z\-_]{35}", "***GOOGLE_KEY***"),
         ("zephyr_temp_key", r"zph_tmp_[a-zA-Z0-9_\-]{16,}", "***ZEPHYR_TMP_KEY***"),
         ("zephyr_job_key", r"zph_job_[a-zA-Z0-9_\-]{16,}", "***ZEPHYR_JOB_KEY***"),
