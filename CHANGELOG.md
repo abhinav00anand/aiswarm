@@ -3,6 +3,15 @@
 All notable changes to **Zymis** are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2026-08-31
+
+### ⚡ Zephyr Distributed Remote GPU Mesh Integration
+- **Zephyr LLM Adapter (`ZephyrAdapter`)**: Added native integration with Zephyr zero-trust edge inference mesh in `aiswarm/llm/zephyr.py`. Enables Zymis swarms to route code generation workloads directly to remote GPUs (vLLM, Ollama, llama.cpp, PyTorch transformers) tunneled via Zephyr's WebSocket control plane.
+- **Provider Router Registration**: Registered `"zephyr"` into `ProviderRouter` in `aiswarm/llm/provider_router.py` with fallback support and `ZEPHYR_SELECTED_MODEL` environment variable support.
+- **Security & Secret Redaction**: Added Zephyr token patterns (`zph_tmp_...`, `zph_job_...`, `ZEPHYR_BOOTSTRAP_KEY`) to `SecretRedactor` (`aiswarm/security/redaction.py`) and `APIKeyValidator` (`aiswarm/security/auth.py`).
+
+---
+
 ## [0.1.2] - 2026-08-08
 
 ### 🐛 Security & PreCheck Metadata Aggregation Fix
