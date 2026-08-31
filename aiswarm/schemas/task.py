@@ -87,6 +87,8 @@ class CompilerOutput(BaseModel):
 class TestOutput(BaseModel):
     """Output from the test runner step."""
 
+    __test__ = False
+
     success: bool
     total: int = 0
     passed: int = 0
