@@ -156,23 +156,30 @@ class GitHubClient:
     ) -> dict[str, Any]:
         """Submit a complete pull request review with summary and inline comments."""
         url = f"{self.base_url}/pulls/{pr_number}/reviews"
+        # GitHub Actions GITHUB_TOKEN is barred by GitHub policy from submitting 'APPROVE'
+        api_event = "COMMENT" if event == "APPROVE" else event
         payload: dict[str, Any] = {
             "commit_id": commit_id,
             "body": body,
-            "event": event,
+            "event": api_event,
         }
         if comments:
             payload["comments"] = comments
 
         response = httpx.post(url, headers=self.headers, json=payload, timeout=60.0)
         if response.status_code == 422:
-            # If inline comments fail (e.g. line outside diff hunk), retry with body only
-            # and append inline comments to the review body so no feedback is lost
             print(
-                f"[Warning] GitHub rejected inline comments (422: {response.text}). Falling back to body-only review."
+                f"[Warning] GitHub rejected review event '{api_event}' (422: {response.text}). Retrying as neutral COMMENT..."
             )
+            payload["event"] = "COMMENT"
             payload.pop("comments", None)
             response = httpx.post(url, headers=self.headers, json=payload, timeout=60.0)
+
+        if response.status_code >= 400:
+            print(
+                f"[Warning] PR review API failed with {response.status_code}. Posting report as PR issue comment fallback..."
+            )
+            return self.post_issue_comment(pr_number, body)
 
         response.raise_for_status()
         return response.json()
