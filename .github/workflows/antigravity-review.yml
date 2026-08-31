@@ -19,7 +19,7 @@ on:
 
 concurrency:
   group: antigravity-review-${{ github.event.pull_request.number || github.event.issue.number || github.event.inputs.pr_number }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: read
