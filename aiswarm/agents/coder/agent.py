@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import hashlib
-import json
-from typing import Any
 
 import structlog
 
@@ -64,6 +62,7 @@ Previous code:
 Now write the corrected, fully-implemented version:
 """
 
+
 class CoderAgent(BaseAgent):
     """Generates clean, robust code from plans and context."""
 
@@ -85,7 +84,9 @@ class CoderAgent(BaseAgent):
 
         messages = self._build_messages(task)
         response = await self.call_llm(messages, task=task, temperature=self._temperature)
-        task.prompt_ledger.append(self.build_ledger(messages, response, f"coder_v{task.retry_count + 1}"))
+        task.prompt_ledger.append(
+            self.build_ledger(messages, response, f"coder_v{task.retry_count + 1}")
+        )
 
         code = self._clean_code(response.content)
         task.generated_code = code
@@ -113,7 +114,9 @@ class CoderAgent(BaseAgent):
             # Revision prompt
             revision_content = _REVISION_PREFIX.format(
                 reasons="\n".join(f"  - {r}" for r in task.rejection_reasons()) or "(none)",
-                compiler_errors=task.compiler_output.stderr[:2000] if task.compiler_output else "(none)",
+                compiler_errors=task.compiler_output.stderr[:2000]
+                if task.compiler_output
+                else "(none)",
                 test_failures=task.test_output.stdout[:2000] if task.test_output else "(none)",
                 boss_directive=task.boss_override or "(none)",
                 previous_code=task.generated_code[:4000],
@@ -126,9 +129,9 @@ class CoderAgent(BaseAgent):
                 if isinstance(blueprint, dict)
                 else str(blueprint)
             )
-            acceptance = "\n".join(
-                f"  ✓ {c}" for c in task.acceptance_criteria
-            ) or "  (none specified)"
+            acceptance = (
+                "\n".join(f"  ✓ {c}" for c in task.acceptance_criteria) or "  (none specified)"
+            )
 
             user_content = f"""
 Implement the following task at production quality.

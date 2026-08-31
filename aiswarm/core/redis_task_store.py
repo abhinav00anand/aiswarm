@@ -2,24 +2,24 @@
 
 from __future__ import annotations
 
-import json
-import os
 from datetime import timezone
 from typing import Any
 
 import structlog
 
-from aiswarm.schemas.task import Task, TaskState
+from aiswarm.schemas.task import Task
 
 logger = structlog.get_logger(__name__)
 
-_KEY_TASK   = "aiswarm:task:{}"
+_KEY_TASK = "aiswarm:task:{}"
 _KEY_ACTIVE = "aiswarm:tasks:active"
-_KEY_ALL    = "aiswarm:tasks:all"
+_KEY_ALL = "aiswarm:tasks:all"
 _TTL_TERMINAL = 60 * 60 * 24 * 7  # keep terminal tasks for 7 days
+
 
 def _task_key(task_id: str) -> str:
     return _KEY_TASK.format(task_id)
+
 
 class RedisTaskStore:
     """
@@ -59,6 +59,7 @@ class RedisTaskStore:
 
             # Remove terminal tasks from the active set and set expiry
             from aiswarm.core.state_machine import StateMachine
+
             if StateMachine.is_terminal(task.state):
                 await self._redis.zrem(_KEY_ACTIVE, task.task_id)
                 await self._redis.expire(key, _TTL_TERMINAL)
@@ -110,6 +111,7 @@ class RedisTaskStore:
 
     async def get_active(self) -> list[Task]:
         from aiswarm.core.state_machine import StateMachine
+
         if self._available:
             try:
                 task_ids = await self._redis.zrange(_KEY_ACTIVE, 0, -1)
@@ -149,7 +151,6 @@ class RedisTaskStore:
         return self.summary()
 
     def summary(self) -> dict[str, Any]:
-        from aiswarm.core.state_machine import StateMachine
         states: dict[str, int] = {}
         for t in self._local.values():
             states[t.state.value] = states.get(t.state.value, 0) + 1

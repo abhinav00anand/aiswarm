@@ -9,6 +9,7 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+
 class EmbeddingStore:
     """Manages code embeddings backed by ChromaDB."""
 
@@ -23,6 +24,7 @@ class EmbeddingStore:
         try:
             import chromadb
             from sentence_transformers import SentenceTransformer
+
             self._path.mkdir(parents=True, exist_ok=True)
             client = chromadb.PersistentClient(path=str(self._path))
             self._collection = client.get_or_create_collection("embeddings")
@@ -53,7 +55,8 @@ class EmbeddingStore:
         embedding = self.embed(query)
         try:
             results = self._collection.query(  # type: ignore[union-attr]
-                query_embeddings=[embedding], n_results=n,
+                query_embeddings=[embedding],
+                n_results=n,
                 include=["documents", "metadatas", "distances"],
             )
             return [

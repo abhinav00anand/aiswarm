@@ -35,6 +35,7 @@ Output JSON:
 Be precise. Do not invent requirements not in the task description.
 """
 
+
 class PlannerAgent(BaseAgent):
     """Produces implementation blueprints before the coder writes code."""
 
@@ -57,7 +58,7 @@ Description: {task.description}
 Target files: {task.target_files}
 Language: {task.target_language}
 Acceptance criteria:
-{chr(10).join(f'  - {c}' for c in task.acceptance_criteria)}
+{chr(10).join(f"  - {c}" for c in task.acceptance_criteria)}
 
 Existing context:
 {context_summary}

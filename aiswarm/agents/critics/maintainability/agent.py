@@ -57,6 +57,7 @@ Output ONLY valid JSON:
 }
 """
 
+
 class MaintainabilityCritic(BaseAgent):
     """Reviews code readability and long-term maintainability."""
 
@@ -96,7 +97,12 @@ Respond with ONLY the JSON review object.""",
         task.prompt_ledger.append(self.build_ledger(messages, response, "maintain_critic_v1"))
         review = self._parse_review(response.content, response)
         task.reviews.append(review)
-        logger.info("critic.maintainability", task_id=task.task_id, decision=review.decision.value, score=review.score)
+        logger.info(
+            "critic.maintainability",
+            task_id=task.task_id,
+            decision=review.decision.value,
+            score=review.score,
+        )
         return review
 
     def _parse_review(self, content: str, response: Any) -> CriticReview:

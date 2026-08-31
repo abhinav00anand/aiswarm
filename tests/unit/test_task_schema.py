@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
-import pytest
 
 from aiswarm.schemas.task import (
-    Task, TaskState, TaskPriority, TaskClass,
-    CriticReview, ReviewDecision, CompilerOutput, TestOutput,
+    Task,
+    TaskState,
+    CriticReview,
+    ReviewDecision,
+    CompilerOutput,
+    TestOutput,
 )
 
 
@@ -23,27 +26,57 @@ class TestTask:
     def test_is_approved_majority(self) -> None:
         task = Task(title="T", description="D")
         task.reviews = [
-            CriticReview(critic_role="architecture", decision=ReviewDecision.APPROVE, production_ready=True),
-            CriticReview(critic_role="performance", decision=ReviewDecision.APPROVE, production_ready=True),
-            CriticReview(critic_role="security", decision=ReviewDecision.REJECT, production_ready=False, fatal_flaw="sql injection"),
+            CriticReview(
+                critic_role="architecture", decision=ReviewDecision.APPROVE, production_ready=True
+            ),
+            CriticReview(
+                critic_role="performance", decision=ReviewDecision.APPROVE, production_ready=True
+            ),
+            CriticReview(
+                critic_role="security",
+                decision=ReviewDecision.REJECT,
+                production_ready=False,
+                fatal_flaw="sql injection",
+            ),
         ]
         assert task.is_approved()  # 2/3 approve
 
     def test_is_not_approved_minority(self) -> None:
         task = Task(title="T", description="D")
         task.reviews = [
-            CriticReview(critic_role="architecture", decision=ReviewDecision.APPROVE, production_ready=True),
-            CriticReview(critic_role="performance", decision=ReviewDecision.REJECT, production_ready=False, fatal_flaw="O(n^2)"),
-            CriticReview(critic_role="security", decision=ReviewDecision.REJECT, production_ready=False, fatal_flaw="hardcoded key"),
+            CriticReview(
+                critic_role="architecture", decision=ReviewDecision.APPROVE, production_ready=True
+            ),
+            CriticReview(
+                critic_role="performance",
+                decision=ReviewDecision.REJECT,
+                production_ready=False,
+                fatal_flaw="O(n^2)",
+            ),
+            CriticReview(
+                critic_role="security",
+                decision=ReviewDecision.REJECT,
+                production_ready=False,
+                fatal_flaw="hardcoded key",
+            ),
         ]
         assert not task.is_approved()
 
     def test_security_veto(self) -> None:
         task = Task(title="T", description="D")
         task.reviews = [
-            CriticReview(critic_role="architecture", decision=ReviewDecision.APPROVE, production_ready=True),
-            CriticReview(critic_role="performance", decision=ReviewDecision.APPROVE, production_ready=True),
-            CriticReview(critic_role="security", decision=ReviewDecision.REJECT, production_ready=False, fatal_flaw="RCE"),
+            CriticReview(
+                critic_role="architecture", decision=ReviewDecision.APPROVE, production_ready=True
+            ),
+            CriticReview(
+                critic_role="performance", decision=ReviewDecision.APPROVE, production_ready=True
+            ),
+            CriticReview(
+                critic_role="security",
+                decision=ReviewDecision.REJECT,
+                production_ready=False,
+                fatal_flaw="RCE",
+            ),
         ]
         assert task.is_security_vetoed()
         # Even though majority approves, security veto exists
@@ -51,7 +84,9 @@ class TestTask:
     def test_no_security_veto_when_approved(self) -> None:
         task = Task(title="T", description="D")
         task.reviews = [
-            CriticReview(critic_role="security", decision=ReviewDecision.APPROVE, production_ready=True),
+            CriticReview(
+                critic_role="security", decision=ReviewDecision.APPROVE, production_ready=True
+            ),
         ]
         assert not task.is_security_vetoed()
 
@@ -90,12 +125,16 @@ class TestTask:
         assert restored.generated_code == task.generated_code
 
     def test_compiler_output_structure(self) -> None:
-        out = CompilerOutput(success=True, stdout="OK", stderr="", exit_code=0, duration_seconds=0.5)
+        out = CompilerOutput(
+            success=True, stdout="OK", stderr="", exit_code=0, duration_seconds=0.5
+        )
         assert out.success
         assert out.exit_code == 0
 
     def test_test_output_structure(self) -> None:
-        out = TestOutput(success=True, total=10, passed=9, failed=1, skipped=0, duration_seconds=2.0)
+        out = TestOutput(
+            success=True, total=10, passed=9, failed=1, skipped=0, duration_seconds=2.0
+        )
         assert out.passed == 9
         assert out.success  # success=True was explicitly set
         out2 = TestOutput(success=False, total=5, passed=3, failed=2)

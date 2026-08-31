@@ -8,16 +8,18 @@ from pydantic import BaseModel, Field
 
 class BenchmarkSuite(BaseModel):
     """Definition of a benchmark suite for a task class."""
+
     suite_id: str
     task_class: str
     description: str
-    metrics: list[str]         # e.g. ["throughput", "latency", "memory"]
+    metrics: list[str]  # e.g. ["throughput", "latency", "memory"]
     baseline_values: dict[str, float] = Field(default_factory=dict)
     tolerance_pct: float = 10.0  # allowed regression %
 
 
 class BenchmarkRun(BaseModel):
     """A single benchmark run result."""
+
     run_id: str
     suite_id: str
     task_id: str

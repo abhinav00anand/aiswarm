@@ -57,16 +57,52 @@ _MODEL_FALLBACK: dict[str, dict[str, str]] = {
 }
 
 _KNOWN_PROVIDER_MODELS: dict[str, set[str]] = {
-    "openai": {"gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo", "o1", "o1-mini", "o3-mini"},
-    "anthropic": {"claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022", "claude-3-opus-20240229", "claude-3-sonnet-20240229", "claude-3-haiku-20240307"},
+    "openai": {
+        "gpt-4o",
+        "gpt-4o-mini",
+        "gpt-4-turbo",
+        "gpt-4",
+        "gpt-3.5-turbo",
+        "o1",
+        "o1-mini",
+        "o3-mini",
+    },
+    "anthropic": {
+        "claude-3-5-sonnet-20241022",
+        "claude-3-5-haiku-20241022",
+        "claude-3-opus-20240229",
+        "claude-3-sonnet-20240229",
+        "claude-3-haiku-20240307",
+    },
     "gemini": {"gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"},
     "deepseek": {"deepseek-chat", "deepseek-reasoner"},
-    "zephyr": {"zephyr/llama-3.1-70b", "zephyr/qwen2.5-coder-32b", "zephyr/codestral", "llama3.1:8b", "llama3", "llama3:8b"},
+    "zephyr": {
+        "zephyr/llama-3.1-70b",
+        "zephyr/qwen2.5-coder-32b",
+        "zephyr/codestral",
+        "llama3.1:8b",
+        "llama3",
+        "llama3:8b",
+    },
     "local": {
-        "llama3.1:8b", "llama3.2:3b", "llama3.2:1b", "llama3.1:70b", "llama3.1:latest",
-        "llama3.2:latest", "llama3:latest", "llama3", "llama3:70b", "codestral:latest",
-        "codestral", "mistral", "mistral:latest", "qwen", "qwen:latest", "phi3:latest",
-        "gemma2:latest", "distilgpt2"
+        "llama3.1:8b",
+        "llama3.2:3b",
+        "llama3.2:1b",
+        "llama3.1:70b",
+        "llama3.1:latest",
+        "llama3.2:latest",
+        "llama3:latest",
+        "llama3",
+        "llama3:70b",
+        "codestral:latest",
+        "codestral",
+        "mistral",
+        "mistral:latest",
+        "qwen",
+        "qwen:latest",
+        "phi3:latest",
+        "gemma2:latest",
+        "distilgpt2",
     },
 }
 
@@ -81,20 +117,22 @@ _PROVIDER_DEFAULT_MODELS: dict[str, str] = {
 
 _ADAPTER_MODEL_CACHE: str | None = None
 
+
 def get_adapter_model() -> str:
     """Retrieve the advertised model ID from the adapter's /v1/models endpoint."""
     global _ADAPTER_MODEL_CACHE
     if _ADAPTER_MODEL_CACHE is not None:
         return _ADAPTER_MODEL_CACHE
-    
+
     url = os.getenv("OPENAI_API_ADAPTER_URL")
     if not url:
         _ADAPTER_MODEL_CACHE = "adapter-default"
         return _ADAPTER_MODEL_CACHE
-        
+
     import urllib.request
     import json
-    base_url = url.rstrip('/')
+
+    base_url = url.rstrip("/")
     try:
         req = urllib.request.Request(f"{base_url}/v1/models", method="GET")
         with urllib.request.urlopen(req, timeout=3.0) as response:
@@ -105,9 +143,10 @@ def get_adapter_model() -> str:
                     return _ADAPTER_MODEL_CACHE
     except Exception:
         pass
-        
+
     _ADAPTER_MODEL_CACHE = "adapter-default"
     return _ADAPTER_MODEL_CACHE
+
 
 def _resolve_model(requested_model: str, provider_name: str) -> str | None:
     """
@@ -154,6 +193,7 @@ def _resolve_model(requested_model: str, provider_name: str) -> str | None:
 
     return requested_model
 
+
 # Novita uses the OpenAI-compatible adapter
 _NOVITA_COSTS: dict[str, tuple[float, float]] = {
     "meta-llama/llama-3.1-405b-instruct": (0.0028, 0.0028),
@@ -162,6 +202,7 @@ _NOVITA_COSTS: dict[str, tuple[float, float]] = {
     "deepseek/deepseek-r1": (0.0014, 0.0019),
     "mistralai/mistral-nemo": (0.0001, 0.0001),
 }
+
 
 def _build_providers() -> dict[str, BaseLLMAdapter]:
     """Construct all provider adapters from environment configuration."""
@@ -207,6 +248,7 @@ def _build_providers() -> dict[str, BaseLLMAdapter]:
         )
 
     return providers
+
 
 class ProviderRouter:
     """
@@ -265,11 +307,23 @@ class ProviderRouter:
         """
         # Respect explicit provider_preference or cloud credentials if present
         has_cloud_keys = any(
-            os.getenv(k) for k in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_API_KEY", "DEEPSEEK_API_KEY", "SAMBANOVA_API_KEY", "NOVITA_API_KEY", "ZEPHYR_API_KEY", "ZEPHYR_BOOTSTRAP_KEY")
+            os.getenv(k)
+            for k in (
+                "OPENAI_API_KEY",
+                "ANTHROPIC_API_KEY",
+                "GOOGLE_API_KEY",
+                "DEEPSEEK_API_KEY",
+                "SAMBANOVA_API_KEY",
+                "NOVITA_API_KEY",
+                "ZEPHYR_API_KEY",
+                "ZEPHYR_BOOTSTRAP_KEY",
+            )
         )
         if provider_preference:
             order = list(provider_preference)
-            if (os.getenv("ZEPHYR_API_KEY") or os.getenv("ZEPHYR_API_URL")) and "zephyr" not in order:
+            if (
+                os.getenv("ZEPHYR_API_KEY") or os.getenv("ZEPHYR_API_URL")
+            ) and "zephyr" not in order:
                 order = ["zephyr"] + order
         else:
             order = ["novita", "zephyr", "openai", "anthropic", "deepseek", "local"]
@@ -353,10 +407,16 @@ class ProviderRouter:
                 self._failures[provider_name] = self._failures.get(provider_name, 0) + 1
 
                 # Notify rate limiter if we received HTTP 429
-                if "429" in err_str or "rate limit" in err_str.lower() or "too many requests" in err_str.lower():
+                if (
+                    "429" in err_str
+                    or "rate limit" in err_str.lower()
+                    or "too many requests" in err_str.lower()
+                ):
                     self._rate_limiter.notify_rate_limited(provider_name)
                     cooloff = min(3.0 * (2 ** (self._failures.get(provider_name, 1) - 1)), 15.0)
-                    logger.info("router.rate_limit_cooling_off", provider=provider_name, delay_sec=cooloff)
+                    logger.info(
+                        "router.rate_limit_cooling_off", provider=provider_name, delay_sec=cooloff
+                    )
                     await asyncio.sleep(cooloff)
 
                 logger.warning(
@@ -369,8 +429,7 @@ class ProviderRouter:
                 await asyncio.sleep(0.5)
 
         raise RuntimeError(
-            f"All providers exhausted for model={model!r}. "
-            f"Last error: {last_exc}"
+            f"All providers exhausted for model={model!r}. Last error: {last_exc}"
         ) from last_exc
 
     @property

@@ -13,6 +13,7 @@ from aiswarm.utils.compat_log import get_logger
 
 logger = get_logger(__name__)
 
+
 class Host2CapabilityManager:
     """
     Host-2 Executive Manager for Fast-Mode Execution.
@@ -35,7 +36,11 @@ class Host2CapabilityManager:
         Public adapter interface for executing a direct capability request.
         Invoked by BossAgent or WorkflowEngine.
         """
-        logger.info("host2.execute_capability_start", capability=request.capability_name, role=request.requester_role)
+        logger.info(
+            "host2.execute_capability_start",
+            capability=request.capability_name,
+            role=request.requester_role,
+        )
         self.governor.check_capability_spawn_policy(request.capability_name, request.requester_role)
         handle: CapabilityHandle = await self.capability_registry.invoke(request)
         return {
@@ -46,7 +51,9 @@ class Host2CapabilityManager:
             "handle": handle.model_dump(),
         }
 
-    async def run_native_cpp_engine(self, capability: str, path: str, request_id: str = "cpp_req") -> dict[str, Any]:
+    async def run_native_cpp_engine(
+        self, capability: str, path: str, request_id: str = "cpp_req"
+    ) -> dict[str, Any]:
         """
         Runs the native C++ Host-2 execution engine for the given capability and path.
         """
@@ -79,9 +86,7 @@ class Host2CapabilityManager:
 
             logger.info("host2.compile_native_engine", command=cmd)
             proc = await asyncio.create_subprocess_exec(
-                *cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )
             stdout, stderr = await proc.communicate()
             if proc.returncode != 0:
@@ -89,13 +94,22 @@ class Host2CapabilityManager:
                 raise RuntimeError(f"Failed to compile native C++ Host-2 engine: {stderr.decode()}")
 
         # Execute the native engine in the sandbox
-        cmd = [str(bin_path), "--capability", capability, "--path", path, "--request-id", request_id]
+        cmd = [
+            str(bin_path),
+            "--capability",
+            capability,
+            "--path",
+            path,
+            "--request-id",
+            request_id,
+        ]
         logger.info("host2.run_native_engine", command=cmd)
 
         # Run via sandbox
         result = await self.capability_registry.sandbox.execute_sandboxed_command(cmd)
         if result.get("returncode") == 0:
             import json
+
             try:
                 # The stdout contains JSON from the C++ engine
                 return json.loads(result.get("stdout", "{}").strip())
@@ -117,7 +131,9 @@ class Host2CapabilityManager:
         completed_steps = []
 
         # Auto-detect C++ language tasks
-        is_cpp = language in ["c++", "cpp"] or str(target_file).endswith((".cpp", ".hpp", ".cxx", ".cc"))
+        is_cpp = language in ["c++", "cpp"] or str(target_file).endswith(
+            (".cpp", ".hpp", ".cxx", ".cc")
+        )
         if is_cpp:
             capability_name = capability_name or "cpp_compile"
         elif test_command and test_command != "pytest":
@@ -125,16 +141,22 @@ class Host2CapabilityManager:
         else:
             capability_name = capability_name or "pytest"
 
-        logger.info("host2.execute_start", task_id=task_id, language=language, capability=capability_name)
+        logger.info(
+            "host2.execute_start", task_id=task_id, language=language, capability=capability_name
+        )
 
         # Check governance spawn permissions
         self.governor.check_capability_spawn_policy(capability_name, "host2")
 
         if is_cpp:
             try:
-                native_res = await self.run_native_cpp_engine(capability_name, target_file, request_id=task_id)
+                native_res = await self.run_native_cpp_engine(
+                    capability_name, target_file, request_id=task_id
+                )
                 if native_res.get("status") == "SUCCESS":
-                    completed_steps.append(f"C++ Native Host-2 Engine executed successfully: {native_res}")
+                    completed_steps.append(
+                        f"C++ Native Host-2 Engine executed successfully: {native_res}"
+                    )
             except Exception as e:
                 logger.warning("host2.native_cpp_engine_failed", task_id=task_id, error=str(e))
                 completed_steps.append(f"C++ Native Host-2 Engine execution failed: {e}")
@@ -143,7 +165,7 @@ class Host2CapabilityManager:
         retry_count = 0
         while retry_count <= self.max_retries:
             logger.info("host2.step_execute", task_id=task_id, attempt=retry_count + 1)
-            
+
             # Task-scoped invocation parameters
             params: dict[str, Any] = {"path": target_file}
             if code:
@@ -181,7 +203,10 @@ class Host2CapabilityManager:
             reason=f"Fast-mode execution failed after {retry_count} attempts.",
             completed_steps=completed_steps,
             failed_stage="EXECUTING_TESTS",
-            remaining_risks=["Test failure in fast mode", "Requires deep reasoning / Boss deadlock resolution"],
+            remaining_risks=[
+                "Test failure in fast mode",
+                "Requires deep reasoning / Boss deadlock resolution",
+            ],
             suggested_next_action="PROMOTE_TO_PRODUCTION_PIPELINE",
         )
 
@@ -191,4 +216,3 @@ class Host2CapabilityManager:
             "escalation_packet": escalation_packet.model_dump(),
             "escalated": True,
         }
-

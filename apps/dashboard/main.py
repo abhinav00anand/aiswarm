@@ -17,10 +17,9 @@ Provides:
 
 from __future__ import annotations
 
-import os
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 
@@ -264,6 +263,7 @@ async def dashboard_ui() -> str:
 
 # ── API endpoints (proxied from main API) ─────────────────────────────────────
 
+
 @app.post("/api/tasks/{task_id}/force-merge")
 async def force_merge(task_id: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
     """Operator override — merge a task bypassing all gates."""
@@ -278,6 +278,7 @@ async def force_merge(task_id: str, body: dict[str, Any] | None = None) -> dict[
     reason = (body or {}).get("reason", "Operator force-merge")
     task.boss_override = reason
     from datetime import datetime, timezone
+
     task.merged = True
     task.merged_at = datetime.now(timezone.utc)
     task.merged_by = "operator_dashboard"
@@ -285,6 +286,7 @@ async def force_merge(task_id: str, body: dict[str, Any] | None = None) -> dict[
     StateMachine.transition(task, TaskState.MERGED, reason=reason, agent="operator_dashboard")
 
     import structlog
+
     structlog.get_logger(__name__).warning(
         "dashboard.force_merge",
         task_id=task_id,

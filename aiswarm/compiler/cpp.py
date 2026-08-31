@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import shutil
-from pathlib import Path
 from typing import Any
 
 from aiswarm.security.sandbox import ExecutionSandbox
 from aiswarm.utils.compat_log import get_logger
 
 logger = get_logger(__name__)
+
 
 class CppCompiler:
     """C++ Compiler and Test Execution Engine."""
@@ -58,6 +58,7 @@ class CppCompiler:
     async def run_tests(self, test_binary: str = "main.exe") -> dict[str, Any]:
         """Execute compiled C++ test binary in sandbox."""
         import sys
+
         # On Windows use just the binary name; on Unix prefix with ./
         if sys.platform == "win32":
             binary_cmd = [test_binary]

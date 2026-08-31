@@ -40,6 +40,7 @@ def get_logger(name: str = __name__) -> Any:
     """Return a structlog BoundLogger if structlog is installed, else return StdlibLoggerWrapper."""
     try:
         import structlog
+
         return structlog.get_logger(name)
     except ImportError:
         return StdlibLoggerWrapper(name)

@@ -6,7 +6,7 @@ import os
 import pytest
 from unittest.mock import patch, MagicMock
 
-from aiswarm.security.auth import APIKeyValidator, SecurityAuthError
+from aiswarm.security.auth import APIKeyValidator, SecurityAuthError, _SUPPORTED_KEY_ENVS
 from aiswarm.llm.provider_router import ProviderRouter, _resolve_model
 from aiswarm.bootstrap.startup import build_orchestrator
 
@@ -41,8 +41,10 @@ def test_verify_api_keys_selection_priority(monkeypatch):
     # 2. Adapter override takes precedence if cloud keys are missing but adapter is set and validated
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("OPENAI_API_BASE", raising=False)
+    for key in _SUPPORTED_KEY_ENVS:
+        monkeypatch.delenv(key, raising=False)
     monkeypatch.setenv("OPENAI_API_ADAPTER_URL", "http://127.0.0.1:8000")
-    
+
     with patch("aiswarm.security.auth.validate_adapter_url", return_value=True):
         assert APIKeyValidator.verify_api_keys() is True
 
@@ -56,12 +58,12 @@ def test_verify_api_keys_selection_priority(monkeypatch):
 def test_provider_router_adapter_override(monkeypatch):
     """Test that ProviderRouter creates, prioritizes, and configures the adapter provider."""
     monkeypatch.setenv("OPENAI_API_ADAPTER_URL", "http://127.0.0.1:8000")
-    
+
     # Mock validation and get_adapter_model
     with patch("aiswarm.llm.provider_router.get_adapter_model", return_value="distilgpt2"):
         router = ProviderRouter()
         assert "adapter" in router._providers
-        
+
         # Test model resolution
         resolved = _resolve_model("some-large-model", "adapter")
         assert resolved == "distilgpt2"
@@ -71,17 +73,18 @@ def test_notebook_mode_environment_and_model_overrides(monkeypatch):
     """Test build_orchestrator configurations when ZYMIS_NOTEBOOK_MODE=1 is set."""
     monkeypatch.setenv("ZYMIS_NOTEBOOK_MODE", "1")
     monkeypatch.setenv("OPENAI_API_ADAPTER_URL", "http://127.0.0.1:8000")
-    
+
     # Prevent real authentication checks failing
-    with patch("aiswarm.security.auth.APIKeyValidator.verify_api_keys", return_value=True), \
-         patch("aiswarm.llm.provider_router.get_adapter_model", return_value="distilgpt2"):
-         
+    with (
+        patch("aiswarm.security.auth.APIKeyValidator.verify_api_keys", return_value=True),
+        patch("aiswarm.llm.provider_router.get_adapter_model", return_value="distilgpt2"),
+    ):
         orc, lifecycle = build_orchestrator(repo_root=".")
-        
+
         # Verify CPU threads variables are set to 1
         assert os.environ.get("OMP_NUM_THREADS") == "1"
         assert os.environ.get("MKL_NUM_THREADS") == "1"
-        
+
         # Verify agents default to the adapter/distilgpt2 model
         boss = orc._agents.get("boss")
         assert boss._model == "distilgpt2"

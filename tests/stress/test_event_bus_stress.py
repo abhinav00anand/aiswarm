@@ -27,6 +27,7 @@ from aiswarm.schemas.events import Event, EventType
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _event(event_type: EventType = EventType.TASK_COMPLETED) -> Event:
     return Event(event_type=event_type, source="stress_test")
 
@@ -35,8 +36,8 @@ def _event(event_type: EventType = EventType.TASK_COMPLETED) -> Event:
 # High-volume publish
 # ---------------------------------------------------------------------------
 
-class TestEventBusHighVolume:
 
+class TestEventBusHighVolume:
     @pytest.mark.asyncio
     async def test_1000_events_single_handler_all_received(self):
         bus = EventBus()
@@ -47,10 +48,7 @@ class TestEventBusHighVolume:
             received.append(event.event_id)
 
         N = 1000
-        await asyncio.gather(*[
-            bus.publish(_event(EventType.TASK_COMPLETED))
-            for _ in range(N)
-        ])
+        await asyncio.gather(*[bus.publish(_event(EventType.TASK_COMPLETED)) for _ in range(N)])
         assert len(received) == N
         assert len(set(received)) == N  # all unique event IDs
 
@@ -60,25 +58,20 @@ class TestEventBusHighVolume:
         received = []
 
         for _ in range(50):
+
             @bus.subscribe(EventType.TASK_FAILED)
             async def handler(event: Event, _received=received):
                 _received.append(1)
 
         N_events = 200
-        await asyncio.gather(*[
-            bus.publish(_event(EventType.TASK_FAILED))
-            for _ in range(N_events)
-        ])
+        await asyncio.gather(*[bus.publish(_event(EventType.TASK_FAILED)) for _ in range(N_events)])
         assert len(received) == 50 * N_events
 
     @pytest.mark.asyncio
     async def test_stats_published_count_accurate(self):
         bus = EventBus()
         N = 500
-        await asyncio.gather(*[
-            bus.publish(_event(EventType.TASK_STARTED))
-            for _ in range(N)
-        ])
+        await asyncio.gather(*[bus.publish(_event(EventType.TASK_STARTED)) for _ in range(N)])
         assert bus.stats["published"] == N
 
     @pytest.mark.asyncio
@@ -90,10 +83,7 @@ class TestEventBusHighVolume:
         async def crasher(event):
             raise RuntimeError("intentional crash")
 
-        await asyncio.gather(*[
-            bus.publish(_event(EventType.TASK_STARTED))
-            for _ in range(N)
-        ])
+        await asyncio.gather(*[bus.publish(_event(EventType.TASK_STARTED)) for _ in range(N)])
         assert bus.stats["failed"] == N
 
 
@@ -101,8 +91,8 @@ class TestEventBusHighVolume:
 # Handler isolation
 # ---------------------------------------------------------------------------
 
-class TestEventBusHandlerIsolation:
 
+class TestEventBusHandlerIsolation:
     @pytest.mark.asyncio
     async def test_crashing_handler_does_not_drop_other_handlers(self):
         bus = EventBus()
@@ -117,10 +107,7 @@ class TestEventBusHandlerIsolation:
             good_received.append(event.event_id)
 
         N = 50
-        await asyncio.gather(*[
-            bus.publish(_event(EventType.TASK_COMPLETED))
-            for _ in range(N)
-        ])
+        await asyncio.gather(*[bus.publish(_event(EventType.TASK_COMPLETED)) for _ in range(N)])
         assert len(good_received) == N
 
     @pytest.mark.asyncio
@@ -139,10 +126,7 @@ class TestEventBusHandlerIsolation:
             fast_times.append(time.monotonic())
 
         # Publish 5 events simultaneously
-        await asyncio.gather(*[
-            bus.publish(_event(EventType.TASK_COMPLETED))
-            for _ in range(5)
-        ])
+        await asyncio.gather(*[bus.publish(_event(EventType.TASK_COMPLETED)) for _ in range(5)])
         # Fast handler should have received all 5 events
         assert len(fast_times) == 5
 
@@ -152,6 +136,7 @@ class TestEventBusHandlerIsolation:
         H = 3  # 3 handlers each crash
 
         for _ in range(H):
+
             @bus.subscribe(EventType.TASK_FAILED)
             async def crasher(event):
                 raise RuntimeError("all crash")
@@ -172,8 +157,8 @@ class TestEventBusHandlerIsolation:
 # Typed vs wildcard routing
 # ---------------------------------------------------------------------------
 
-class TestEventBusRouting:
 
+class TestEventBusRouting:
     @pytest.mark.asyncio
     async def test_typed_handler_receives_only_its_type(self):
         bus = EventBus()
@@ -256,8 +241,8 @@ class TestEventBusRouting:
 # Concurrent subscribe + publish
 # ---------------------------------------------------------------------------
 
-class TestEventBusConcurrentAccess:
 
+class TestEventBusConcurrentAccess:
     @pytest.mark.asyncio
     async def test_concurrent_publish_all_delivered(self):
         bus = EventBus()
@@ -268,10 +253,7 @@ class TestEventBusConcurrentAccess:
             received.append(1)
 
         N = 300
-        await asyncio.gather(*[
-            bus.publish(_event(EventType.TASK_COMPLETED))
-            for _ in range(N)
-        ])
+        await asyncio.gather(*[bus.publish(_event(EventType.TASK_COMPLETED)) for _ in range(N)])
         assert len(received) == N
 
     @pytest.mark.asyncio
@@ -284,10 +266,7 @@ class TestEventBusConcurrentAccess:
             ids.append(event.event_id)
 
         N = 200
-        await asyncio.gather(*[
-            bus.publish(_event(EventType.TASK_COMPLETED))
-            for _ in range(N)
-        ])
+        await asyncio.gather(*[bus.publish(_event(EventType.TASK_COMPLETED)) for _ in range(N)])
         assert len(set(ids)) == N
 
     @pytest.mark.asyncio
@@ -306,10 +285,9 @@ class TestEventBusConcurrentAccess:
         N_after = 50
 
         # Publish first batch before adding second handler
-        await asyncio.gather(*[
-            bus.publish(_event(EventType.TASK_COMPLETED))
-            for _ in range(N_before)
-        ])
+        await asyncio.gather(
+            *[bus.publish(_event(EventType.TASK_COMPLETED)) for _ in range(N_before)]
+        )
 
         # Register a second handler mid-stream
         @bus.subscribe(EventType.TASK_COMPLETED)
@@ -317,10 +295,9 @@ class TestEventBusConcurrentAccess:
             late_received.append(event.event_id)
 
         # Publish second batch — both handlers must receive these
-        await asyncio.gather(*[
-            bus.publish(_event(EventType.TASK_COMPLETED))
-            for _ in range(N_after)
-        ])
+        await asyncio.gather(
+            *[bus.publish(_event(EventType.TASK_COMPLETED)) for _ in range(N_after)]
+        )
 
         # Early handler received all events (before + after)
         assert len(early_received) == N_before + N_after

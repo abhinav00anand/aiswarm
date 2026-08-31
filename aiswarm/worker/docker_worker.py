@@ -42,28 +42,32 @@ class DockerWorker:
             code_path = Path(f.name)
 
         cmd = [
-            "docker", "run", "--rm",
+            "docker",
+            "run",
+            "--rm",
             f"--memory={self._memory}",
             f"--cpus={self._cpu}",
             "--network=none",
             "--read-only",
-            "-v", f"{code_path}:/code.py:ro",
+            "-v",
+            f"{code_path}:/code.py:ro",
             self._image,
-            "python", "/code.py",
+            "python",
+            "/code.py",
         ]
 
         try:
             loop = asyncio.get_event_loop()
             result = await loop.run_in_executor(
                 None,
-                lambda: subprocess.run(
-                    cmd, capture_output=True, text=True, timeout=self._timeout
-                ),
+                lambda: subprocess.run(cmd, capture_output=True, text=True, timeout=self._timeout),
             )
             success = result.returncode == 0
         except subprocess.TimeoutExpired:
             success = False
-            result = type("R", (), {"stdout": "", "stderr": f"Timeout {self._timeout}s", "returncode": -1})()
+            result = type(
+                "R", (), {"stdout": "", "stderr": f"Timeout {self._timeout}s", "returncode": -1}
+            )()
         except Exception as exc:  # noqa: BLE001
             success = False
             result = type("R", (), {"stdout": "", "stderr": str(exc), "returncode": -1})()

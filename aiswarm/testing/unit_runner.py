@@ -14,10 +14,8 @@ from __future__ import annotations
 import asyncio
 import re
 import subprocess
-import tempfile
 import time
 from pathlib import Path
-from typing import Any
 
 import structlog
 
@@ -79,7 +77,9 @@ class UnitRunner:
 
         # Run pytest
         cmd = [
-            "python", "-m", "pytest",
+            "python",
+            "-m",
+            "pytest",
             *test_files,
             "--tb=short",
             "--no-header",

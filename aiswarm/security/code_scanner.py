@@ -9,7 +9,6 @@ from __future__ import annotations
 import ast
 import re
 from dataclasses import dataclass, field
-from typing import Any
 
 
 @dataclass
@@ -21,7 +20,10 @@ class ScanResult:
 
 _DANGEROUS_PATTERNS = [
     (r"os\.system\s*\(", "CRITICAL: os.system() call"),
-    (r"subprocess\.(Popen|call|check_call|check_output|run)\s*\(.*shell\s*=\s*True", "CRITICAL: shell=True subprocess"),
+    (
+        r"subprocess\.(Popen|call|check_call|check_output|run)\s*\(.*shell\s*=\s*True",
+        "CRITICAL: shell=True subprocess",
+    ),
     (r"\beval\s*\(", "CRITICAL: eval() usage"),
     (r"\bexec\s*\(", "CRITICAL: exec() usage"),
     (r"pickle\.loads?\s*\(", "CRITICAL: pickle deserialization"),

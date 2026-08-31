@@ -10,7 +10,7 @@ import structlog
 
 from aiswarm.agents.base.agent import BaseAgent
 from aiswarm.llm.adapter import LLMMessage
-from aiswarm.schemas.task import Task, TaskState, TaskPriority, TaskClass
+from aiswarm.schemas.task import Task, TaskState
 from aiswarm.core.state_machine import StateMachine
 from aiswarm.agents.host2.manager import Host2CapabilityManager
 from aiswarm.schemas.capabilities import CapabilityRequest
@@ -42,6 +42,7 @@ When resolving deadlocks, your output MUST be a JSON object:
   "new_acceptance_criteria": ["updated criteria if needed"]
 }
 """
+
 
 class BossAgent(BaseAgent):
     """
@@ -87,7 +88,9 @@ class BossAgent(BaseAgent):
         )
         return directive
 
-    async def request_host2_capability(self, capability_name: str, parameters: dict[str, Any]) -> dict[str, Any]:
+    async def request_host2_capability(
+        self, capability_name: str, parameters: dict[str, Any]
+    ) -> dict[str, Any]:
         """Request a specific capability from Host-2."""
         request = CapabilityRequest(
             capability_name=capability_name,
@@ -102,7 +105,7 @@ class BossAgent(BaseAgent):
         Decomposes the task, delegates to Host-2, handles escalations, and merges results.
         """
         logger.info("boss.executing_hybrid", task_id=task.task_id)
-        
+
         # 1. Decompose subtasks from task description
         prompt = f"""
 Decompose the following task into lightweight subtasks for Host-2 execution:
@@ -118,7 +121,7 @@ Output a JSON object with key "subtasks" as a list of subtask instruction string
             LLMMessage(role="user", content=prompt),
         ]
         response = await self.call_llm(messages, task=task, temperature=0.1)
-        
+
         try:
             parsed = self._parse_response(response.content)
             subtasks = parsed.get("subtasks") or parsed.get("directive")
@@ -131,26 +134,28 @@ Output a JSON object with key "subtasks" as a list of subtask instruction string
                 subtasks = [task.description]
         except Exception:
             subtasks = [task.description]
-            
+
         results = []
         for i, subtask in enumerate(subtasks):
             # 2. Delegate to Host-2
             logger.info("boss.hybrid_delegate", subtask=subtask)
-            res = await self.request_host2_capability("lightweight_execution", {"instruction": str(subtask)})
-            
+            res = await self.request_host2_capability(
+                "lightweight_execution", {"instruction": str(subtask)}
+            )
+
             # 3. Handle EscalationPackets
             if res.get("status") in ["ESCALATED", "escalated"]:
                 logger.warning("boss.hybrid_escalation", packet=res)
                 res["resolution"] = "Boss logged escalation"
-                
+
             results.append({"subtask": subtask, "result": res})
-            
+
         # 4. Merge results and return
         return {
             "status": "success",
             "hybrid_execution": True,
             "subtasks_completed": len(results),
-            "results": results
+            "results": results,
         }
 
     async def handle_deadlock(self, task: Task) -> dict[str, Any]:
@@ -167,7 +172,7 @@ Output a JSON object with key "subtasks" as a list of subtask instruction string
         prompt = f"""
 DEADLOCK RESOLUTION REQUEST
 
-{task.deadlock_summary or 'No deadlock summary available.'}
+{task.deadlock_summary or "No deadlock summary available."}
 
 Analyze the root cause and provide a precise resolution directive.
 The system has exhausted {task.retry_count} retry attempts.

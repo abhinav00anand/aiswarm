@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import ast
 from pathlib import Path
-from typing import Any
+
 
 class DependencyGraph:
     """
@@ -34,10 +34,7 @@ class DependencyGraph:
 
     def dependents_of(self, module: str) -> list[str]:
         """Return all files that import from the given module."""
-        return [
-            path for path, deps in self._graph.items()
-            if module in deps
-        ]
+        return [path for path, deps in self._graph.items() if module in deps]
 
     def dependencies_of(self, path: str) -> set[str]:
         """Return modules imported by the given file."""

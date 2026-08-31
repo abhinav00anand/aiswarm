@@ -32,7 +32,7 @@ async def test_workflow_engine_invokes_host1_router_when_missing_metadata():
 
     engine = WorkflowEngine(orchestrator=orc_mock)
     task = Task(title="Test Task", description="Test Desc", prompt="Do something")
-    
+
     await engine.run(task)
 
     assert host1_mock.route_task.called
@@ -62,7 +62,9 @@ async def test_redis_task_store_get_all_hydrates_from_redis():
     """Verify get_all() hydrates missing tasks from Redis when Redis is available."""
     redis_mock = AsyncMock()
     redis_mock.smembers = AsyncMock(return_value=[b"task-123"])
-    redis_mock.get = AsyncMock(return_value='{"task_id": "task-123", "title": "Hydrated", "description": "Hydrated Desc", "prompt": "p", "state": "NEW"}')
+    redis_mock.get = AsyncMock(
+        return_value='{"task_id": "task-123", "title": "Hydrated", "description": "Hydrated Desc", "prompt": "p", "state": "NEW"}'
+    )
 
     store = RedisTaskStore(redis_client=redis_mock)
     all_tasks = await store.get_all()
@@ -83,7 +85,9 @@ async def test_force_merge_requires_justification_and_logs_audit():
     with patch("aiswarm.security.audit.get_audit_ledger") as audit_mock:
         record_mock = MagicMock()
         audit_mock.return_value.record_event = record_mock
-        await op.force_merge(task, reason="Valid detailed force merge explanation for audit", operator="admin")
+        await op.force_merge(
+            task, reason="Valid detailed force merge explanation for audit", operator="admin"
+        )
         assert record_mock.called
         assert task.state == TaskState.MERGED
 
@@ -111,7 +115,7 @@ async def test_gemini_adapter_preserves_system_and_history():
     mock_genai = MagicMock()
     mock_model = MagicMock()
     mock_genai.GenerativeModel.return_value = mock_model
-    
+
     mock_response = MagicMock()
     mock_response.text = "OK"
     mock_response.usage_metadata = None
@@ -120,7 +124,7 @@ async def test_gemini_adapter_preserves_system_and_history():
     with patch.dict("sys.modules", {"google.generativeai": mock_genai}):
         res = await adapter.chat(messages=messages, model="gemini-1.5-flash")
         assert res.content == "OK"
-        
+
         # Verify GenerativeModel received system_instruction
         kwargs = mock_genai.GenerativeModel.call_args[1]
         assert kwargs["system_instruction"] == "System instruction text"
@@ -145,7 +149,18 @@ async def test_provider_router_local_first_ordering():
         with patch.object(target_provider, "is_available", return_value=True):
             with patch.object(target_provider, "chat", new_callable=AsyncMock) as mock_chat:
                 from aiswarm.llm.adapter import LLMResponse
-                mock_chat.return_value = LLMResponse(content="OK", model="m", provider="local", prompt_tokens=1, completion_tokens=1, total_tokens=2, finish_reason="stop", latency_ms=1.0, cost_usd=0.0)
+
+                mock_chat.return_value = LLMResponse(
+                    content="OK",
+                    model="m",
+                    provider="local",
+                    prompt_tokens=1,
+                    completion_tokens=1,
+                    total_tokens=2,
+                    finish_reason="stop",
+                    latency_ms=1.0,
+                    cost_usd=0.0,
+                )
                 res = await router.chat(messages=messages, model="llama3.2:3b")
                 assert res.content == "OK"
 
@@ -160,6 +175,7 @@ def test_auth_deferred_init_mode():
 async def test_host1_router_has_route_task_method():
     """Verify Host1Router has route_task method taking Task objects."""
     from aiswarm.agents.host1.router import Host1Router
+
     router = Host1Router()
     task = Task(title="Test Title", description="Test Desc", prompt="Do work")
     decision = await router.route_task(task)
@@ -169,6 +185,7 @@ async def test_host1_router_has_route_task_method():
 def test_local_model_resolution_passthrough():
     """Verify _resolve_model passes llama3.1:8b directly for local provider."""
     from aiswarm.llm.provider_router import _resolve_model
+
     res = _resolve_model("llama3.1:8b", "local")
     assert res == "llama3.1:8b"
 
@@ -176,6 +193,7 @@ def test_local_model_resolution_passthrough():
 def test_context_selector_blocks_env_and_credentials(tmp_path):
     """Verify ContextSelectorAgent excludes .env and credential files."""
     from aiswarm.agents.context_selector.agent import ContextSelectorAgent
+
     (tmp_path / ".env").write_text("SECRET_KEY=12345")
     (tmp_path / "credentials.json").write_text('{"key": "val"}')
     (tmp_path / "main.py").write_text("print('hello')")
@@ -194,7 +212,9 @@ async def test_redis_task_store_get_summary():
     """Verify RedisTaskStore get_summary hydrates tasks from Redis."""
     redis_mock = AsyncMock()
     redis_mock.smembers = AsyncMock(return_value=[b"t1"])
-    redis_mock.get = AsyncMock(return_value='{"task_id": "t1", "title": "t", "description": "d", "prompt": "p", "state": "NEW"}')
+    redis_mock.get = AsyncMock(
+        return_value='{"task_id": "t1", "title": "t", "description": "d", "prompt": "p", "state": "NEW"}'
+    )
 
     store = RedisTaskStore(redis_client=redis_mock)
     summary = await store.get_summary()
@@ -206,9 +226,11 @@ async def test_redis_task_store_get_summary():
 @pytest.mark.asyncio
 async def test_workflow_engine_handles_sync_evaluate_task_fallback():
     """Verify WorkflowEngine handles synchronous evaluate_task fallback cleanly."""
+
     class SyncHost1Router:
         def evaluate_task(self, payload):
             from aiswarm.schemas.routing import RouteDecision, ExecutionMode, RiskLevel
+
             return RouteDecision(
                 route=ExecutionMode.PRODUCTION,
                 confidence=0.9,
@@ -227,7 +249,7 @@ async def test_workflow_engine_handles_sync_evaluate_task_fallback():
 
     engine = WorkflowEngine(orchestrator=orc_mock)
     task = Task(title="Sync Route Task", description="Desc", prompt="Prompt")
-    
+
     # Test router fallback lookup logic
     router = getattr(engine._orc, "host1_router", None)
     assert hasattr(router, "evaluate_task")
@@ -238,6 +260,7 @@ async def test_workflow_engine_handles_sync_evaluate_task_fallback():
 def test_orchestrator_set_task_store():
     """Verify Orchestrator set_task_store attaches task store."""
     from aiswarm.core.orchestrator import Orchestrator
+
     orc = Orchestrator()
     mock_store = MagicMock()
     orc.set_task_store(mock_store)
@@ -248,11 +271,14 @@ def test_orchestrator_set_task_store():
 async def test_context_selector_enforces_max_tokens_budget(tmp_path):
     """Verify ContextSelectorAgent stops selection when token budget is exceeded."""
     from aiswarm.agents.context_selector.agent import ContextSelectorAgent
+
     (tmp_path / "file1.py").write_text("word " * 3000)  # ~4000 tokens
     (tmp_path / "file2.py").write_text("word " * 3000)  # ~4000 tokens
     (tmp_path / "file3.py").write_text("word " * 3000)  # ~4000 tokens
 
-    agent = ContextSelectorAgent(router=MagicMock(), model="m", repo_root=str(tmp_path), config={"max_tokens": 5000})
+    agent = ContextSelectorAgent(
+        router=MagicMock(), model="m", repo_root=str(tmp_path), config={"max_tokens": 5000}
+    )
     response_mock = MagicMock()
     response_mock.content = '[{"path": "file1.py"}, {"path": "file2.py"}, {"path": "file3.py"}]'
     response_mock.model = "test-model"
@@ -261,7 +287,7 @@ async def test_context_selector_enforces_max_tokens_budget(tmp_path):
     response_mock.output_tokens = 20
     response_mock.latency_ms = 50.0
     agent.call_llm = AsyncMock(return_value=response_mock)
-    
+
     task = Task(title="T", description="D", prompt="P")
     selected = await agent.run(task)
 
@@ -273,5 +299,6 @@ async def test_context_selector_enforces_max_tokens_budget(tmp_path):
 def test_local_model_resolution_latest_tags():
     """Verify _resolve_model resolves llama3.1:latest and codestral:latest cleanly."""
     from aiswarm.llm.provider_router import _resolve_model
+
     assert _resolve_model("llama3.1:latest", "local") == "llama3.1:latest"
     assert _resolve_model("codestral:latest", "local") == "codestral:latest"

@@ -45,13 +45,14 @@ async def test_backoff_wait_respected():
         pass
     elapsed = time.monotonic() - start
     # Should have waited at least ~50ms backoff
-    assert elapsed >= 0.04, f"Expected >= 40ms backoff, got {elapsed*1000:.1f}ms"
+    assert elapsed >= 0.04, f"Expected >= 40ms backoff, got {elapsed * 1000:.1f}ms"
 
 
 def test_notify_rate_limited_sets_backoff():
     limiter = ProviderRateLimiter()
     limiter.notify_rate_limited("openai", retry_after_seconds=30.0)
     import time as _t
+
     assert limiter._backoff_until.get("openai", 0) > _t.monotonic()
 
 

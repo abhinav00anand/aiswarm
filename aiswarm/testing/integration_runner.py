@@ -35,10 +35,15 @@ class IntegrationRunner:
             )
 
         cmd = [
-            "python", "-m", "pytest",
+            "python",
+            "-m",
+            "pytest",
             str(test_dir),
-            "-m", "not integration",  # skip tests requiring real APIs
-            "--tb=short", "-q", "--no-header",
+            "-m",
+            "not integration",  # skip tests requiring real APIs
+            "--tb=short",
+            "-q",
+            "--no-header",
         ]
 
         try:
@@ -46,8 +51,11 @@ class IntegrationRunner:
             result = await loop.run_in_executor(
                 None,
                 lambda: subprocess.run(
-                    cmd, cwd=str(self._root),
-                    capture_output=True, text=True, timeout=self._timeout,
+                    cmd,
+                    cwd=str(self._root),
+                    capture_output=True,
+                    text=True,
+                    timeout=self._timeout,
                 ),
             )
         except subprocess.TimeoutExpired:

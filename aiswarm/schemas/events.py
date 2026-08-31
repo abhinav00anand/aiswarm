@@ -10,7 +10,6 @@ from typing import Any
 from pydantic import BaseModel, Field, ConfigDict
 
 
-
 class EventType(str, Enum):
     # Task lifecycle
     TASK_CREATED = "TASK_CREATED"
@@ -23,7 +22,6 @@ class EventType(str, Enum):
     TASK_MERGED = "TASK_MERGED"
     TASK_REJECTED = "TASK_REJECTED"
     TASK_CANCELLED = "TASK_CANCELLED"
-
 
     # Agent events
     AGENT_INVOKED = "AGENT_INVOKED"
@@ -64,12 +62,13 @@ class EventType(str, Enum):
 
 class Event(BaseModel):
     """Immutable, versioned, typed event flowing through the event bus."""
+
     model_config = ConfigDict(frozen=True)
 
     event_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     event_type: EventType
     version: str = "1.0"
-    source: str          # Which agent/component emitted this
+    source: str  # Which agent/component emitted this
     task_id: str | None = None
     payload: dict[str, Any] = Field(default_factory=dict)
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

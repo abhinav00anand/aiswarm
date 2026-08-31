@@ -9,8 +9,12 @@ import pytest
 
 from aiswarm.core.merge_controller import MergeController, MergeGateError
 from aiswarm.schemas.task import (
-    Task, TaskState, CriticReview, ReviewDecision,
-    CompilerOutput, TestOutput, BenchmarkOutput,
+    Task,
+    TaskState,
+    CriticReview,
+    ReviewDecision,
+    CompilerOutput,
+    TestOutput,
 )
 from aiswarm.utils.hashing import sha256_hex
 
@@ -23,9 +27,21 @@ def _approved_task(tmp_dir: str) -> Task:
     task.generated_code_hash = sha256_hex(code)
     task.target_files = ["output.py"]
     task.reviews = [
-        CriticReview(critic_role="architecture", decision=ReviewDecision.APPROVE, production_ready=True, score=80),
-        CriticReview(critic_role="performance", decision=ReviewDecision.APPROVE, production_ready=True, score=80),
-        CriticReview(critic_role="security", decision=ReviewDecision.APPROVE, production_ready=True, score=80),
+        CriticReview(
+            critic_role="architecture",
+            decision=ReviewDecision.APPROVE,
+            production_ready=True,
+            score=80,
+        ),
+        CriticReview(
+            critic_role="performance",
+            decision=ReviewDecision.APPROVE,
+            production_ready=True,
+            score=80,
+        ),
+        CriticReview(
+            critic_role="security", decision=ReviewDecision.APPROVE, production_ready=True, score=80
+        ),
     ]
     task.compiler_output = CompilerOutput(success=True, exit_code=0)
     task.test_output = TestOutput(success=True, passed=5, total=5, numeric_passed=True)
@@ -112,7 +128,6 @@ class TestMergeController:
             mc = MergeController(repo_root=tmp)
             with pytest.raises(MergeGateError, match="traversal|absolute"):
                 mc._safe_dest("/etc/passwd")
-
 
     async def test_valid_relative_path_allowed(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

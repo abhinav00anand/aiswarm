@@ -30,6 +30,7 @@ _SECURITY_SURFACES = [
 
 _SECURITY_REGEX = re.compile("|".join(_SECURITY_SURFACES), re.IGNORECASE)
 
+
 class Host1Router:
     """
     Host-1 Global Traffic Controller and Policy Evaluator.

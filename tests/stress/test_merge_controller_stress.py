@@ -16,7 +16,6 @@ Covers:
 from __future__ import annotations
 
 import asyncio
-import hashlib
 import tempfile
 from pathlib import Path
 
@@ -24,8 +23,13 @@ import pytest
 
 from aiswarm.core.merge_controller import MergeController, MergeGateError
 from aiswarm.schemas.task import (
-    Task, TaskState, CriticReview, ReviewDecision,
-    CompilerOutput, TestOutput, BenchmarkOutput,
+    Task,
+    TaskState,
+    CriticReview,
+    ReviewDecision,
+    CompilerOutput,
+    TestOutput,
+    BenchmarkOutput,
 )
 from aiswarm.utils.hashing import sha256_hex
 
@@ -34,20 +38,30 @@ from aiswarm.utils.hashing import sha256_hex
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _approved_task(tmp_dir: str, filename: str = "output.py") -> Task:
-    code = f"def hello_{filename.replace('.py','')}():\n    return 42\n"
+    code = f"def hello_{filename.replace('.py', '')}():\n    return 42\n"
     task = Task(title="Merge stress", description="test")
     task.state = TaskState.BENCHMARKED
     task.generated_code = code
     task.generated_code_hash = sha256_hex(code)
     task.target_files = [filename]
     task.reviews = [
-        CriticReview(critic_role="architecture", decision=ReviewDecision.APPROVE,
-                     production_ready=True, score=85),
-        CriticReview(critic_role="performance", decision=ReviewDecision.APPROVE,
-                     production_ready=True, score=85),
-        CriticReview(critic_role="security", decision=ReviewDecision.APPROVE,
-                     production_ready=True, score=90),
+        CriticReview(
+            critic_role="architecture",
+            decision=ReviewDecision.APPROVE,
+            production_ready=True,
+            score=85,
+        ),
+        CriticReview(
+            critic_role="performance",
+            decision=ReviewDecision.APPROVE,
+            production_ready=True,
+            score=85,
+        ),
+        CriticReview(
+            critic_role="security", decision=ReviewDecision.APPROVE, production_ready=True, score=90
+        ),
     ]
     task.compiler_output = CompilerOutput(success=True, exit_code=0)
     task.test_output = TestOutput(success=True, passed=5, total=5, numeric_passed=True)
@@ -58,8 +72,8 @@ def _approved_task(tmp_dir: str, filename: str = "output.py") -> Task:
 # Concurrent merges
 # ---------------------------------------------------------------------------
 
-class TestMergeControllerConcurrent:
 
+class TestMergeControllerConcurrent:
     @pytest.mark.asyncio
     async def test_50_concurrent_merges_all_succeed(self):
         N = 50
@@ -107,8 +121,8 @@ class TestMergeControllerConcurrent:
 # Path traversal attack vectors
 # ---------------------------------------------------------------------------
 
-class TestMergeControllerPathTraversal:
 
+class TestMergeControllerPathTraversal:
     # These vectors MUST all be blocked — they escape the repo root
     MUST_BLOCK_TRAVERSAL = [
         "../../etc/passwd",
@@ -151,7 +165,6 @@ class TestMergeControllerPathTraversal:
                 with pytest.raises(MergeGateError, match="traversal|absolute"):
                     mc._safe_dest(vector)
 
-
     def test_safe_relative_paths_allowed(self):
         safe_paths = [
             "output.py",
@@ -170,8 +183,8 @@ class TestMergeControllerPathTraversal:
 # Gate failure matrix
 # ---------------------------------------------------------------------------
 
-class TestMergeControllerGateMatrix:
 
+class TestMergeControllerGateMatrix:
     @pytest.mark.asyncio
     async def test_gate_no_code(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -204,12 +217,14 @@ class TestMergeControllerGateMatrix:
         with tempfile.TemporaryDirectory() as tmp:
             task = _approved_task(tmp)
             # Add security veto even with other approvals
-            task.reviews.append(CriticReview(
-                critic_role="security",
-                decision=ReviewDecision.REJECT,
-                production_ready=False,
-                fatal_flaw="SQL injection vulnerability",
-            ))
+            task.reviews.append(
+                CriticReview(
+                    critic_role="security",
+                    decision=ReviewDecision.REJECT,
+                    production_ready=False,
+                    fatal_flaw="SQL injection vulnerability",
+                )
+            )
             mc = MergeController(repo_root=tmp)
             with pytest.raises(MergeGateError, match="Security critic"):
                 await mc.attempt_merge(task)
@@ -220,12 +235,24 @@ class TestMergeControllerGateMatrix:
             task = _approved_task(tmp)
             # Make all non-security critics reject
             task.reviews = [
-                CriticReview(critic_role="architecture", decision=ReviewDecision.REJECT,
-                             production_ready=False, score=20),
-                CriticReview(critic_role="performance", decision=ReviewDecision.REJECT,
-                             production_ready=False, score=20),
-                CriticReview(critic_role="security", decision=ReviewDecision.APPROVE,
-                             production_ready=True, score=90),
+                CriticReview(
+                    critic_role="architecture",
+                    decision=ReviewDecision.REJECT,
+                    production_ready=False,
+                    score=20,
+                ),
+                CriticReview(
+                    critic_role="performance",
+                    decision=ReviewDecision.REJECT,
+                    production_ready=False,
+                    score=20,
+                ),
+                CriticReview(
+                    critic_role="security",
+                    decision=ReviewDecision.APPROVE,
+                    production_ready=True,
+                    score=90,
+                ),
             ]
             mc = MergeController(repo_root=tmp)
             with pytest.raises(MergeGateError, match="Insufficient critic approval"):
@@ -257,7 +284,9 @@ class TestMergeControllerGateMatrix:
         with tempfile.TemporaryDirectory() as tmp:
             task = _approved_task(tmp)
             task.test_output = TestOutput(
-                success=True, passed=5, numeric_passed=False,
+                success=True,
+                passed=5,
+                numeric_passed=False,
             )
             mc = MergeController(repo_root=tmp)
             with pytest.raises(MergeGateError, match="Numeric"):
@@ -290,8 +319,8 @@ class TestMergeControllerGateMatrix:
 # Multi-file merges
 # ---------------------------------------------------------------------------
 
-class TestMergeControllerMultiFile:
 
+class TestMergeControllerMultiFile:
     @pytest.mark.asyncio
     async def test_multi_file_all_written(self):
         with tempfile.TemporaryDirectory() as tmp:

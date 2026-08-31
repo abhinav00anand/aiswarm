@@ -23,7 +23,6 @@ from typing import Any, AsyncIterator
 
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 from aiswarm.schemas.task import Task, TaskState, TaskPriority, TaskClass
@@ -40,11 +39,13 @@ _router_ref = None  # holds the ProviderRouter for cost/rate stats
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     global _orchestrator, _lifecycle, _router_ref
     import time
+
     app.state.start_time = time.time()
-    
+
     from aiswarm.security.auth import APIKeyValidator
+
     APIKeyValidator.verify_api_keys()
-    
+
     configure_logging()
     _orchestrator, _lifecycle = build_orchestrator(repo_root=".")
     # Expose the ProviderRouter for /cost/status
@@ -77,6 +78,7 @@ app.add_middleware(
 
 # ── Request / response models ─────────────────────────────────────────────────
 
+
 class CreateTaskRequest(BaseModel):
     title: str
     description: str
@@ -105,6 +107,7 @@ class ForceMergeRequest(BaseModel):
 
 # ── Dependency ────────────────────────────────────────────────────────────────
 
+
 def get_orchestrator():  # type: ignore[return]
     if _orchestrator is None:
         raise HTTPException(status_code=503, detail="Orchestrator not initialized")
@@ -113,15 +116,16 @@ def get_orchestrator():  # type: ignore[return]
 
 # ── Routes ────────────────────────────────────────────────────────────────────
 
+
 @app.get("/health", tags=["system"])
 async def health() -> dict[str, Any]:
     from aiswarm.security.auth import APIKeyValidator
     import time
-    
+
     keys = APIKeyValidator.get_configured_keys()
     masked_keys = {k: "***" for k in keys}
     uptime = time.time() - getattr(app.state, "start_time", time.time())
-    
+
     return {
         "status": "healthy",
         "version": "1.0.0",
@@ -134,10 +138,13 @@ async def health() -> dict[str, Any]:
 @app.get("/audit", tags=["security"])
 async def get_audit_log() -> list[dict[str, Any]]:
     from aiswarm.security.audit import get_audit_ledger
+
     ledger = get_audit_ledger()
     events = await ledger.get_events(limit=100)
-    return [e.model_dump(mode="json") if hasattr(e, "model_dump") else getattr(e, "__dict__", str(e)) for e in events]
-
+    return [
+        e.model_dump(mode="json") if hasattr(e, "model_dump") else getattr(e, "__dict__", str(e))
+        for e in events
+    ]
 
 
 @app.post("/tasks", response_model=TaskSummary, tags=["tasks"])
@@ -209,6 +216,7 @@ async def force_merge_task(
         return {"status": "already_merged", "task_id": task_id}
 
     from aiswarm.core.force_merge import ForceMergeOperator
+
     op = ForceMergeOperator()
     try:
         await op.force_merge(task, reason=req.reason, operator="api")
@@ -264,6 +272,7 @@ async def cost_status() -> dict[str, Any]:
 @app.get("/providers", tags=["system"])
 async def list_providers() -> dict[str, Any]:
     from aiswarm.llm.provider_router import ProviderRouter
+
     router = ProviderRouter()
     return {
         "available": router.list_available(),
@@ -276,6 +285,7 @@ async def rag_status() -> dict[str, Any]:
     """Return RAG index health and document count."""
     try:
         from aiswarm.rag.retriever import RAGRetriever
+
         retriever = RAGRetriever()
         return retriever.status()
     except Exception as exc:  # noqa: BLE001
@@ -293,6 +303,7 @@ class DirectModelRequest(BaseModel):
 async def run_direct_model(req: DirectModelRequest) -> dict[str, Any]:
     """Execute a direct LLM model prompt coordinated with Zymis security and audit logging."""
     from aiswarm.llm.direct_runner import DirectModelCoordinator
+
     coord = DirectModelCoordinator()
     return await coord.run_direct(
         prompt=req.prompt,
@@ -300,7 +311,6 @@ async def run_direct_model(req: DirectModelRequest) -> dict[str, Any]:
         system_prompt=req.system_prompt,
         temperature=req.temperature,
     )
-
 
 
 def _to_summary(task: Task) -> TaskSummary:
@@ -318,6 +328,7 @@ def _to_summary(task: Task) -> TaskSummary:
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(
         "apps.api.main:app",
         host="127.0.0.1",

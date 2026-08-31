@@ -19,8 +19,12 @@ class TestAgentMetrics:
 
     def test_error_can_be_recorded(self) -> None:
         m = AgentMetrics(
-            agent_role="coder", task_id="t1", model="m", provider="p",
-            success=False, error="timeout",
+            agent_role="coder",
+            task_id="t1",
+            model="m",
+            provider="p",
+            success=False,
+            error="timeout",
         )
         assert m.success is False
         assert m.error == "timeout"
@@ -42,8 +46,10 @@ class TestPipelineMetrics:
 
     def test_can_accumulate_stage_durations(self) -> None:
         m = PipelineMetrics(
-            task_id="t1", coder_latency_seconds=2.5,
-            critic_latency_seconds=1.1, compile_duration_seconds=0.3,
+            task_id="t1",
+            coder_latency_seconds=2.5,
+            critic_latency_seconds=1.1,
+            compile_duration_seconds=0.3,
         )
         assert m.coder_latency_seconds == 2.5
         assert m.critic_latency_seconds == 1.1

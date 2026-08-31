@@ -57,11 +57,7 @@ class ZephyrAdapter(BaseLLMAdapter):
             or os.getenv("ZEPHYR_BOOTSTRAP_KEY")
             or "zph_tmp_default_key"
         )
-        self._base_url = (
-            base_url
-            or os.getenv("ZEPHYR_API_URL")
-            or "http://localhost:10000/v1"
-        )
+        self._base_url = base_url or os.getenv("ZEPHYR_API_URL") or "http://localhost:10000/v1"
         if not self._base_url.endswith("/v1"):
             self._base_url = self._base_url.rstrip("/") + "/v1"
 
@@ -72,7 +68,9 @@ class ZephyrAdapter(BaseLLMAdapter):
     def _get_client(self) -> AsyncOpenAI:
         if self._client is None:
             if AsyncOpenAI is None:
-                raise RuntimeError("openai package is required for ZephyrAdapter. Run `pip install openai`.")
+                raise RuntimeError(
+                    "openai package is required for ZephyrAdapter. Run `pip install openai`."
+                )
             self._client = AsyncOpenAI(
                 api_key=self._key,
                 base_url=self._base_url,
@@ -82,7 +80,12 @@ class ZephyrAdapter(BaseLLMAdapter):
 
     def is_available(self) -> bool:
         """Return True if Zephyr API URL or key is configured."""
-        return bool(os.getenv("ZEPHYR_API_KEY") or os.getenv("ZEPHYR_BOOTSTRAP_KEY") or os.getenv("ZEPHYR_API_URL") or self._key)
+        return bool(
+            os.getenv("ZEPHYR_API_KEY")
+            or os.getenv("ZEPHYR_BOOTSTRAP_KEY")
+            or os.getenv("ZEPHYR_API_URL")
+            or self._key
+        )
 
     def _cost(self, model: str, prompt_tokens: int, completion_tokens: int) -> float:
         inp, out = self._cost_table.get(model, (0.0, 0.0))
@@ -113,22 +116,28 @@ class ZephyrAdapter(BaseLLMAdapter):
                     **kwargs,
                 )
                 break
-            except RateLimitError as exc:
+            except RateLimitError:
                 if attempt == max_attempts - 1:
                     logger.warning("zephyr.rate_limit", provider=self.provider_name, model=model)
                     raise
                 await asyncio.sleep(2.0 * (attempt + 1))
-            except APITimeoutError as exc:
+            except APITimeoutError:
                 if attempt == max_attempts - 1:
                     logger.error("zephyr.timeout", provider=self.provider_name, model=model)
                     raise
                 await asyncio.sleep(2.0 * (attempt + 1))
             except APIError as exc:
                 if "at capacity" in str(exc).lower() and attempt < max_attempts - 1:
-                    logger.warning("zephyr.node_capacity_retry", attempt=attempt + 1, wait_s=2.0 * (attempt + 1))
+                    logger.warning(
+                        "zephyr.node_capacity_retry",
+                        attempt=attempt + 1,
+                        wait_s=2.0 * (attempt + 1),
+                    )
                     await asyncio.sleep(2.0 * (attempt + 1))
                     continue
-                logger.error("zephyr.api_error", provider=self.provider_name, model=model, error=str(exc))
+                logger.error(
+                    "zephyr.api_error", provider=self.provider_name, model=model, error=str(exc)
+                )
                 raise
 
         if response is None:

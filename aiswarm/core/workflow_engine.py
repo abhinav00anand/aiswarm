@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import os
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import structlog
 
@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from aiswarm.core.orchestrator import Orchestrator
 
 logger = structlog.get_logger(__name__)
+
 
 class WorkflowEngine:
     """
@@ -33,6 +34,7 @@ class WorkflowEngine:
     async def run(self, task: Task) -> Task:
         """Execute the full pipeline for a task and return the final task."""
         from datetime import datetime, timezone
+
         task.started_at = datetime.now(timezone.utc)
 
         logger.info("workflow.started", task_id=task.task_id, title=task.title)
@@ -40,6 +42,7 @@ class WorkflowEngine:
         try:
             # Ensure Host-1 routing decision is attached
             from aiswarm.schemas.routing import ExecutionMode
+
             router = getattr(self._orc, "host1_router", None)
             if router is None and hasattr(self._orc, "get_agent"):
                 try:
@@ -53,6 +56,7 @@ class WorkflowEngine:
             decision = metadata.get("route_decision")
             if decision is None and router is not None:
                 import inspect
+
                 res = None
                 if hasattr(router, "route_task"):
                     res = router.route_task(task)
@@ -74,11 +78,16 @@ class WorkflowEngine:
                 if task.metadata is None:
                     task.metadata = {}
                 task.metadata["route_decision"] = decision
-            route = getattr(decision, "route", ExecutionMode.PRODUCTION) if decision else ExecutionMode.PRODUCTION
+            route = (
+                getattr(decision, "route", ExecutionMode.PRODUCTION)
+                if decision
+                else ExecutionMode.PRODUCTION
+            )
 
             if route == ExecutionMode.FAST:
                 logger.info("workflow.route_fast", task_id=task.task_id)
                 from aiswarm.agents.host2.manager import Host2CapabilityManager
+
                 mgr = self._orc.get_agent("host2") or Host2CapabilityManager()
                 fast_payload = {
                     "task_id": task.task_id,
@@ -101,6 +110,7 @@ class WorkflowEngine:
                         merge_ctrl = self._orc.get_agent("merge_controller")
                         if not merge_ctrl:
                             from aiswarm.core.merge_controller import MergeController
+
                             boss = self._orc.get_agent("boss")
                             repo_root = getattr(boss, "_repo_root", ".") if boss else "."
                             merge_ctrl = MergeController(repo_root=repo_root)
@@ -109,7 +119,11 @@ class WorkflowEngine:
                         await merge_ctrl.attempt_merge(task)
                         return task
                     except Exception as merge_exc:
-                        logger.warning("workflow.fast_quality_gate_failed", task_id=task.task_id, reason=str(merge_exc))
+                        logger.warning(
+                            "workflow.fast_quality_gate_failed",
+                            task_id=task.task_id,
+                            reason=str(merge_exc),
+                        )
                         route = ExecutionMode.PRODUCTION
 
             await self._stage_plan(task)
@@ -165,7 +179,9 @@ class WorkflowEngine:
                     break
 
         except asyncio.CancelledError:
-            task.transition(TaskState.CANCELLED, reason="Workflow cancelled", agent="workflow_engine")
+            task.transition(
+                TaskState.CANCELLED, reason="Workflow cancelled", agent="workflow_engine"
+            )
             raise
 
         except Exception as exc:  # noqa: BLE001
@@ -177,6 +193,7 @@ class WorkflowEngine:
             )
 
         from datetime import datetime, timezone
+
         task.completed_at = datetime.now(timezone.utc)
         logger.info(
             "workflow.finished",
@@ -196,7 +213,9 @@ class WorkflowEngine:
 
     async def _stage_prompt(self, task: Task) -> None:
         if task.state != TaskState.PROMPTED:
-            StateMachine.transition(task, TaskState.PROMPTED, "Preparing prompt", agent="workflow_engine")
+            StateMachine.transition(
+                task, TaskState.PROMPTED, "Preparing prompt", agent="workflow_engine"
+            )
 
     async def _stage_generate(self, task: Task) -> None:
         coder = self._orc.get_agent("coder")
@@ -210,10 +229,14 @@ class WorkflowEngine:
             passed = await precheck.run(task)
             StateMachine.transition(task, TaskState.PRECHECKED, "Pre-check done", agent="precheck")
             if not passed:
-                StateMachine.transition(task, TaskState.PROMPTED, "Pre-check failed, re-prompting", agent="precheck")
+                StateMachine.transition(
+                    task, TaskState.PROMPTED, "Pre-check failed, re-prompting", agent="precheck"
+                )
                 return False
         else:
-            StateMachine.transition(task, TaskState.PRECHECKED, "Pre-check skipped", agent="workflow_engine")
+            StateMachine.transition(
+                task, TaskState.PRECHECKED, "Pre-check skipped", agent="workflow_engine"
+            )
         return True
 
     async def _stage_review(self, task: Task) -> bool:
@@ -224,12 +247,15 @@ class WorkflowEngine:
         ]
         tasks_ = [c.run(task) for c in critics if c]
         await asyncio.gather(*tasks_)
-        StateMachine.transition(task, TaskState.REVIEWED, "Critics reviewed", agent="workflow_engine")
+        StateMachine.transition(
+            task, TaskState.REVIEWED, "Critics reviewed", agent="workflow_engine"
+        )
         if not task.is_approved() or task.is_security_vetoed():
             reasons = task.rejection_reasons()
             logger.warning("workflow.review_rejected", task_id=task.task_id, reasons=reasons)
             StateMachine.transition(
-                task, TaskState.PROMPTED,
+                task,
+                TaskState.PROMPTED,
                 reason="Critics rejected, re-prompting",
                 agent="workflow_engine",
             )
@@ -273,5 +299,6 @@ class WorkflowEngine:
         else:
             # Fallback: direct merge
             from aiswarm.core.merge_controller import MergeController
+
             mc = MergeController()
             await mc.attempt_merge(task)

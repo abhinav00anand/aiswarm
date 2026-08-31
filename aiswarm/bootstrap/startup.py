@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-from pathlib import Path
 from typing import Any
 
 import structlog
@@ -21,12 +20,14 @@ from aiswarm.security.auth import APIKeyValidator
 
 logger = structlog.get_logger(__name__)
 
+
 def _try_build_redis() -> Any:
     """Attempt to connect to Redis. Returns None if Redis is unavailable."""
     url = os.getenv("REDIS_URL")
     if not url:
         return None
     import importlib
+
     try:
         redis_mod = importlib.import_module("redis.asyncio")
         client = redis_mod.from_url(url, decode_responses=False)
@@ -35,6 +36,7 @@ def _try_build_redis() -> Any:
     except Exception as exc:  # noqa: BLE001
         logger.warning("startup.redis_unavailable", error=str(exc))
         return None
+
 
 def build_orchestrator(
     config: dict[str, Any] | None = None,
@@ -51,10 +53,10 @@ def build_orchestrator(
     APIKeyValidator.verify_api_keys(api_key)
 
     cfg = config or {}
-    
+
     is_notebook_mode = (
-        os.getenv("ZYMIS_NOTEBOOK_MODE") in ("1", "true", "True") or 
-        cfg.get("profile") == "notebook"
+        os.getenv("ZYMIS_NOTEBOOK_MODE") in ("1", "true", "True")
+        or cfg.get("profile") == "notebook"
     )
     adapter_url = os.getenv("OPENAI_API_ADAPTER_URL")
 
@@ -109,6 +111,7 @@ def build_orchestrator(
     def _model(role: str, default: str) -> str:
         if adapter_url:
             from aiswarm.llm.provider_router import get_adapter_model
+
             adv = get_adapter_model()
             if adv and adv != "adapter-default":
                 return adv
@@ -118,8 +121,14 @@ def build_orchestrator(
         return agents_cfg.get(role, {}).get("model", default)
 
     def _pref(role: str) -> list[str]:
-        pref = agents_cfg.get(role, {}).get("provider_preference", ["novita", "openai", "anthropic"])
-        if os.getenv("ZEPHYR_API_KEY") or os.getenv("ZEPHYR_API_URL") or os.getenv("ZYMIS_PREFERRED_PROVIDER") == "zephyr":
+        pref = agents_cfg.get(role, {}).get(
+            "provider_preference", ["novita", "openai", "anthropic"]
+        )
+        if (
+            os.getenv("ZEPHYR_API_KEY")
+            or os.getenv("ZEPHYR_API_URL")
+            or os.getenv("ZYMIS_PREFERRED_PROVIDER") == "zephyr"
+        ):
             if "zephyr" not in pref:
                 pref = ["zephyr"] + pref
         if adapter_url:
@@ -188,28 +197,52 @@ def build_orchestrator(
     _critic_pref = _pref("critics")
 
     arch_critic = ArchitectureCritic(
-        router=router, model=_critic_model, provider_preference=_critic_pref, temperature=0.1,
+        router=router,
+        model=_critic_model,
+        provider_preference=_critic_pref,
+        temperature=0.1,
     )
     perf_critic = PerformanceCritic(
-        router=router, model=_critic_model, provider_preference=_critic_pref, temperature=0.1,
+        router=router,
+        model=_critic_model,
+        provider_preference=_critic_pref,
+        temperature=0.1,
     )
     sec_critic = SecurityCritic(
-        router=router, model=_critic_model, provider_preference=_critic_pref, temperature=0.0,
+        router=router,
+        model=_critic_model,
+        provider_preference=_critic_pref,
+        temperature=0.0,
     )
     test_critic = TestingCritic(
-        router=router, model=_critic_model, provider_preference=_critic_pref, temperature=0.1,
+        router=router,
+        model=_critic_model,
+        provider_preference=_critic_pref,
+        temperature=0.1,
     )
     rely_critic = ReliabilityCritic(
-        router=router, model=_critic_model, provider_preference=_critic_pref, temperature=0.1,
+        router=router,
+        model=_critic_model,
+        provider_preference=_critic_pref,
+        temperature=0.1,
     )
     maint_critic = MaintainabilityCritic(
-        router=router, model=_critic_model, provider_preference=_critic_pref, temperature=0.1,
+        router=router,
+        model=_critic_model,
+        provider_preference=_critic_pref,
+        temperature=0.1,
     )
     doc_critic = DocumentationCritic(
-        router=router, model=_critic_model, provider_preference=_critic_pref, temperature=0.1,
+        router=router,
+        model=_critic_model,
+        provider_preference=_critic_pref,
+        temperature=0.1,
     )
     style_critic = StyleCritic(
-        router=router, model=_critic_model, provider_preference=_critic_pref, temperature=0.0,
+        router=router,
+        model=_critic_model,
+        provider_preference=_critic_pref,
+        temperature=0.0,
     )
 
     py_compiler = PythonCompiler(timeout=30.0)
@@ -256,6 +289,7 @@ def build_orchestrator(
         orchestrator.set_task_store(task_store)
 
     from aiswarm.core.merge_controller import MergeController
+
     merge_controller = MergeController(repo_root=repo_root)
 
     orchestrator.register_agent("boss", boss)

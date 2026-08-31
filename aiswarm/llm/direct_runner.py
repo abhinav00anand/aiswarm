@@ -13,6 +13,7 @@ from aiswarm.utils.compat_log import get_logger
 
 logger = get_logger(__name__)
 
+
 class DirectModelCoordinator:
     """
     Direct Model Execution Engine coordinated with Zymis security & audit infrastructure.
@@ -85,7 +86,12 @@ class DirectModelCoordinator:
                 },
             )
 
-            logger.info("direct_model.success", model=model, duration=round(duration, 3), cost_usd=response.cost_usd)
+            logger.info(
+                "direct_model.success",
+                model=model,
+                duration=round(duration, 3),
+                cost_usd=response.cost_usd,
+            )
 
             return {
                 "status": "SUCCESS",
@@ -103,7 +109,7 @@ class DirectModelCoordinator:
         except Exception as exc:
             duration = time.time() - start_time
             logger.error("direct_model.failed", model=model, error=str(exc))
-            
+
             await self.audit_ledger.record(
                 event_type="DIRECT_MODEL_EXECUTION",
                 actor=user_role,

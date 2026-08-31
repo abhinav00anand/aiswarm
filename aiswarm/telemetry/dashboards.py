@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Any
 
 from aiswarm.schemas.task import Task, TaskState
 from aiswarm.schemas.metrics import SystemMetrics
@@ -20,11 +19,7 @@ def compute_system_metrics(tasks: list[Task]) -> SystemMetrics:
     rejected = [t for t in tasks if t.state == TaskState.REJECTED]
     deadlocked = [t for t in tasks if t.state == TaskState.DEADLOCK]
 
-    durations = [
-        t.duration_seconds()
-        for t in completed
-        if t.duration_seconds() is not None
-    ]
+    durations = [t.duration_seconds() for t in completed if t.duration_seconds() is not None]
 
     review_cycles = [t.retry_count for t in tasks if t.retry_count > 0]
 
@@ -45,14 +40,14 @@ def compute_system_metrics(tasks: list[Task]) -> SystemMetrics:
         compile_success_rate=(
             sum(1 for t in compile_results if t.compiler_output and t.compiler_output.success)  # type: ignore[union-attr]
             / len(compile_results)
-            if compile_results else 0.0
+            if compile_results
+            else 0.0
         ),
         test_pass_rate=(
             sum(1 for t in test_results if t.test_output and t.test_output.success)  # type: ignore[union-attr]
             / len(test_results)
-            if test_results else 0.0
+            if test_results
+            else 0.0
         ),
-        critic_rejection_rate=(
-            len(rejected) / len(tasks) if tasks else 0.0
-        ),
+        critic_rejection_rate=(len(rejected) / len(tasks) if tasks else 0.0),
     )

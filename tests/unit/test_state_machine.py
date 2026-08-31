@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from aiswarm.core.state_machine import StateMachine, TaskStateError, VALID_TRANSITIONS
+from aiswarm.core.state_machine import StateMachine, TaskStateError
 from aiswarm.schemas.task import Task, TaskState
 
 

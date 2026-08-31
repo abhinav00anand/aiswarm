@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import subprocess
 from pathlib import Path
-from typing import Any
 
 import structlog
 
 logger = structlog.get_logger(__name__)
+
 
 class GitTools:
     """Wraps common git operations needed by the orchestrator."""
@@ -43,8 +43,11 @@ class GitTools:
     def _run(self, cmd: list[str]) -> str:
         try:
             result = subprocess.run(
-                cmd, cwd=str(self._root),
-                capture_output=True, text=True, timeout=30,
+                cmd,
+                cwd=str(self._root),
+                capture_output=True,
+                text=True,
+                timeout=30,
             )
             return result.stdout.strip()
         except Exception as exc:  # noqa: BLE001

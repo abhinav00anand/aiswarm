@@ -7,6 +7,7 @@ from aiswarm.utils.compat_log import get_logger
 
 logger = get_logger(__name__)
 
+
 class ConfidenceEngine:
     """Computes holistic confidence scores across engineering quality dimensions."""
 

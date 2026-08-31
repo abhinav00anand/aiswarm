@@ -20,6 +20,7 @@ from aiswarm.security.audit import get_audit_ledger
 
 logger = get_logger(__name__)
 
+
 class Orchestrator:
     """
     The Zymis control plane.
@@ -45,9 +46,7 @@ class Orchestrator:
         self.governor = governor
         self._tasks: dict[str, Task] = {}
         self._agents: dict[str, Any] = {}
-        self._semaphore = asyncio.Semaphore(
-            self._config.get("max_concurrent_tasks", 10)
-        )
+        self._semaphore = asyncio.Semaphore(self._config.get("max_concurrent_tasks", 10))
         self._deadlock_detector = DeadlockDetector(
             deadlock_timeout=self._config.get("deadlock_timeout", 300.0),
             scan_interval=self._config.get("scan_interval", 30.0),
@@ -94,11 +93,13 @@ class Orchestrator:
             ),
         ]
 
-        await self._bus.publish(Event(
-            event_type=EventType.SYSTEM_STARTED,
-            source="orchestrator",
-            payload={"active_tasks": len(self._tasks)},
-        ))
+        await self._bus.publish(
+            Event(
+                event_type=EventType.SYSTEM_STARTED,
+                source="orchestrator",
+                payload={"active_tasks": len(self._tasks)},
+            )
+        )
         logger.info("orchestrator.started", agent_count=len(self._agents))
 
     async def shutdown(self) -> None:
@@ -116,11 +117,13 @@ class Orchestrator:
         for task in self._tasks.values():
             save_task(task)
 
-        await self._bus.publish(Event(
-            event_type=EventType.SYSTEM_SHUTDOWN,
-            source="orchestrator",
-            payload={"tasks_saved": len(self._tasks)},
-        ))
+        await self._bus.publish(
+            Event(
+                event_type=EventType.SYSTEM_SHUTDOWN,
+                source="orchestrator",
+                payload={"tasks_saved": len(self._tasks)},
+            )
+        )
         logger.info("orchestrator.shutdown_complete")
 
     async def submit_task(self, task: Task) -> Task:
@@ -172,12 +175,14 @@ class Orchestrator:
         if self._task_store and hasattr(self._task_store, "put"):
             await self._task_store.put(task)
 
-        await self._bus.publish(Event(
-            event_type=EventType.TASK_CREATED,
-            source="orchestrator",
-            task_id=task.task_id,
-            payload={"title": task.title, "priority": task.priority.value},
-        ))
+        await self._bus.publish(
+            Event(
+                event_type=EventType.TASK_CREATED,
+                source="orchestrator",
+                task_id=task.task_id,
+                payload={"title": task.title, "priority": task.priority.value},
+            )
+        )
 
         asyncio.create_task(self._execute(task), name=f"task:{task.task_id}")
         return task
@@ -186,6 +191,7 @@ class Orchestrator:
         """Run a task inside the concurrency semaphore."""
         async with self._semaphore:
             from aiswarm.core.workflow_engine import WorkflowEngine
+
             engine = WorkflowEngine(self)
             try:
                 await engine.run(task)
@@ -199,7 +205,11 @@ class Orchestrator:
                     try:
                         await self._task_store.put(task)
                     except Exception as exc:
-                        logger.warning("orchestrator.task_store_update_error", task_id=task.task_id, error=str(exc))
+                        logger.warning(
+                            "orchestrator.task_store_update_error",
+                            task_id=task.task_id,
+                            error=str(exc),
+                        )
                 state_event_map = {
                     TaskState.MERGED: EventType.TASK_COMPLETED,
                     TaskState.REJECTED: EventType.TASK_REJECTED,
@@ -208,12 +218,14 @@ class Orchestrator:
                     TaskState.CANCELLED: EventType.TASK_CANCELLED,
                 }
                 event_type = state_event_map.get(task.state, EventType.TASK_FAILED)
-                await self._bus.publish(Event(
-                    event_type=event_type,
-                    source="orchestrator",
-                    task_id=task.task_id,
-                    payload={"final_state": task.state.value},
-                ))
+                await self._bus.publish(
+                    Event(
+                        event_type=event_type,
+                        source="orchestrator",
+                        task_id=task.task_id,
+                        payload={"final_state": task.state.value},
+                    )
+                )
 
     async def get_task(self, task_id: str) -> Task | None:
         return self._tasks.get(task_id)
@@ -234,10 +246,7 @@ class Orchestrator:
         return True
 
     async def _get_active_tasks(self) -> list[Task]:
-        return [
-            t for t in self._tasks.values()
-            if not StateMachine.is_terminal(t.state)
-        ]
+        return [t for t in self._tasks.values() if not StateMachine.is_terminal(t.state)]
 
     async def _restore_checkpoints(self) -> None:
         restored = 0
@@ -255,12 +264,14 @@ class Orchestrator:
         if not task:
             return
         task.deadlock_summary = packet.to_prompt_block()
-        await self._bus.publish(Event(
-            event_type=EventType.TASK_DEADLOCK,
-            source="orchestrator",
-            task_id=task_id,
-            payload={"retry_count": task.retry_count},
-        ))
+        await self._bus.publish(
+            Event(
+                event_type=EventType.TASK_DEADLOCK,
+                source="orchestrator",
+                task_id=task_id,
+                payload={"retry_count": task.retry_count},
+            )
+        )
 
         # Escalate to Boss agent
         boss = self.get_agent("boss")

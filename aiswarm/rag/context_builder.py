@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from aiswarm.schemas.task import Task, FileContext
+from aiswarm.schemas.task import Task
+
 
 class ContextBuilder:
     """Assembles file contexts into a prompt-ready string."""
@@ -22,11 +23,7 @@ class ContextBuilder:
             if token_count + cf.token_count > self._max_tokens:
                 parts.append(f"\n--- {cf.path} [TRUNCATED — token budget exceeded] ---\n")
                 break
-            parts.append(
-                f"\n--- FILE: {cf.path} ---\n"
-                f"# Reason: {cf.reason}\n"
-                f"{cf.content}\n"
-            )
+            parts.append(f"\n--- FILE: {cf.path} ---\n# Reason: {cf.reason}\n{cf.content}\n")
             token_count += cf.token_count
 
         return "\n".join(parts)

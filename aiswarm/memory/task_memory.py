@@ -13,6 +13,7 @@ logger = structlog.get_logger(__name__)
 
 _STORE_PATH = Path("./storage/task_memory.json")
 
+
 @dataclass
 class TaskRecord:
     task_id: str
@@ -26,6 +27,7 @@ class TaskRecord:
     merged: bool
     created_at: float = field(default_factory=time.time)
     tags: list[str] = field(default_factory=list)
+
 
 class TaskMemory:
     """Stores a searchable log of completed task outcomes."""
@@ -41,8 +43,7 @@ class TaskMemory:
     def find_similar(self, title: str, top_k: int = 5) -> list[TaskRecord]:
         title_lower = title.lower()
         scored = [
-            (sum(1 for w in title_lower.split() if w in r.title.lower()), r)
-            for r in self._records
+            (sum(1 for w in title_lower.split() if w in r.title.lower()), r) for r in self._records
         ]
         scored.sort(key=lambda x: x[0], reverse=True)
         return [r for _, r in scored[:top_k] if _ > 0]
@@ -64,6 +65,4 @@ class TaskMemory:
 
     def _save(self) -> None:
         _STORE_PATH.parent.mkdir(parents=True, exist_ok=True)
-        _STORE_PATH.write_text(
-            json.dumps([vars(r) for r in self._records], indent=2)
-        )
+        _STORE_PATH.write_text(json.dumps([vars(r) for r in self._records], indent=2))

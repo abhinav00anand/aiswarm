@@ -6,7 +6,6 @@ import asyncio
 import heapq
 import time
 from dataclasses import dataclass, field
-from typing import Any
 
 import structlog
 
@@ -21,11 +20,13 @@ _PRIORITY_WEIGHT = {
     TaskPriority.LOW: 3,
 }
 
+
 @dataclass(order=True)
 class _QueueEntry:
     weight: int
     enqueued_at: float
     task: Task = field(compare=False)
+
 
 class TaskScheduler:
     """

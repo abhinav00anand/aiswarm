@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import os
-from typing import Any
 
-from aiswarm.llm.adapter import LLMMessage, LLMResponse
 from aiswarm.llm.openai import OpenAIAdapter
 
 _DEEPSEEK_COSTS: dict[str, tuple[float, float]] = {
@@ -13,6 +11,7 @@ _DEEPSEEK_COSTS: dict[str, tuple[float, float]] = {
     "deepseek-chat": (0.00014, 0.00028),
     "deepseek-reasoner": (0.00055, 0.00219),
 }
+
 
 class DeepSeekAdapter(OpenAIAdapter):
     """DeepSeek — uses the OpenAI-compatible endpoint."""

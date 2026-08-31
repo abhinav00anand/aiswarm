@@ -15,6 +15,7 @@ from aiswarm.schemas.task import Task, CompilerOutput
 
 logger = structlog.get_logger(__name__)
 
+
 class PythonCompiler:
     """Validates and executes Python code."""
 
@@ -47,7 +48,11 @@ class PythonCompiler:
             tmp_path = f.name
 
         posix_path = Path(tmp_path).as_posix()
-        cmd = ["python", "-c", f"import importlib.util; spec=importlib.util.spec_from_file_location('m','{posix_path}'); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)"]  # noqa: E501
+        cmd = [
+            "python",
+            "-c",
+            f"import importlib.util; spec=importlib.util.spec_from_file_location('m','{posix_path}'); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)",
+        ]  # noqa: E501
 
         try:
             loop = asyncio.get_event_loop()

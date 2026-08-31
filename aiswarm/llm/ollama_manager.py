@@ -8,7 +8,6 @@ import shutil
 import subprocess
 import urllib.error
 import urllib.request
-from typing import Any
 
 from aiswarm.utils.compat_log import get_logger
 
@@ -23,6 +22,7 @@ MODEL_LARGE = "llama3.1:8b"
 MODEL_MEDIUM = "llama3.2:3b"
 MODEL_SMALL = "llama3.2:1b"
 
+
 class OllamaManager:
     """
     Manages local Ollama installation, service health, disk space evaluation,
@@ -30,7 +30,9 @@ class OllamaManager:
     """
 
     def __init__(self, base_url: str | None = None) -> None:
-        self.base_url = (base_url or os.getenv("LOCAL_MODEL_URL", "http://localhost:11434")).rstrip("/")
+        self.base_url = (base_url or os.getenv("LOCAL_MODEL_URL", "http://localhost:11434")).rstrip(
+            "/"
+        )
         if self.base_url.endswith("/v1"):
             self.base_url = self.base_url[:-3]
 
@@ -39,7 +41,7 @@ class OllamaManager:
         """Calculate available free disk space in Gigabytes for the specified path."""
         try:
             total, used, free = shutil.disk_usage(path)
-            return round(free / (1024 ** 3), 2)
+            return round(free / (1024**3), 2)
         except Exception as exc:
             logger.warning("ollama_manager.disk_check_failed", error=str(exc))
             return 10.0  # Safe default fallback
@@ -109,6 +111,7 @@ class OllamaManager:
             )
             # Short wait for server socket initialization
             import time
+
             for _ in range(5):
                 time.sleep(0.5)
                 if self.is_service_running():

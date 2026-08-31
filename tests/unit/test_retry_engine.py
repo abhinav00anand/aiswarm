@@ -15,6 +15,7 @@ class TestRetryEngine:
             return "ok"
 
         import asyncio
+
         result = asyncio.run(engine.run_with_retry("t1", always_succeed))
         assert result == "ok"
 
@@ -29,6 +30,7 @@ class TestRetryEngine:
             return "ok"
 
         import asyncio
+
         result = asyncio.run(engine.run_with_retry("t2", fail_twice))
         assert result == "ok"
         assert call_count[0] == 3
@@ -40,6 +42,7 @@ class TestRetryEngine:
             raise ValueError("always fails")
 
         import asyncio
+
         with pytest.raises(RetryExhausted) as exc_info:
             asyncio.run(engine.run_with_retry("t3", always_fail))
         assert "t3" in str(exc_info.value)

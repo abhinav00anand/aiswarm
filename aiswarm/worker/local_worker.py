@@ -63,7 +63,11 @@ class LocalWorker:
         try:
             # Compile step
             compile_out = await self._run_subprocess(
-                ["python", "-c", f"import py_compile; py_compile.compile('{code_path}', doraise=True)"]
+                [
+                    "python",
+                    "-c",
+                    f"import py_compile; py_compile.compile('{code_path}', doraise=True)",
+                ]
                 if payload.language == "python"
                 else payload.test_command or ["echo", "no-compile"],
             )
@@ -128,6 +132,7 @@ async def worker_main(redis_url: str = "redis://localhost:6379/0") -> None:
     """
     try:
         import redis.asyncio as aioredis
+
         r = aioredis.from_url(redis_url, encoding="utf-8", decode_responses=True)
     except ImportError:
         logger.error("local_worker.redis_not_installed")
@@ -141,9 +146,10 @@ async def worker_main(redis_url: str = "redis://localhost:6379/0") -> None:
             raw = await r.brpop(["zymis:jobs"], timeout=5)
             if raw:
                 import json
-                from aiswarm.worker.dispatcher import JobPayload
+
                 _, value = raw
                 data = json.loads(value)
+
                 # Reconstruct payload-like object
                 class _Payload:
                     job_id = data["job_id"]

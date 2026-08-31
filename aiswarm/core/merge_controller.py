@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import hashlib
-import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -15,8 +14,10 @@ from aiswarm.core.state_machine import StateMachine
 
 logger = structlog.get_logger(__name__)
 
+
 class MergeGateError(Exception):
     """Raised when a merge gate is not satisfied."""
+
 
 class MergeController:
     """
@@ -33,12 +34,12 @@ class MergeController:
         actual_hash = hashlib.sha256(task.generated_code.encode()).hexdigest()
         if task.generated_code_hash and actual_hash != task.generated_code_hash:
             raise MergeGateError(
-                f"Code hash mismatch. Expected {task.generated_code_hash!r}, "
-                f"got {actual_hash!r}."
+                f"Code hash mismatch. Expected {task.generated_code_hash!r}, got {actual_hash!r}."
             )
 
     def _gate_critic_approval(self, task: Task) -> None:
         from aiswarm.schemas.routing import ExecutionMode
+
         metadata = getattr(task, "metadata", {}) or {}
         decision = metadata.get("route_decision")
         is_fast = False
@@ -55,31 +56,24 @@ class MergeController:
         if not task.reviews:
             raise MergeGateError("No critic reviews found.")
         if task.is_security_vetoed():
-            raise MergeGateError(
-                "Security critic issued a veto — merge blocked unconditionally."
-            )
+            raise MergeGateError("Security critic issued a veto — merge blocked unconditionally.")
         if not task.is_approved():
             reasons = task.rejection_reasons()
             raise MergeGateError(
-                f"Insufficient critic approval ({len(task.reviews)} reviews). "
-                f"Reasons: {reasons}"
+                f"Insufficient critic approval ({len(task.reviews)} reviews). Reasons: {reasons}"
             )
 
     def _gate_compilation(self, task: Task) -> None:
         if task.compiler_output is None:
             raise MergeGateError("No compiler output recorded.")
         if not task.compiler_output.success:
-            raise MergeGateError(
-                f"Compilation failed:\n{task.compiler_output.stderr[:1000]}"
-            )
+            raise MergeGateError(f"Compilation failed:\n{task.compiler_output.stderr[:1000]}")
 
     def _gate_tests(self, task: Task) -> None:
         if task.test_output is None:
             raise MergeGateError("No test output recorded.")
         if not task.test_output.success:
-            raise MergeGateError(
-                f"Tests failed ({task.test_output.failed} failures)."
-            )
+            raise MergeGateError(f"Tests failed ({task.test_output.failed} failures).")
         if not task.test_output.numeric_passed:
             raise MergeGateError(
                 "Numeric equivalence test failed — wrong numerical result. "

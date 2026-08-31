@@ -47,6 +47,7 @@ Output JSON:
 If passed=false, the coder must rewrite before critics see the code.
 """
 
+
 class PreCheckAgent(BaseAgent):
     """Lightweight pre-validation before critic review."""
 
@@ -139,6 +140,7 @@ class PreCheckAgent(BaseAgent):
 
     def _parse_result(self, content: str) -> dict[str, Any]:
         import json
+
         text = content.strip()
         if "```json" in text:
             text = text.split("```json")[1].split("```")[0].strip()
@@ -154,5 +156,8 @@ class PreCheckAgent(BaseAgent):
             except json.JSONDecodeError:
                 pass
         logger.warning("precheck.parse_malformed_failing_closed", content_snippet=content[:100])
-        return {"passed": False, "issues": ["Malformed precheck output from model — failing closed"], "severity": "BLOCK"}
-
+        return {
+            "passed": False,
+            "issues": ["Malformed precheck output from model — failing closed"],
+            "severity": "BLOCK",
+        }

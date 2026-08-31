@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
@@ -79,10 +78,12 @@ class TestZephyrProviderRouterIntegration:
         zephyr_adapter = router._providers["zephyr"]
         assert isinstance(zephyr_adapter, ZephyrAdapter)
 
-    def test_provider_preference_order_with_zephyr_env(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_provider_preference_order_with_zephyr_env(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         monkeypatch.setenv("ZEPHYR_API_KEY", "zph_tmp_active_key")
         monkeypatch.setenv("ZEPHYR_API_URL", "http://localhost:10000/v1")
         router = ProviderRouter()
-        
+
         # When ZEPHYR_API_KEY is set, zephyr is prioritized first
         assert "zephyr" in router._providers

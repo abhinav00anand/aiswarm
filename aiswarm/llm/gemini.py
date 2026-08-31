@@ -19,6 +19,7 @@ _COST_TABLE: dict[str, tuple[float, float]] = {
     "gemini-1.5-flash": (0.000075, 0.0003),
 }
 
+
 class GeminiAdapter(BaseLLMAdapter):
     """Adapter for Google Gemini models via google-generativeai SDK."""
 
@@ -84,7 +85,9 @@ class GeminiAdapter(BaseLLMAdapter):
         latency_ms = (time.monotonic() - t0) * 1000
         content = response.text or ""
         prompt_tokens = response.usage_metadata.prompt_token_count if response.usage_metadata else 0
-        completion_tokens = response.usage_metadata.candidates_token_count if response.usage_metadata else 0
+        completion_tokens = (
+            response.usage_metadata.candidates_token_count if response.usage_metadata else 0
+        )
         cost = self._cost(model, prompt_tokens, completion_tokens)
 
         return LLMResponse(

@@ -2,7 +2,7 @@
 Unit Tests for API Key Enforcement & Security Authentication.
 """
 
-from aiswarm.security.auth import APIKeyValidator, SecurityAuthError
+from aiswarm.security.auth import APIKeyValidator, SecurityAuthError, _SUPPORTED_KEY_ENVS
 
 
 def test_verify_api_key_explicit():
@@ -18,7 +18,7 @@ def test_verify_api_key_environment(monkeypatch):
 
 def test_verify_api_key_missing(monkeypatch):
     """Missing all API keys should raise SecurityAuthError."""
-    for key in ["ZYMIS_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_API_KEY", "GEMINI_API_KEY", "NOVITA_API_KEY", "DEEPSEEK_API_KEY"]:
+    for key in _SUPPORTED_KEY_ENVS:
         monkeypatch.delenv(key, raising=False)
 
     raised = False
@@ -27,4 +27,3 @@ def test_verify_api_key_missing(monkeypatch):
     except SecurityAuthError:
         raised = True
     assert raised is True
-

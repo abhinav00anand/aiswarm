@@ -11,9 +11,9 @@ import structlog
 from aiswarm.llm.provider_router import ProviderRouter
 from aiswarm.llm.adapter import LLMMessage, LLMResponse
 from aiswarm.schemas.task import Task, PromptLedger
-from aiswarm.schemas.metrics import AgentMetrics
 
 logger = structlog.get_logger(__name__)
+
 
 class BaseAgent(ABC):
     """Abstract base class for all AISwarm agents."""
@@ -82,9 +82,7 @@ class BaseAgent(ABC):
             system_prompt_tokens=sum(
                 len(m.content.split()) for m in messages if m.role == "system"
             ),
-            user_prompt_tokens=sum(
-                len(m.content.split()) for m in messages if m.role == "user"
-            ),
+            user_prompt_tokens=sum(len(m.content.split()) for m in messages if m.role == "user"),
         )
 
     @abstractmethod

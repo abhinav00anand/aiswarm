@@ -11,9 +11,6 @@ Counters and histograms for:
 
 from __future__ import annotations
 
-import time
-from contextlib import contextmanager
-from typing import Generator
 
 try:
     from prometheus_client import (
@@ -21,8 +18,8 @@ try:
         Histogram,
         Gauge,
         start_http_server,
-        REGISTRY,
     )
+
     _PROMETHEUS_AVAILABLE = True
 except ImportError:
     _PROMETHEUS_AVAILABLE = False
@@ -114,7 +111,9 @@ class ZymisMetrics:
             return
         self.llm_calls.labels(provider=provider, role=role, model=model).inc()
         self.llm_tokens.labels(provider=provider, role=role, token_type="prompt").inc(prompt_tokens)
-        self.llm_tokens.labels(provider=provider, role=role, token_type="completion").inc(completion_tokens)
+        self.llm_tokens.labels(provider=provider, role=role, token_type="completion").inc(
+            completion_tokens
+        )
         self.llm_latency.labels(provider=provider, role=role).observe(latency_ms / 1000.0)
         self.llm_cost.labels(provider=provider).inc(cost_usd)
 

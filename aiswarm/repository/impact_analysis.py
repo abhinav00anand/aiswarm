@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+
 def find_affected_tests(changed_files: list[str], test_root: str = "tests") -> list[str]:
     """
     Given changed source files, return the set of tests that should be re-run.

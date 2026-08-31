@@ -11,6 +11,7 @@ logger = structlog.get_logger(__name__)
 
 _PERSIST_DIR = "./storage/vector_db"
 
+
 class VectorMemory:
     """
     ChromaDB-backed vector store for semantic retrieval.
@@ -28,6 +29,7 @@ class VectorMemory:
     def _init(self) -> None:
         try:
             import chromadb
+
             Path(_PERSIST_DIR).mkdir(parents=True, exist_ok=True)
             self._client = chromadb.PersistentClient(path=_PERSIST_DIR)
             self._collection = self._client.get_or_create_collection(
@@ -77,11 +79,13 @@ class VectorMemory:
             metas = results.get("metadatas", [[]])[0]
             dists = results.get("distances", [[]])[0]
             for doc, meta, dist in zip(docs, metas, dists):
-                items.append({
-                    "text": doc,
-                    "metadata": meta,
-                    "similarity": 1.0 - dist,
-                })
+                items.append(
+                    {
+                        "text": doc,
+                        "metadata": meta,
+                        "similarity": 1.0 - dist,
+                    }
+                )
             return items
         except Exception as exc:  # noqa: BLE001
             logger.error("vector_memory.query_error", error=str(exc))

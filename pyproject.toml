@@ -128,6 +128,8 @@ include = ["aiswarm*", "apps*"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+
+[tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "S", "B", "A", "C4", "PTH", "RUF"]
 ignore = ["S101", "B008", "RUF012"]
 

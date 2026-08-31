@@ -13,7 +13,7 @@ logger = structlog.get_logger(__name__)
 try:
     from opentelemetry import trace
     from opentelemetry.sdk.trace import TracerProvider
-    from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
     _OT_AVAILABLE = True
 except ImportError:
     _OT_AVAILABLE = False

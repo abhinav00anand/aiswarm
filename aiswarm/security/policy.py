@@ -39,8 +39,12 @@ class PolicyEngine:
                 name="deny_sensitive_paths",
                 description="Deny access to /etc, /sys, /proc paths in sandbox",
                 applies_to_roles=["*"],
-                condition_fn=lambda cap, role, ctx: cap == "file_access"
-                and any(path in ctx.get("target_path", "") for path in ("/etc", "/sys", "/proc")),
+                condition_fn=lambda cap, role, ctx: (
+                    cap == "file_access"
+                    and any(
+                        path in ctx.get("target_path", "") for path in ("/etc", "/sys", "/proc")
+                    )
+                ),
                 action="DENY",
             ),
             PolicyRule(
@@ -54,9 +58,10 @@ class PolicyEngine:
                 name="require_hitl_critical_actions",
                 description="REQUIRE_HITL for deploy_production, db_drop_table, export_secrets capabilities",
                 applies_to_roles=["*"],
-                condition_fn=lambda cap, role, ctx: cap
-                in ("deploy_production", "db_drop_table", "export_secrets")
-                and role not in ("system", "boss"),
+                condition_fn=lambda cap, role, ctx: (
+                    cap in ("deploy_production", "db_drop_table", "export_secrets")
+                    and role not in ("system", "boss")
+                ),
                 action="REQUIRE_HITL",
             ),
         ]

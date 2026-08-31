@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 from typing import Any
 
@@ -41,6 +40,7 @@ Output a JSON array:
 
 If you need only specific functions from a large file, specify the line range.
 """
+
 
 class ContextSelectorAgent(BaseAgent):
     """Selects the minimum necessary context files for a task."""
@@ -100,9 +100,7 @@ class ContextSelectorAgent(BaseAgent):
                 total_tokens += token_est
 
         task.context_files = context_files
-        task.prompt_ledger.append(
-            self.build_ledger(messages, response, "ctx_selector_v1")
-        )
+        task.prompt_ledger.append(self.build_ledger(messages, response, "ctx_selector_v1"))
 
         logger.info(
             "context_selector.selected",
@@ -114,14 +112,47 @@ class ContextSelectorAgent(BaseAgent):
     def _list_available_files(self) -> list[str]:
         """Walk the repo and return relative paths of source and configuration files."""
         extensions = {
-            ".py", ".ts", ".js", ".cpp", ".c", ".rs", ".go", ".java", ".h", ".hpp", ".md",
-            ".yaml", ".yml", ".json", ".toml", ".ini", ".xml", ".cfg", ".txt", ".sh", ".ps1"
+            ".py",
+            ".ts",
+            ".js",
+            ".cpp",
+            ".c",
+            ".rs",
+            ".go",
+            ".java",
+            ".h",
+            ".hpp",
+            ".md",
+            ".yaml",
+            ".yml",
+            ".json",
+            ".toml",
+            ".ini",
+            ".xml",
+            ".cfg",
+            ".txt",
+            ".sh",
+            ".ps1",
         }
         skip_dirs = {
-            ".git", "__pycache__", "node_modules", ".venv", "venv",
-            "dist", "build", ".mypy_cache", ".ruff_cache",
+            ".git",
+            "__pycache__",
+            "node_modules",
+            ".venv",
+            "venv",
+            "dist",
+            "build",
+            ".mypy_cache",
+            ".ruff_cache",
         }
-        sensitive_files = {".env", "credentials.json", "id_rsa", "id_ed25519", "secrets.yaml", "secrets.json"}
+        sensitive_files = {
+            ".env",
+            "credentials.json",
+            "id_rsa",
+            "id_ed25519",
+            "secrets.yaml",
+            "secrets.json",
+        }
 
         files: list[str] = []
         for path in self._repo_root.rglob("*"):
@@ -156,6 +187,7 @@ Select only the files the coder genuinely needs. Output JSON array only.
 
     def _parse_selections(self, content: str) -> list[dict[str, Any]]:
         import json
+
         text = content.strip()
         if "```json" in text:
             text = text.split("```json")[1].split("```")[0].strip()
@@ -169,11 +201,16 @@ Select only the files the coder genuinely needs. Output JSON array only.
                 pass
         return []
 
-    def _read_file(
-        self, path: str, lines: list[int] | None = None
-    ) -> str | None:
+    def _read_file(self, path: str, lines: list[int] | None = None) -> str | None:
         p = Path(path)
-        sensitive_files = {".env", "credentials.json", "id_rsa", "id_ed25519", "secrets.yaml", "secrets.json"}
+        sensitive_files = {
+            ".env",
+            "credentials.json",
+            "id_rsa",
+            "id_ed25519",
+            "secrets.yaml",
+            "secrets.json",
+        }
         if p.name.startswith(".env") or p.name.lower() in sensitive_files:
             logger.warning("context_selector.sensitive_file_blocked", path=path)
             return None
@@ -184,6 +221,7 @@ Select only the files the coder genuinely needs. Output JSON array only.
         try:
             content = full_path.read_text(encoding="utf-8", errors="replace")
             from aiswarm.security.redaction import scrub
+
             content = scrub(content)
             if lines and len(lines) == 2:
                 all_lines = content.splitlines()

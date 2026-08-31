@@ -26,21 +26,24 @@ from aiswarm.core.retry_engine import RetryEngine, RetryPolicy, RetryExhausted
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _engine(max_attempts=3, base_delay=0.0, jitter=False):
-    return RetryEngine(RetryPolicy(
-        max_attempts=max_attempts,
-        base_delay=base_delay,
-        max_delay=60.0,
-        jitter=jitter,
-    ))
+    return RetryEngine(
+        RetryPolicy(
+            max_attempts=max_attempts,
+            base_delay=base_delay,
+            max_delay=60.0,
+            jitter=jitter,
+        )
+    )
 
 
 # ---------------------------------------------------------------------------
 # Concurrency: 100+ independent tasks
 # ---------------------------------------------------------------------------
 
-class TestRetryEngineConcurrencyStress:
 
+class TestRetryEngineConcurrencyStress:
     @pytest.mark.asyncio
     async def test_100_concurrent_tasks_all_succeed_first_try(self):
         engine = _engine(max_attempts=3)
@@ -49,10 +52,9 @@ class TestRetryEngineConcurrencyStress:
         async def always_ok():
             return "ok"
 
-        results = await asyncio.gather(*[
-            engine.run_with_retry(f"task-{i}", always_ok)
-            for i in range(N)
-        ])
+        results = await asyncio.gather(
+            *[engine.run_with_retry(f"task-{i}", always_ok) for i in range(N)]
+        )
         assert all(r == "ok" for r in results)
 
     @pytest.mark.asyncio
@@ -66,10 +68,9 @@ class TestRetryEngineConcurrencyStress:
                 raise ValueError(f"{tid} not ready")
             return "done"
 
-        results = await asyncio.gather(*[
-            engine.run_with_retry(f"t{i}", lambda i=i: fail_twice(f"t{i}"))
-            for i in range(50)
-        ])
+        results = await asyncio.gather(
+            *[engine.run_with_retry(f"t{i}", lambda i=i: fail_twice(f"t{i}")) for i in range(50)]
+        )
         assert all(r == "done" for r in results)
 
     @pytest.mark.asyncio
@@ -79,10 +80,7 @@ class TestRetryEngineConcurrencyStress:
         async def always_fail():
             raise ValueError("always")
 
-        tasks = [
-            engine.run_with_retry(f"exhaust-{i}", always_fail)
-            for i in range(20)
-        ]
+        tasks = [engine.run_with_retry(f"exhaust-{i}", always_fail) for i in range(20)]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         exhausted = [r for r in results if isinstance(r, RetryExhausted)]
         assert len(exhausted) == 20
@@ -100,10 +98,10 @@ class TestRetryEngineConcurrencyStress:
                 raise ValueError("unlucky")
             return i
 
-        results = await asyncio.gather(*[
-            engine.run_with_retry(f"mixed-{i}", lambda i=i: sometimes_fail(i))
-            for i in range(N)
-        ], return_exceptions=True)
+        results = await asyncio.gather(
+            *[engine.run_with_retry(f"mixed-{i}", lambda i=i: sometimes_fail(i)) for i in range(N)],
+            return_exceptions=True,
+        )
 
         successes = [r for r in results if isinstance(r, int)]
         failures = [r for r in results if isinstance(r, RetryExhausted)]
@@ -114,15 +112,17 @@ class TestRetryEngineConcurrencyStress:
 # Backoff timing
 # ---------------------------------------------------------------------------
 
-class TestRetryEngineBackoffTiming:
 
+class TestRetryEngineBackoffTiming:
     def test_exponential_backoff_grows_correctly(self):
-        engine = RetryEngine(RetryPolicy(
-            max_attempts=6,
-            base_delay=1.0,
-            exponential_base=2.0,
-            jitter=False,
-        ))
+        engine = RetryEngine(
+            RetryPolicy(
+                max_attempts=6,
+                base_delay=1.0,
+                exponential_base=2.0,
+                jitter=False,
+            )
+        )
         delays = [engine._delay_for(i) for i in range(5)]
         # 1, 2, 4, 8, 16 (capped at max_delay)
         assert delays[0] == pytest.approx(1.0)
@@ -132,24 +132,28 @@ class TestRetryEngineBackoffTiming:
         assert delays[4] == pytest.approx(16.0)
 
     def test_max_delay_cap_respected(self):
-        engine = RetryEngine(RetryPolicy(
-            max_attempts=10,
-            base_delay=1.0,
-            max_delay=5.0,
-            exponential_base=2.0,
-            jitter=False,
-        ))
+        engine = RetryEngine(
+            RetryPolicy(
+                max_attempts=10,
+                base_delay=1.0,
+                max_delay=5.0,
+                exponential_base=2.0,
+                jitter=False,
+            )
+        )
         for i in range(10):
             delay = engine._delay_for(i)
             assert delay <= 5.0
 
     def test_jitter_randomises_within_band(self):
-        engine = RetryEngine(RetryPolicy(
-            max_attempts=10,
-            base_delay=1.0,
-            exponential_base=2.0,
-            jitter=True,
-        ))
+        engine = RetryEngine(
+            RetryPolicy(
+                max_attempts=10,
+                base_delay=1.0,
+                exponential_base=2.0,
+                jitter=True,
+            )
+        )
         delays = [engine._delay_for(2) for _ in range(50)]
         # All in [0.5 * 4, 1.0 * 4] == [2.0, 4.0]
         assert all(2.0 <= d <= 4.0 for d in delays)
@@ -178,8 +182,8 @@ class TestRetryEngineBackoffTiming:
 # Attempt counting precision
 # ---------------------------------------------------------------------------
 
-class TestRetryEngineAttemptCounting:
 
+class TestRetryEngineAttemptCounting:
     @pytest.mark.asyncio
     async def test_exactly_max_attempts_no_more(self):
         engine = _engine(max_attempts=4, base_delay=0.0)
@@ -225,8 +229,8 @@ class TestRetryEngineAttemptCounting:
 # on_failure callback
 # ---------------------------------------------------------------------------
 
-class TestRetryEngineOnFailureCallback:
 
+class TestRetryEngineOnFailureCallback:
     @pytest.mark.asyncio
     async def test_on_failure_called_on_each_attempt(self):
         engine = _engine(max_attempts=3, base_delay=0.0)
@@ -263,8 +267,8 @@ class TestRetryEngineOnFailureCallback:
 # History integrity
 # ---------------------------------------------------------------------------
 
-class TestRetryEngineHistory:
 
+class TestRetryEngineHistory:
     def test_history_preserves_order_and_content(self):
         engine = _engine(max_attempts=10)
         errors = [f"error_{i}" for i in range(5)]
@@ -293,11 +297,13 @@ class TestRetryEngineHistory:
 
         async def fail_n_times(tid, n):
             count = [0]
+
             async def fn():
                 count[0] += 1
                 if count[0] <= n:
                     raise ValueError(f"{tid} fail {count[0]}")
                 return "ok"
+
             return await engine.run_with_retry(tid, fn)
 
         tasks = [fail_n_times(f"t{i}", i % 5) for i in range(N)]

@@ -9,6 +9,7 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+
 class RAGRetriever:
     """
     Retrieves relevant files from a repository using semantic search.
@@ -34,6 +35,7 @@ class RAGRetriever:
         try:
             from sentence_transformers import SentenceTransformer
             import chromadb
+
             self._model = SentenceTransformer(self._model_name)
             Path(self._store_path).mkdir(parents=True, exist_ok=True)
             client = chromadb.PersistentClient(path=self._store_path)
@@ -78,11 +80,13 @@ class RAGRetriever:
                 results["metadatas"][0],
                 results["distances"][0],
             ):
-                items.append({
-                    "path": meta["path"],
-                    "content": doc,
-                    "similarity": 1.0 - dist,
-                })
+                items.append(
+                    {
+                        "path": meta["path"],
+                        "content": doc,
+                        "similarity": 1.0 - dist,
+                    }
+                )
             if items:
                 return items
             # No semantic results – fall back to keyword search
@@ -96,8 +100,26 @@ class RAGRetriever:
         keywords = set(query.lower().split())
         results: list[dict[str, Any]] = []
         extensions = {
-            ".py", ".ts", ".js", ".cpp", ".c", ".rs", ".go", ".java", ".h", ".hpp", ".md",
-            ".yaml", ".yml", ".json", ".toml", ".env", ".ini", ".xml", ".cfg", ".txt"
+            ".py",
+            ".ts",
+            ".js",
+            ".cpp",
+            ".c",
+            ".rs",
+            ".go",
+            ".java",
+            ".h",
+            ".hpp",
+            ".md",
+            ".yaml",
+            ".yml",
+            ".json",
+            ".toml",
+            ".env",
+            ".ini",
+            ".xml",
+            ".cfg",
+            ".txt",
         }
         skip = {".git", "__pycache__", "node_modules", ".venv", "dist", "build"}
 
@@ -111,7 +133,9 @@ class RAGRetriever:
                 hits = sum(1 for kw in keywords if kw in content.lower())
                 if hits > 0:
                     rel = str(path.relative_to(self._root))
-                    results.append({"path": rel, "content": content, "similarity": hits / len(keywords)})
+                    results.append(
+                        {"path": rel, "content": content, "similarity": hits / len(keywords)}
+                    )
             except OSError:
                 continue
 

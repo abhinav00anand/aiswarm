@@ -13,6 +13,7 @@ from aiswarm.llm.adapter import BaseLLMAdapter, LLMMessage, LLMResponse
 
 logger = structlog.get_logger(__name__)
 
+
 class BedrockAdapter(BaseLLMAdapter):
     """Adapter for AWS Bedrock — supports Claude on Bedrock."""
 
@@ -33,6 +34,7 @@ class BedrockAdapter(BaseLLMAdapter):
         if self._client is None:
             try:
                 import boto3
+
                 self._client = boto3.client(
                     "bedrock-runtime",
                     region_name=self._region,
@@ -59,17 +61,17 @@ class BedrockAdapter(BaseLLMAdapter):
         client = self._get_client()
         system_parts = [m.content for m in messages if m.role == "system"]
         api_messages = [
-            {"role": m.role, "content": m.content}
-            for m in messages
-            if m.role != "system"
+            {"role": m.role, "content": m.content} for m in messages if m.role != "system"
         ]
-        body = json.dumps({
-            "anthropic_version": "bedrock-2023-05-31",
-            "max_tokens": max_tokens,
-            "temperature": temperature,
-            "system": "\n".join(system_parts),
-            "messages": api_messages,
-        })
+        body = json.dumps(
+            {
+                "anthropic_version": "bedrock-2023-05-31",
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+                "system": "\n".join(system_parts),
+                "messages": api_messages,
+            }
+        )
 
         t0 = time.monotonic()
         try:

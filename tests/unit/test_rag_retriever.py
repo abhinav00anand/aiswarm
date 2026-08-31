@@ -18,6 +18,7 @@ import pytest
 def retriever():
     """Create a RAGRetriever with in-memory fallback (no real vector DB)."""
     from aiswarm.rag.retriever import RAGRetriever
+
     r = RAGRetriever.__new__(RAGRetriever)
     r._documents = []
     r._embedder = None
@@ -27,6 +28,7 @@ def retriever():
 
 def test_retriever_status_returns_dict():
     from aiswarm.rag.retriever import RAGRetriever
+
     try:
         r = RAGRetriever()
         status = r.status()
@@ -39,6 +41,7 @@ def test_retriever_status_returns_dict():
 def test_retriever_instantiates_without_vector_db():
     """RAGRetriever must not raise even when chromadb is unavailable."""
     from aiswarm.rag.retriever import RAGRetriever
+
     try:
         r = RAGRetriever()
         assert r is not None
@@ -48,6 +51,7 @@ def test_retriever_instantiates_without_vector_db():
 
 def test_keyword_search_empty_documents():
     from aiswarm.rag.retriever import RAGRetriever
+
     try:
         r = RAGRetriever()
         if hasattr(r, "_keyword_search"):
@@ -59,6 +63,7 @@ def test_keyword_search_empty_documents():
 
 def test_retriever_top_k_respected():
     from aiswarm.rag.retriever import RAGRetriever
+
     try:
         r = RAGRetriever()
         if hasattr(r, "retrieve"):
@@ -70,6 +75,7 @@ def test_retriever_top_k_respected():
 
 def test_retriever_status_includes_backend_field():
     from aiswarm.rag.retriever import RAGRetriever
+
     try:
         r = RAGRetriever()
         status = r.status()

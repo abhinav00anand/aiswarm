@@ -13,16 +13,18 @@ logger = structlog.get_logger(__name__)
 
 _STORE_PATH = Path("./storage/failure_memory.json")
 
+
 @dataclass
 class FailureRecord:
     task_id: str
     task_title: str
-    error_pattern: str      # e.g. "circular import", "numpy not available"
-    error_source: str       # "compiler" | "security_critic" | "test"
-    resolution: str         # what fixed it
+    error_pattern: str  # e.g. "circular import", "numpy not available"
+    error_source: str  # "compiler" | "security_critic" | "test"
+    resolution: str  # what fixed it
     resolved_at: float = field(default_factory=time.time)
     retry_count_at_resolution: int = 0
     tags: list[str] = field(default_factory=list)
+
 
 class FailureMemory:
     """
@@ -44,10 +46,7 @@ class FailureMemory:
 
     def find_similar(self, error_text: str, top_k: int = 3) -> list[FailureRecord]:
         """Return past failure records whose pattern appears in the error text."""
-        matches = [
-            r for r in self._records
-            if r.error_pattern.lower() in error_text.lower()
-        ]
+        matches = [r for r in self._records if r.error_pattern.lower() in error_text.lower()]
         return sorted(matches, key=lambda r: r.resolved_at, reverse=True)[:top_k]
 
     def resolution_hint(self, error_text: str) -> str | None:
@@ -68,8 +67,4 @@ class FailureMemory:
 
     def _save(self) -> None:
         _STORE_PATH.parent.mkdir(parents=True, exist_ok=True)
-        _STORE_PATH.write_text(
-            json.dumps(
-                [vars(r) for r in self._records], indent=2, default=str
-            )
-        )
+        _STORE_PATH.write_text(json.dumps([vars(r) for r in self._records], indent=2, default=str))

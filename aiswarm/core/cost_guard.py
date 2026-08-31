@@ -11,8 +11,10 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+
 class CostLimitExceeded(Exception):
     """Raised when a cost or token limit is breached."""
+
 
 class CostGuard:
     """
@@ -37,15 +39,9 @@ class CostGuard:
         redis_client: Any | None = None,
         governor: Any | None = None,
     ) -> None:
-        self._max_daily = max_daily_usd or float(
-            os.getenv("MAX_DAILY_SPEND_USD", "100.0")
-        )
-        self._max_session = max_session_usd or float(
-            os.getenv("MAX_SESSION_SPEND_USD", "10.0")
-        )
-        self._max_tokens = max_session_tokens or int(
-            os.getenv("MAX_SESSION_TOKENS", "10000000")
-        )
+        self._max_daily = max_daily_usd or float(os.getenv("MAX_DAILY_SPEND_USD", "100.0"))
+        self._max_session = max_session_usd or float(os.getenv("MAX_SESSION_SPEND_USD", "10.0"))
+        self._max_tokens = max_session_tokens or int(os.getenv("MAX_SESSION_TOKENS", "10000000"))
         self._alert_pct = alert_threshold_pct
         self._redis = redis_client
         self._governor = governor
@@ -74,12 +70,8 @@ class CostGuard:
         async with self._lock:
             self._session_cost += cost_usd
             self._session_tokens += tokens
-            self._provider_cost[provider] = (
-                self._provider_cost.get(provider, 0.0) + cost_usd
-            )
-            self._provider_tokens[provider] = (
-                self._provider_tokens.get(provider, 0) + tokens
-            )
+            self._provider_cost[provider] = self._provider_cost.get(provider, 0.0) + cost_usd
+            self._provider_tokens[provider] = self._provider_tokens.get(provider, 0) + tokens
             if self._governor:
                 try:
                     self._governor.record_spend(cost_usd)
@@ -144,12 +136,8 @@ class CostGuard:
             "session_tokens": self._session_tokens,
             "session_limit_usd": self._max_session,
             "daily_limit_usd": self._max_daily,
-            "session_remaining_usd": round(
-                max(0.0, self._max_session - self._session_cost), 4
-            ),
-            "provider_breakdown": {
-                k: round(v, 6) for k, v in self._provider_cost.items()
-            },
+            "session_remaining_usd": round(max(0.0, self._max_session - self._session_cost), 4),
+            "provider_breakdown": {k: round(v, 6) for k, v in self._provider_cost.items()},
         }
 
     async def _get_daily_total(self, increment: float) -> float:

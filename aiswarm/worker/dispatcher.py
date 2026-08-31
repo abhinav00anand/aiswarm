@@ -89,6 +89,7 @@ class WorkerDispatcher:
         if self._redis is None:
             try:
                 import redis.asyncio as aioredis
+
                 self._redis = aioredis.from_url(
                     self._redis_url,
                     encoding="utf-8",
@@ -148,5 +149,6 @@ class WorkerDispatcher:
     async def _run_local(self, payload: JobPayload) -> dict[str, Any]:
         """Fallback: run the job locally in a subprocess."""
         from aiswarm.worker.local_worker import LocalWorker
+
         worker = LocalWorker()
         return await worker.execute(payload)

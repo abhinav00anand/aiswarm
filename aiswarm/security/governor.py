@@ -40,10 +40,13 @@ class EngineeringGovernor:
     def record_spend(self, amount_usd: float) -> None:
         """Record actual spend against the session budget cap."""
         self._current_session_spend_usd += amount_usd
-        logger.debug("governor.spend_recorded", amount=amount_usd, total_spend=self._current_session_spend_usd)
+        logger.debug(
+            "governor.spend_recorded",
+            amount=amount_usd,
+            total_spend=self._current_session_spend_usd,
+        )
 
     def check_task_admission(self, task_payload: dict[str, Any]) -> bool:
-
         """
         Validate incoming task admission against budget, risk, and structural rules.
         """
@@ -53,7 +56,11 @@ class EngineeringGovernor:
                 f"Governor Policy Violation: Task estimated cost (${estimated_cost:.2f}) "
                 f"exceeds session budget cap (${self.max_session_budget_usd:.2f})."
             )
-            logger.warning("governor.budget_exceeded", estimated=estimated_cost, spend=self._current_session_spend_usd)
+            logger.warning(
+                "governor.budget_exceeded",
+                estimated=estimated_cost,
+                spend=self._current_session_spend_usd,
+            )
             raise PolicyViolationError(msg)
 
         logger.info("governor.task_admitted", task_id=task_payload.get("task_id"))
@@ -64,9 +71,16 @@ class EngineeringGovernor:
         Enforce policy on tool/worker/model spawning.
         Prevents unauthorized role escalation.
         """
-        forbidden_for_fast_mode = {"raw_shell_execution", "db_drop_table", "deploy_production", "export_secrets"}
+        forbidden_for_fast_mode = {
+            "raw_shell_execution",
+            "db_drop_table",
+            "deploy_production",
+            "export_secrets",
+        }
         if requester_role in ("host2", "worker") and capability_name in forbidden_for_fast_mode:
-            logger.error("governor.forbidden_spawn_blocked", capability=capability_name, role=requester_role)
+            logger.error(
+                "governor.forbidden_spawn_blocked", capability=capability_name, role=requester_role
+            )
             raise PolicyViolationError(
                 f"Governor Security Gate: Role '{requester_role}' is not authorized to request capability '{capability_name}'."
             )
@@ -95,7 +109,12 @@ class EngineeringGovernor:
             failed_checks.append("artifact_hash")
 
         status = len(failed_checks) == 0
-        logger.info("governor.release_gate_evaluated", passed=passed_checks, failed=failed_checks, status=status)
+        logger.info(
+            "governor.release_gate_evaluated",
+            passed=passed_checks,
+            failed=failed_checks,
+            status=status,
+        )
 
         return {
             "approved": status,

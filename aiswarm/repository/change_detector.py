@@ -8,6 +8,7 @@ from pathlib import Path
 
 _STATE_FILE = Path("./storage/file_hashes.json")
 
+
 class ChangeDetector:
     """Detects changed source files using content hashing."""
 

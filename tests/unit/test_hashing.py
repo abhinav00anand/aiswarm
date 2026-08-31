@@ -7,7 +7,10 @@ from aiswarm.utils.hashing import sha256_hex, xxhash_fast, content_hash
 
 class TestSha256Hex:
     def test_known_vector_empty_string(self) -> None:
-        assert sha256_hex("") == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"[:64]
+        assert (
+            sha256_hex("")
+            == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"[:64]
+        )
 
     def test_string_and_bytes_produce_same_digest(self) -> None:
         assert sha256_hex("hello") == sha256_hex(b"hello")

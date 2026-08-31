@@ -22,11 +22,11 @@ DEADLOCK_TIMEOUT = 300  # seconds
 CHECKPOINT_INTERVAL = 60  # seconds
 
 # Review thresholds
-CRITIC_APPROVAL_THRESHOLD = 2   # need 2/3 critics to approve
-MIN_CRITIC_SCORE = 70           # below this → REJECT
+CRITIC_APPROVAL_THRESHOLD = 2  # need 2/3 critics to approve
+MIN_CRITIC_SCORE = 70  # below this → REJECT
 
 # Code quality
-MIN_CODE_LENGTH = 50            # characters
+MIN_CODE_LENGTH = 50  # characters
 MAX_PROMPT_FILES = 15
 MAX_PROMPT_TOKENS = 100_000
 

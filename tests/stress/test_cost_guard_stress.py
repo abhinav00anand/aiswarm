@@ -15,8 +15,7 @@ Covers:
 from __future__ import annotations
 
 import asyncio
-import time
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -26,6 +25,7 @@ from aiswarm.core.cost_guard import CostGuard, CostLimitExceeded
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _guard(session_usd=100.0, daily_usd=1000.0, tokens=10_000_000):
     return CostGuard(
@@ -38,6 +38,7 @@ def _guard(session_usd=100.0, daily_usd=1000.0, tokens=10_000_000):
 # ---------------------------------------------------------------------------
 # Concurrency stress
 # ---------------------------------------------------------------------------
+
 
 class TestCostGuardConcurrencyStress:
     """500 concurrent record() calls must all serialize correctly."""
@@ -73,10 +74,7 @@ class TestCostGuardConcurrencyStress:
         """Even with 200 concurrent callers, the limit is never crossed silently."""
         guard = _guard(session_usd=0.05)
         # Each call costs 0.001; limit at 0.05 → trips after 50 calls
-        tasks = [
-            guard.record(provider="novita", tokens=1, cost_usd=0.001)
-            for _ in range(200)
-        ]
+        tasks = [guard.record(provider="novita", tokens=1, cost_usd=0.001) for _ in range(200)]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         exceptions = [r for r in results if isinstance(r, CostLimitExceeded)]
         successes = [r for r in results if r is None]
@@ -88,10 +86,7 @@ class TestCostGuardConcurrencyStress:
     @pytest.mark.asyncio
     async def test_token_limit_trips_under_high_concurrency(self):
         guard = _guard(session_usd=10000.0, tokens=5000)
-        tasks = [
-            guard.record(provider="novita", tokens=100, cost_usd=0.00001)
-            for _ in range(200)
-        ]
+        tasks = [guard.record(provider="novita", tokens=100, cost_usd=0.00001) for _ in range(200)]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         exceptions = [r for r in results if isinstance(r, CostLimitExceeded)]
         assert len(exceptions) > 0
@@ -99,10 +94,7 @@ class TestCostGuardConcurrencyStress:
     @pytest.mark.asyncio
     async def test_concurrent_records_no_negative_remaining(self):
         guard = _guard(session_usd=1.0)
-        tasks = [
-            guard.record(provider="novita", tokens=1, cost_usd=0.01)
-            for _ in range(200)
-        ]
+        tasks = [guard.record(provider="novita", tokens=1, cost_usd=0.01) for _ in range(200)]
         await asyncio.gather(*tasks, return_exceptions=True)
         status = guard.check_budget_remaining()
         assert status["session_remaining_usd"] >= 0.0
@@ -111,6 +103,7 @@ class TestCostGuardConcurrencyStress:
 # ---------------------------------------------------------------------------
 # Boundary conditions
 # ---------------------------------------------------------------------------
+
 
 class TestCostGuardBoundaryConditions:
     """Trip exactly at the limit — off-by-one must not silently pass."""
@@ -179,6 +172,7 @@ class TestCostGuardBoundaryConditions:
 # Redis integration / failure modes
 # ---------------------------------------------------------------------------
 
+
 class TestCostGuardRedisFailure:
     """CostGuard must degrade gracefully when Redis is unavailable."""
 
@@ -239,8 +233,8 @@ class TestCostGuardRedisFailure:
 # Provider breakdown accuracy
 # ---------------------------------------------------------------------------
 
-class TestCostGuardProviderAccounting:
 
+class TestCostGuardProviderAccounting:
     @pytest.mark.asyncio
     async def test_five_providers_independent_tallies(self):
         guard = _guard(session_usd=9999.0)
@@ -270,7 +264,7 @@ class TestCostGuardProviderAccounting:
     @pytest.mark.asyncio
     async def test_remaining_budget_never_negative(self):
         guard = _guard(session_usd=0.05)
-        results = await asyncio.gather(
+        await asyncio.gather(
             *[guard.record(provider="novita", tokens=1, cost_usd=0.01) for _ in range(20)],
             return_exceptions=True,
         )

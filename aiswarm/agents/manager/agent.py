@@ -4,13 +4,12 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from typing import Any
 
 import structlog
 
 from aiswarm.agents.base.agent import BaseAgent
 from aiswarm.llm.adapter import LLMMessage
-from aiswarm.schemas.task import Task, TaskPriority, TaskClass
+from aiswarm.schemas.task import Task
 
 logger = structlog.get_logger(__name__)
 
@@ -47,9 +46,11 @@ Rules:
 - Security tasks must name the specific threat model
 """
 
+
 @dataclass
 class TaskSpec:
     """A raw task specification before it becomes a Task object."""
+
     title: str
     description: str
     target_files: list[str]
@@ -64,6 +65,7 @@ class TaskSpec:
         self.acceptance_criteria = self.acceptance_criteria or []
         self.context_hints = self.context_hints or []
         self.dependencies = self.dependencies or []
+
 
 class ManagerAgent(BaseAgent):
     """

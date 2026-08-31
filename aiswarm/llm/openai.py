@@ -7,6 +7,7 @@ import time
 from typing import Any
 
 import structlog
+
 try:
     from openai import AsyncOpenAI, APIError, RateLimitError, APITimeoutError
 except ImportError:
@@ -26,6 +27,7 @@ _COST_TABLE: dict[str, tuple[float, float]] = {
     "o1-preview": (0.015, 0.060),
     "o1-mini": (0.003, 0.012),
 }
+
 
 class OpenAIAdapter(BaseLLMAdapter):
     """Adapter for OpenAI and OpenAI-compatible APIs (e.g. Novita, DeepSeek)."""
@@ -85,10 +87,10 @@ class OpenAIAdapter(BaseLLMAdapter):
                 max_tokens=max_tokens,
                 **kwargs,
             )
-        except RateLimitError as exc:
+        except RateLimitError:
             logger.warning("llm.rate_limit", provider=self.provider_name, model=model)
             raise
-        except APITimeoutError as exc:
+        except APITimeoutError:
             logger.error("llm.timeout", provider=self.provider_name, model=model)
             raise
         except APIError as exc:

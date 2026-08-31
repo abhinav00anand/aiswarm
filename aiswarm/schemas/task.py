@@ -10,9 +10,9 @@ from typing import Any
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 
-
 class TaskState(str, Enum):
     """Finite state machine states for a task lifecycle."""
+
     NEW = "NEW"
     PROMPTED = "PROMPTED"
     GENERATED = "GENERATED"
@@ -50,6 +50,7 @@ class TaskClass(str, Enum):
 
 class FileContext(BaseModel):
     """A file included in the prompt context."""
+
     path: str
     content: str
     reason: str
@@ -60,6 +61,7 @@ class FileContext(BaseModel):
 
 class PromptLedger(BaseModel):
     """Immutable record of what was sent in each prompt."""
+
     prompt_version: str
     files_included: list[FileContext] = Field(default_factory=list)
     total_tokens: int = 0
@@ -73,6 +75,7 @@ class PromptLedger(BaseModel):
 
 class CompilerOutput(BaseModel):
     """Output from the compiler/interpreter step."""
+
     success: bool
     stdout: str = ""
     stderr: str = ""
@@ -83,6 +86,7 @@ class CompilerOutput(BaseModel):
 
 class TestOutput(BaseModel):
     """Output from the test runner step."""
+
     success: bool
     total: int = 0
     passed: int = 0
@@ -98,6 +102,7 @@ class TestOutput(BaseModel):
 
 class BenchmarkOutput(BaseModel):
     """Output from the performance benchmark step."""
+
     passed: bool
     throughput: float = 0.0
     latency_ms: float = 0.0
@@ -118,6 +123,7 @@ class ReviewDecision(str, Enum):
 
 class CriticReview(BaseModel):
     """Structured review emitted by a Critic agent."""
+
     critic_role: str
     decision: ReviewDecision
     production_ready: bool
@@ -135,6 +141,7 @@ class CriticReview(BaseModel):
 
 class StateTransition(BaseModel):
     """Audit trail entry for each state change."""
+
     from_state: TaskState
     to_state: TaskState
     reason: str
@@ -244,8 +251,6 @@ class Task(BaseModel):
         required_approvals = max(2, (len(self.reviews) + 1) // 2)
         return approvals >= required_approvals
 
-
-
     def is_security_vetoed(self) -> bool:
         """Return True if the security critic issued a veto."""
         for r in self.reviews:
@@ -263,7 +268,14 @@ class Task(BaseModel):
 
         # Aggregate all metadata security violations, scan violations, & precheck issues
         if self.metadata:
-            for key in ("precheck_issues", "scan_violations", "security_violations", "violations", "precheck_errors", "security_issues"):
+            for key in (
+                "precheck_issues",
+                "scan_violations",
+                "security_violations",
+                "violations",
+                "precheck_errors",
+                "security_issues",
+            ):
                 items = self.metadata.get(key, [])
                 if isinstance(items, list):
                     for item in items:
@@ -271,7 +283,11 @@ class Task(BaseModel):
                         if msg not in reasons:
                             reasons.append(msg)
 
-        if self.compiler_output and not self.compiler_output.success and self.compiler_output.stderr:
+        if (
+            self.compiler_output
+            and not self.compiler_output.success
+            and self.compiler_output.stderr
+        ):
             reasons.append(f"[CompilerError] {self.compiler_output.stderr[:500]}")
         if self.test_output and not self.test_output.passed and self.test_output.stdout:
             reasons.append(f"[TestFailure] {self.test_output.stdout[:500]}")
@@ -283,4 +299,3 @@ class Task(BaseModel):
         return None
 
     model_config = ConfigDict(use_enum_values=False)
-

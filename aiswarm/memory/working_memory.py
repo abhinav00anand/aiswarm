@@ -6,9 +6,11 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
+
 @dataclass
 class WorkingMemory:
     """Ephemeral memory for a single task execution."""
+
     task_id: str
     created_at: float = field(default_factory=time.time)
     current_prompt: str = ""
@@ -28,6 +30,7 @@ class WorkingMemory:
         self.current_prompt = ""
         self.last_response = ""
         self.active_context_paths = []
+
 
 class WorkingMemoryStore:
     """Registry of per-task working memory instances."""

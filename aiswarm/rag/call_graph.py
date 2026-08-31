@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
+
 class CallGraph:
     """Builds a call graph from Python AST analysis."""
 

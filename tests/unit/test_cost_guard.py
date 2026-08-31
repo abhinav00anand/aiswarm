@@ -66,10 +66,7 @@ async def test_no_redis_fallback_to_memory():
 @pytest.mark.asyncio
 async def test_concurrent_records_thread_safe():
     guard = CostGuard(max_session_usd=100.0, max_session_tokens=10_000_000)
-    tasks = [
-        guard.record(provider="novita", tokens=100, cost_usd=0.001)
-        for _ in range(50)
-    ]
+    tasks = [guard.record(provider="novita", tokens=100, cost_usd=0.001) for _ in range(50)]
     await asyncio.gather(*tasks)
     status = guard.check_budget_remaining()
     assert status["session_tokens"] == 5000

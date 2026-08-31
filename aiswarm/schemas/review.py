@@ -9,15 +9,16 @@ from pydantic import BaseModel, Field
 
 
 class FlawSeverity(str, Enum):
-    CRITICAL = "CRITICAL"     # must fix before merge
-    HIGH = "HIGH"             # should fix
-    MEDIUM = "MEDIUM"         # can defer
-    LOW = "LOW"               # nice to have
-    INFO = "INFO"             # informational only
+    CRITICAL = "CRITICAL"  # must fix before merge
+    HIGH = "HIGH"  # should fix
+    MEDIUM = "MEDIUM"  # can defer
+    LOW = "LOW"  # nice to have
+    INFO = "INFO"  # informational only
 
 
 class ReviewFlaw(BaseModel):
     """A single flaw identified by a critic."""
+
     severity: FlawSeverity
     category: str
     description: str
@@ -31,6 +32,7 @@ class ReviewFlaw(BaseModel):
 
 class ArchitectureReview(BaseModel):
     """Architecture critic structured output."""
+
     decision: str  # APPROVE | REJECT | ESCALATE
     production_ready: bool
     solid_compliance: bool
@@ -48,6 +50,7 @@ class ArchitectureReview(BaseModel):
 
 class PerformanceReview(BaseModel):
     """Performance critic structured output."""
+
     decision: str
     production_ready: bool
     has_algorithmic_issues: bool
@@ -66,6 +69,7 @@ class PerformanceReview(BaseModel):
 
 class SecurityReview(BaseModel):
     """Security critic structured output."""
+
     decision: str
     production_ready: bool
     has_injection_risk: bool

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from aiswarm.schemas.task import Task, CompilerOutput
 
+
 class BuildSystem:
     """Routes compilation tasks to the appropriate language compiler."""
 
@@ -11,9 +12,11 @@ class BuildSystem:
         language = task.target_language.lower()
         if language in ("python", "py"):
             from aiswarm.compiler.python import PythonCompiler
+
             return await PythonCompiler().compile(task)
         if language in ("cpp", "c++", "c"):
             from aiswarm.compiler.cpp import CppCompiler
+
             comp = CppCompiler()
             target_files = task.target_files or ["main.cpp"]
             res = await comp.compile(source_files=target_files)
@@ -28,6 +31,7 @@ class BuildSystem:
             return output
         if language in ("rust", "rs"):
             from aiswarm.compiler.rust import RustCompiler
+
             return await RustCompiler().compile(task)
 
         # Fail closed for unsupported languages

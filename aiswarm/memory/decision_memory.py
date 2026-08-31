@@ -9,6 +9,7 @@ from pathlib import Path
 
 _STORE_PATH = Path("./storage/decision_memory.json")
 
+
 @dataclass
 class DecisionRecord:
     decision_id: str
@@ -19,6 +20,7 @@ class DecisionRecord:
     alternatives: list[str] = field(default_factory=list)
     created_at: float = field(default_factory=time.time)
     superseded_by: str | None = None
+
 
 class DecisionMemory:
     """Records and retrieves past architectural decisions."""

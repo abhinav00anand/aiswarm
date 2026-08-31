@@ -26,7 +26,7 @@ def test_governor_task_admission_budget_exceeded():
 def test_governor_spawn_policy():
     """Forbidden capabilities for fast mode should be blocked."""
     governor = EngineeringGovernor()
-    
+
     # Authorized capability
     assert governor.check_capability_spawn_policy("pytest", "host2") is True
 
@@ -42,7 +42,7 @@ def test_governor_spawn_policy():
 def test_governor_release_gate():
     """Release gate should evaluate release manifests correctly."""
     governor = EngineeringGovernor()
-    
+
     manifest_ok = {
         "unit_tests_passed": True,
         "security_scan_cleared": True,

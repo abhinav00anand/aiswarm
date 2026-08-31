@@ -6,11 +6,9 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-import pytest
 
 from aiswarm.agents.context_selector.agent import ContextSelectorAgent
 from aiswarm.rag.retriever import RAGRetriever
-from aiswarm.rag.repository_indexer import RepositoryIndexer
 
 
 def test_context_selector_lists_config_files():
@@ -31,7 +29,9 @@ def test_context_selector_lists_config_files():
 def test_rag_fallback_includes_config_files():
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
-        (root / "production.yaml").write_text("database_url: postgres://localhost", encoding="utf-8")
+        (root / "production.yaml").write_text(
+            "database_url: postgres://localhost", encoding="utf-8"
+        )
 
         retriever = RAGRetriever(repo_root=str(root))
         results = retriever.retrieve("database_url")

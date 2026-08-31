@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+
 class ServiceContainer:
     """
     Simple dependency injection container.
@@ -33,6 +34,7 @@ class ServiceContainer:
 
     def is_registered(self, name: str) -> bool:
         return name in self._singletons or name in self._factories
+
 
 # Global DI container
 container = ServiceContainer()

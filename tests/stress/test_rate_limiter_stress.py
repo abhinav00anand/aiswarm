@@ -26,6 +26,7 @@ from aiswarm.core.rate_limiter import ProviderRateLimiter, _DEFAULTS
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _limiter():
     return ProviderRateLimiter()
 
@@ -34,8 +35,8 @@ def _limiter():
 # Concurrency cap (semaphore)
 # ---------------------------------------------------------------------------
 
-class TestRateLimiterConcurrencyCap:
 
+class TestRateLimiterConcurrencyCap:
     @pytest.mark.asyncio
     async def test_max_concurrency_never_exceeded_novita(self):
         limiter = _limiter()
@@ -101,16 +102,17 @@ class TestRateLimiterConcurrencyCap:
         await asyncio.gather(*tasks)
 
         for provider, cap_info in _DEFAULTS.items():
-            assert peaks[provider] <= cap_info["concurrency"], \
+            assert peaks[provider] <= cap_info["concurrency"], (
                 f"{provider}: peak {peaks[provider]} > cap {cap_info['concurrency']}"
+            )
 
 
 # ---------------------------------------------------------------------------
 # 429 backoff behaviour
 # ---------------------------------------------------------------------------
 
-class TestRateLimiterBackoff:
 
+class TestRateLimiterBackoff:
     @pytest.mark.asyncio
     async def test_backoff_delay_respected_precisely(self):
         limiter = _limiter()
@@ -119,7 +121,7 @@ class TestRateLimiterBackoff:
         async with limiter.acquire("novita"):
             pass
         elapsed = time.monotonic() - start
-        assert elapsed >= 0.06, f"Backoff too short: {elapsed*1000:.1f}ms"
+        assert elapsed >= 0.06, f"Backoff too short: {elapsed * 1000:.1f}ms"
 
     def test_429_sets_backoff_timestamp(self):
         limiter = _limiter()
@@ -146,7 +148,7 @@ class TestRateLimiterBackoff:
             pass
         elapsed = time.monotonic() - start
         # Should not wait for another full backoff
-        assert elapsed < 0.05, f"Expired backoff still delayed: {elapsed*1000:.1f}ms"
+        assert elapsed < 0.05, f"Expired backoff still delayed: {elapsed * 1000:.1f}ms"
 
     @pytest.mark.asyncio
     async def test_backoff_provider_isolation(self):
@@ -159,7 +161,7 @@ class TestRateLimiterBackoff:
         async with limiter.acquire("openai"):
             pass
         elapsed = time.monotonic() - start
-        assert elapsed < 0.1, f"Unaffected provider delayed: {elapsed*1000:.1f}ms"
+        assert elapsed < 0.1, f"Unaffected provider delayed: {elapsed * 1000:.1f}ms"
 
     @pytest.mark.asyncio
     async def test_all_providers_429_simultaneously(self):
@@ -173,9 +175,9 @@ class TestRateLimiterBackoff:
             async with limiter.acquire(provider):
                 return provider
 
-        results = await asyncio.gather(*[
-            acquire_and_release(p) for p in ["novita", "openai", "anthropic"]
-        ])
+        results = await asyncio.gather(
+            *[acquire_and_release(p) for p in ["novita", "openai", "anthropic"]]
+        )
         assert set(results) == {"novita", "openai", "anthropic"}
 
 
@@ -183,8 +185,8 @@ class TestRateLimiterBackoff:
 # Stats accuracy
 # ---------------------------------------------------------------------------
 
-class TestRateLimiterStats:
 
+class TestRateLimiterStats:
     def test_stats_includes_all_known_providers(self):
         limiter = _limiter()
         stats = limiter.stats()
@@ -204,6 +206,7 @@ class TestRateLimiterStats:
     async def test_stats_window_count_tracks_requests(self):
         limiter = _limiter()
         N = 5
+
         async def quick_acquire():
             async with limiter.acquire("novita"):
                 pass
@@ -217,8 +220,8 @@ class TestRateLimiterStats:
 # Unknown provider
 # ---------------------------------------------------------------------------
 
-class TestRateLimiterUnknownProvider:
 
+class TestRateLimiterUnknownProvider:
     @pytest.mark.asyncio
     async def test_unknown_provider_created_on_demand(self):
         limiter = _limiter()

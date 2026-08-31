@@ -16,7 +16,7 @@ Covers:
 from __future__ import annotations
 
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch, PropertyMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -29,6 +29,7 @@ from aiswarm.core.rate_limiter import ProviderRateLimiter
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _response(tokens: int = 100, cost: float = 0.001) -> LLMResponse:
     return LLMResponse(
@@ -68,8 +69,8 @@ def _messages():
 # Provider availability & fallback
 # ---------------------------------------------------------------------------
 
-class TestProviderRouterFallback:
 
+class TestProviderRouterFallback:
     @pytest.mark.asyncio
     async def test_all_providers_down_raises_runtime_error(self):
         providers = {
@@ -156,8 +157,8 @@ class TestProviderRouterFallback:
 # Cost guard integration
 # ---------------------------------------------------------------------------
 
-class TestProviderRouterCostGuard:
 
+class TestProviderRouterCostGuard:
     @pytest.mark.asyncio
     async def test_cost_limit_exceeded_not_swallowed(self):
         """CostLimitExceeded must propagate immediately — no fallback."""
@@ -181,14 +182,17 @@ class TestProviderRouterCostGuard:
             "p1": _mock_adapter(response=_response(tokens=100, cost=0.001)),
         }
         router = _router(providers, cost_guard=tight_guard)
-        results = await asyncio.gather(*[
-            router.chat(
-                messages=_messages(),
-                model="gpt-4o",
-                provider_preference=["p1"],
-            )
-            for _ in range(100)
-        ], return_exceptions=True)
+        results = await asyncio.gather(
+            *[
+                router.chat(
+                    messages=_messages(),
+                    model="gpt-4o",
+                    provider_preference=["p1"],
+                )
+                for _ in range(100)
+            ],
+            return_exceptions=True,
+        )
         exceptions = [r for r in results if isinstance(r, CostLimitExceeded)]
         assert len(exceptions) > 0
 
@@ -216,8 +220,8 @@ class TestProviderRouterCostGuard:
 # 429 / rate-limit handling
 # ---------------------------------------------------------------------------
 
-class TestProviderRouter429Handling:
 
+class TestProviderRouter429Handling:
     @pytest.mark.asyncio
     async def test_429_triggers_rate_limiter_notification(self):
         limiter = MagicMock(spec=ProviderRateLimiter)
@@ -265,8 +269,8 @@ class TestProviderRouter429Handling:
 # Failure counters
 # ---------------------------------------------------------------------------
 
-class TestProviderRouterFailureCounters:
 
+class TestProviderRouterFailureCounters:
     @pytest.mark.asyncio
     async def test_failure_counter_increments_per_provider(self):
         providers = {

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from aiswarm.rag.ast_index import ASTIndex
 
+
 class SymbolIndex:
     """
     Cross-file symbol lookup combining ASTIndex with import resolution.
@@ -14,7 +15,7 @@ class SymbolIndex:
         self._import_map: dict[str, str] = {}  # symbol → file
 
     def index_file(self, path: str) -> None:
-        count = self._ast.index_file(path)
+        self._ast.index_file(path)
         for sym in self._ast.get_file_symbols(path):
             self._import_map[sym["name"]] = path
 

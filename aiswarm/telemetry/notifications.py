@@ -33,13 +33,17 @@ class TelegramNotifier:
             return False
         try:
             import httpx
+
             url = f"https://api.telegram.org/bot{self._token}/sendMessage"
             async with httpx.AsyncClient(timeout=10) as client:
-                resp = await client.post(url, json={
-                    "chat_id": self._chat_id,
-                    "text": message[:4096],
-                    "parse_mode": "HTML",
-                })
+                resp = await client.post(
+                    url,
+                    json={
+                        "chat_id": self._chat_id,
+                        "text": message[:4096],
+                        "parse_mode": "HTML",
+                    },
+                )
                 return resp.status_code == 200
         except Exception as exc:  # noqa: BLE001
             logger.error("telegram.send_error", error=str(exc))

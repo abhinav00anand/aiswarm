@@ -17,8 +17,6 @@ Simulates the full range of real-world network and provider outage scenarios:
 from __future__ import annotations
 
 import asyncio
-import random
-import time
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -33,6 +31,7 @@ from aiswarm.core.retry_engine import RetryEngine, RetryPolicy, RetryExhausted
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _response(tokens=100, cost=0.001):
     return LLMResponse(
@@ -62,8 +61,8 @@ def _messages():
 # Complete provider outage
 # ---------------------------------------------------------------------------
 
-class TestCompleteProviderOutage:
 
+class TestCompleteProviderOutage:
     @pytest.mark.asyncio
     async def test_all_providers_down_raises_immediately(self):
         providers = {
@@ -117,8 +116,8 @@ class TestCompleteProviderOutage:
 # Intermittent / flapping provider
 # ---------------------------------------------------------------------------
 
-class TestFlappingProvider:
 
+class TestFlappingProvider:
     @pytest.mark.asyncio
     async def test_flapping_provider_retried_by_engine(self):
         """RetryEngine + flapping provider: eventually succeeds."""
@@ -189,8 +188,8 @@ class TestFlappingProvider:
 # Timeout storm
 # ---------------------------------------------------------------------------
 
-class TestTimeoutStorm:
 
+class TestTimeoutStorm:
     @pytest.mark.asyncio
     async def test_all_providers_timeout_raises(self):
         providers = {}
@@ -243,7 +242,9 @@ class TestTimeoutStorm:
         router = _router(providers, cost_guard=guard)
         for _ in range(5):
             with pytest.raises(RuntimeError):
-                await router.chat(messages=_messages(), model="gpt-4o", provider_preference=["p1", "p2"])
+                await router.chat(
+                    messages=_messages(), model="gpt-4o", provider_preference=["p1", "p2"]
+                )
 
         status = guard.check_budget_remaining()
         assert status["session_cost_usd"] == 0.0
@@ -253,8 +254,8 @@ class TestTimeoutStorm:
 # 429 cascade
 # ---------------------------------------------------------------------------
 
-class TestCascading429:
 
+class TestCascading429:
     @pytest.mark.asyncio
     async def test_cascading_429_across_all_providers(self):
         """When every provider returns 429, all are rate-limited and request fails."""
@@ -308,8 +309,8 @@ class TestCascading429:
 # Budget exhaustion mid-pipeline
 # ---------------------------------------------------------------------------
 
-class TestBudgetExhaustionMidPipeline:
 
+class TestBudgetExhaustionMidPipeline:
     @pytest.mark.asyncio
     async def test_budget_exhaustion_stops_concurrent_requests(self):
         """Exhausting budget mid-run stops all further calls, not just one."""
@@ -326,10 +327,13 @@ class TestBudgetExhaustionMidPipeline:
         a.chat = expensive_chat
 
         router = _router({"p": a}, cost_guard=guard)
-        results = await asyncio.gather(*[
-            router.chat(messages=_messages(), model="gpt-4o", provider_preference=["p"])
-            for _ in range(20)
-        ], return_exceptions=True)
+        results = await asyncio.gather(
+            *[
+                router.chat(messages=_messages(), model="gpt-4o", provider_preference=["p"])
+                for _ in range(20)
+            ],
+            return_exceptions=True,
+        )
 
         budget_errors = [r for r in results if isinstance(r, CostLimitExceeded)]
         assert len(budget_errors) > 0
@@ -373,8 +377,8 @@ class TestBudgetExhaustionMidPipeline:
 # Malformed / empty responses
 # ---------------------------------------------------------------------------
 
-class TestMalformedResponses:
 
+class TestMalformedResponses:
     @pytest.mark.asyncio
     async def test_provider_returns_wrong_type_falls_back(self):
         """If a provider returns something other than LLMResponse, fall back."""

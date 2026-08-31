@@ -6,6 +6,7 @@ import ast
 from dataclasses import dataclass, field
 from pathlib import Path
 
+
 @dataclass
 class FunctionInfo:
     name: str
@@ -17,6 +18,7 @@ class FunctionInfo:
     return_annotation: str = ""
     is_async: bool = False
 
+
 @dataclass
 class ModuleInfo:
     path: str
@@ -24,6 +26,7 @@ class ModuleInfo:
     classes: list[str] = field(default_factory=list)
     imports: list[str] = field(default_factory=list)
     has_module_docstring: bool = False
+
 
 def parse_python_file(path: str) -> ModuleInfo | None:
     """Parse a Python source file and return structured module info."""
@@ -38,9 +41,9 @@ def parse_python_file(path: str) -> ModuleInfo | None:
 
     info = ModuleInfo(path=path)
     info.has_module_docstring = (
-        isinstance(tree.body[0], ast.Expr)
-        and isinstance(tree.body[0].value, ast.Constant)
-        if tree.body else False
+        isinstance(tree.body[0], ast.Expr) and isinstance(tree.body[0].value, ast.Constant)
+        if tree.body
+        else False
     )
 
     for node in ast.walk(tree):
@@ -50,12 +53,12 @@ def parse_python_file(path: str) -> ModuleInfo | None:
                 line_start=node.lineno,
                 line_end=node.end_lineno or node.lineno,
                 has_docstring=bool(
-                    node.body and isinstance(node.body[0], ast.Expr)
+                    node.body
+                    and isinstance(node.body[0], ast.Expr)
                     and isinstance(node.body[0].value, ast.Constant)
                 ),
-                has_type_hints=node.returns is not None or any(
-                    a.annotation is not None for a in node.args.args
-                ),
+                has_type_hints=node.returns is not None
+                or any(a.annotation is not None for a in node.args.args),
                 args=[a.arg for a in node.args.args],
                 return_annotation=ast.unparse(node.returns) if node.returns else "",
                 is_async=isinstance(node, ast.AsyncFunctionDef),

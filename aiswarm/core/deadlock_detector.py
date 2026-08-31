@@ -12,6 +12,7 @@ from aiswarm.core.state_machine import StateMachine
 
 logger = structlog.get_logger(__name__)
 
+
 class DeadlockPacket:
     """Summary packet sent to the Boss agent when a deadlock is detected."""
 
@@ -23,9 +24,7 @@ class DeadlockPacket:
         self.history_summary = self._summarize(task)
         self.rejection_reasons = task.rejection_reasons()
         self.latest_code = task.generated_code or ""
-        self.compiler_errors = (
-            task.compiler_output.stderr if task.compiler_output else ""
-        )
+        self.compiler_errors = task.compiler_output.stderr if task.compiler_output else ""
         self.test_failures = task.test_output.stdout if task.test_output else ""
         self.detected_at = datetime.now(timezone.utc)
 
@@ -56,6 +55,7 @@ class DeadlockPacket:
             "=== END DEADLOCK PACKET ===",
         ]
         return "\n".join(lines)
+
 
 class DeadlockDetector:
     """

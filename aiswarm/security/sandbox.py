@@ -11,7 +11,6 @@ import asyncio
 import os
 import re
 import shlex
-import subprocess
 import tempfile
 import time
 from pathlib import Path
@@ -42,7 +41,12 @@ _DEFAULT_ALLOWLIST = {
 
 # Regex patterns for scrubbing sensitive tokens/keys from output
 _SECRET_PATTERNS = [
-    (re.compile(r"(?i)(api[_-]?key|secret|token|password|auth)[\s:=]+['\"]?([a-zA-Z0-9_\-\.]{12,})['\"]?"), r"\1=***REDACTED***"),
+    (
+        re.compile(
+            r"(?i)(api[_-]?key|secret|token|password|auth)[\s:=]+['\"]?([a-zA-Z0-9_\-\.]{12,})['\"]?"
+        ),
+        r"\1=***REDACTED***",
+    ),
     (re.compile(r"sk-[a-zA-Z0-9]{32,}"), "***REDACTED***"),
     (re.compile(r"ghp_[a-zA-Z0-9]{36}"), "***REDACTED***"),
 ]
@@ -76,7 +80,9 @@ class ExecutionSandbox:
         allowlist: set[str] | None = None,
         allow_network: bool = False,
     ) -> None:
-        self.workspace_dir = Path(workspace_dir or tempfile.mkdtemp(prefix="zymis_sandbox_")).resolve()
+        self.workspace_dir = Path(
+            workspace_dir or tempfile.mkdtemp(prefix="zymis_sandbox_")
+        ).resolve()
         self.workspace_dir.mkdir(parents=True, exist_ok=True)
         self.timeout = timeout
         self.max_output_bytes = max_output_bytes
@@ -116,7 +122,11 @@ class ExecutionSandbox:
         try:
             resolved.relative_to(self.workspace_dir)
         except ValueError:
-            logger.error("sandbox.path_traversal_blocked", path=str(resolved), workspace=str(self.workspace_dir))
+            logger.error(
+                "sandbox.path_traversal_blocked",
+                path=str(resolved),
+                workspace=str(self.workspace_dir),
+            )
             raise SandboxViolationError(
                 f"Path traversal blocked: Path '{resolved}' is outside assigned workspace '{self.workspace_dir}'"
             )
@@ -162,7 +172,9 @@ class ExecutionSandbox:
                     timeout=self.timeout,
                 )
             except asyncio.TimeoutError:
-                logger.warning("sandbox.command_timeout", cmd=validated_args[0], timeout=self.timeout)
+                logger.warning(
+                    "sandbox.command_timeout", cmd=validated_args[0], timeout=self.timeout
+                )
                 proc.kill()
                 await proc.wait()
                 return {
@@ -174,8 +186,12 @@ class ExecutionSandbox:
                 }
 
             duration = time.monotonic() - start_time
-            stdout_str = scrub_secrets(stdout_bytes[: self.max_output_bytes].decode("utf-8", errors="replace"))
-            stderr_str = scrub_secrets(stderr_bytes[: self.max_output_bytes].decode("utf-8", errors="replace"))
+            stdout_str = scrub_secrets(
+                stdout_bytes[: self.max_output_bytes].decode("utf-8", errors="replace")
+            )
+            stderr_str = scrub_secrets(
+                stderr_bytes[: self.max_output_bytes].decode("utf-8", errors="replace")
+            )
 
             logger.info("sandbox.execute_complete", returncode=proc.returncode, duration=duration)
             return {

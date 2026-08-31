@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections import defaultdict
-from typing import Callable, Awaitable
+from typing import Any, Awaitable, Callable
 
 import structlog
 
@@ -13,6 +13,7 @@ from aiswarm.schemas.events import Event, EventType
 logger = structlog.get_logger(__name__)
 
 Handler = Callable[[Event], Awaitable[None]]
+
 
 class EventBus:
     """
@@ -38,10 +39,12 @@ class EventBus:
 
     def subscribe(self, *event_types: EventType) -> Callable[[Handler], Handler]:
         """Decorator to register a handler for one or more event types."""
+
         def decorator(fn: Handler) -> Handler:
             for et in event_types:
                 self._handlers[et].append(fn)
             return fn
+
         return decorator
 
     def subscribe_all(self, fn: Handler) -> None:
@@ -55,6 +58,7 @@ class EventBus:
         """
         if isinstance(event, dict):
             from aiswarm.schemas.events import Event as EventSchema, EventType as EvType
+
             if "event_type" not in event and "type" in event:
                 event["event_type"] = event.pop("type")
             if "source" not in event:
@@ -65,7 +69,9 @@ class EventBus:
                     event["event_type"] = EvType(raw_type)
                 except ValueError as err:
                     logger.error("event_bus.unknown_event_type", raw_type=raw_type)
-                    raise ValueError(f"Unrecognized event_type '{raw_type}' in EventBus.publish()") from err
+                    raise ValueError(
+                        f"Unrecognized event_type '{raw_type}' in EventBus.publish()"
+                    ) from err
             event = EventSchema.model_validate(event)
 
         self._published += 1

@@ -8,6 +8,7 @@ from pathlib import Path
 
 _STORE_PATH = Path("./storage/repository_memory.json")
 
+
 @dataclass
 class FileOwnership:
     path: str
@@ -15,6 +16,7 @@ class FileOwnership:
     last_modified_by_task: str = ""
     change_count: int = 0
     known_dependencies: list[str] = field(default_factory=list)
+
 
 class RepositoryMemory:
     """Tracks which files were modified by which tasks."""

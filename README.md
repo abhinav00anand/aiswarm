@@ -298,6 +298,7 @@ import asyncio
 from aiswarm.bootstrap.startup import build_orchestrator
 from aiswarm.schemas.task import Task
 
+
 async def main():
     orchestrator, lifecycle = build_orchestrator(repo_root=".")
     await lifecycle.startup()
@@ -314,6 +315,7 @@ async def main():
     print(f"Merged Code:\n{completed_task.generated_code}")
 
     await lifecycle.shutdown()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -16,6 +16,7 @@ def xxhash_fast(content: str | bytes) -> str:
     """Return a fast xxhash digest (non-cryptographic, for cache keys)."""
     try:
         import xxhash
+
         if isinstance(content, str):
             content = content.encode("utf-8")
         return xxhash.xxh64(content).hexdigest()

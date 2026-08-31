@@ -29,6 +29,7 @@ from aiswarm.schemas.task import Task, TaskState
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _task(state: TaskState = TaskState.GENERATED, max_retries: int = 5) -> Task:
     return Task(title="DL test", description="test", state=state, max_retries=max_retries)
 
@@ -41,8 +42,8 @@ def _detector(timeout: float = 300.0, interval: float = 30.0) -> DeadlockDetecto
 # Retry-count detection
 # ---------------------------------------------------------------------------
 
-class TestDeadlockDetectorRetryCount:
 
+class TestDeadlockDetectorRetryCount:
     @pytest.mark.asyncio
     async def test_task_at_max_retries_detected(self):
         det = _detector()
@@ -93,8 +94,8 @@ class TestDeadlockDetectorRetryCount:
 # Timeout-based detection
 # ---------------------------------------------------------------------------
 
-class TestDeadlockDetectorTimeout:
 
+class TestDeadlockDetectorTimeout:
     @pytest.mark.asyncio
     async def test_fresh_task_not_timed_out(self):
         det = _detector(timeout=300.0)
@@ -107,9 +108,7 @@ class TestDeadlockDetectorTimeout:
         det = _detector(timeout=0.01)
         task = _task()
         # Manually set a stale timestamp
-        det._state_entered[task.task_id] = (
-            datetime.now(timezone.utc) - timedelta(seconds=1)
-        )
+        det._state_entered[task.task_id] = datetime.now(timezone.utc) - timedelta(seconds=1)
         assert det.check_task(task)
 
     @pytest.mark.asyncio
@@ -118,9 +117,7 @@ class TestDeadlockDetectorTimeout:
         det = _detector(timeout=0.01)
         task = _task(max_retries=100)
         task.retry_count = 0
-        det._state_entered[task.task_id] = (
-            datetime.now(timezone.utc) - timedelta(seconds=1)
-        )
+        det._state_entered[task.task_id] = datetime.now(timezone.utc) - timedelta(seconds=1)
         assert det.check_task(task)
 
     @pytest.mark.asyncio
@@ -128,9 +125,7 @@ class TestDeadlockDetectorTimeout:
         det = _detector(timeout=0.05)
         task = _task()
         # Artificially age the task
-        det._state_entered[task.task_id] = (
-            datetime.now(timezone.utc) - timedelta(seconds=1)
-        )
+        det._state_entered[task.task_id] = datetime.now(timezone.utc) - timedelta(seconds=1)
         # Notify fresh state change
         det.notify_state_change(task)
         # Should no longer be timed out
@@ -141,25 +136,21 @@ class TestDeadlockDetectorTimeout:
 # Terminal-state tasks never misdetected
 # ---------------------------------------------------------------------------
 
-class TestDeadlockDetectorTerminalSafety:
 
+class TestDeadlockDetectorTerminalSafety:
     @pytest.mark.asyncio
     async def test_merged_task_never_detected(self):
         det = _detector(timeout=0.001)
         task = _task(state=TaskState.MERGED)
         task.retry_count = 999
-        det._state_entered[task.task_id] = (
-            datetime.now(timezone.utc) - timedelta(seconds=9999)
-        )
+        det._state_entered[task.task_id] = datetime.now(timezone.utc) - timedelta(seconds=9999)
         assert not det.check_task(task)
 
     @pytest.mark.asyncio
     async def test_rejected_task_never_detected(self):
         det = _detector(timeout=0.001)
         task = _task(state=TaskState.REJECTED)
-        det._state_entered[task.task_id] = (
-            datetime.now(timezone.utc) - timedelta(seconds=9999)
-        )
+        det._state_entered[task.task_id] = datetime.now(timezone.utc) - timedelta(seconds=9999)
         assert not det.check_task(task)
 
     @pytest.mark.asyncio
@@ -173,8 +164,8 @@ class TestDeadlockDetectorTerminalSafety:
 # Forget / cleanup
 # ---------------------------------------------------------------------------
 
-class TestDeadlockDetectorForget:
 
+class TestDeadlockDetectorForget:
     def test_forget_removes_tracking(self):
         det = _detector()
         task = _task()
@@ -197,7 +188,7 @@ class TestDeadlockDetectorForget:
         # After forget, scan won't detect it (no state_entered entry for timeout check)
         # But retry_count still triggers it
         result = await det.scan([task])
-        # retry_count path does NOT require state_entered, so it's still detected
+        assert task.task_id in result
         # Reset retry_count and verify scan is clean
         task2 = _task()
         det.forget(task2.task_id)
@@ -209,8 +200,8 @@ class TestDeadlockDetectorForget:
 # Callback reliability
 # ---------------------------------------------------------------------------
 
-class TestDeadlockDetectorCallbacks:
 
+class TestDeadlockDetectorCallbacks:
     @pytest.mark.asyncio
     async def test_single_callback_fired(self):
         det = _detector()
@@ -234,8 +225,10 @@ class TestDeadlockDetectorCallbacks:
         hits = []
 
         for _ in range(5):
+
             async def cb(task_id, packet, _hits=hits):
                 _hits.append(task_id)
+
             det.on_deadlock(cb)
 
         task = _task()
@@ -267,8 +260,8 @@ class TestDeadlockDetectorCallbacks:
 # Performance at scale
 # ---------------------------------------------------------------------------
 
-class TestDeadlockDetectorScalePerformance:
 
+class TestDeadlockDetectorScalePerformance:
     @pytest.mark.asyncio
     async def test_concurrent_scan_and_notify_state_change(self):
         """scan() and notify_state_change() running simultaneously must not corrupt state."""
@@ -292,10 +285,7 @@ class TestDeadlockDetectorScalePerformance:
 
         await asyncio.gather(scanner(), updater(), scanner())
         # All tasks have retry_count=0, so no deadlocks should be detected
-        non_deadlock_detections = [
-            tid for tid in scan_results
-            if tid in {t.task_id for t in tasks}
-        ]
+        non_deadlock_detections = [tid for tid in scan_results if tid in {t.task_id for t in tasks}]
         assert len(non_deadlock_detections) == 0
 
     @pytest.mark.asyncio
@@ -331,8 +321,8 @@ class TestDeadlockDetectorScalePerformance:
 # DeadlockPacket content
 # ---------------------------------------------------------------------------
 
-class TestDeadlockPacket:
 
+class TestDeadlockPacket:
     def test_packet_contains_correct_task_info(self):
         task = _task()
         task.retry_count = 5

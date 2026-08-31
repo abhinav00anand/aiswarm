@@ -14,6 +14,7 @@ from aiswarm.utils.compat_log import get_logger
 
 logger = get_logger(__name__)
 
+
 class LocalModelAdapter(OpenAIAdapter):
     """
     Adapter for locally running models via Ollama or LM Studio.
@@ -28,10 +29,10 @@ class LocalModelAdapter(OpenAIAdapter):
             raw_url = f"{raw_url.rstrip('/')}/v1"
 
         super().__init__(
-            api_key="ollama",   # Ollama does not require an API key
+            api_key="ollama",  # Ollama does not require an API key
             base_url=raw_url,
             provider_name="local",
-            cost_table={},      # Local execution is 0 cost
+            cost_table={},  # Local execution is 0 cost
         )
         self.manager = OllamaManager(base_url=raw_url)
         self.default_model = default_model or os.getenv("OLLAMA_DEFAULT_MODEL", "llama3.2:3b")
@@ -54,10 +55,7 @@ class LocalModelAdapter(OpenAIAdapter):
         target_model = model or self.default_model
 
         # 1. Scrub input messages for sensitive credentials
-        sanitized_messages = [
-            LLMMessage(role=m.role, content=scrub(m.content))
-            for m in messages
-        ]
+        sanitized_messages = [LLMMessage(role=m.role, content=scrub(m.content)) for m in messages]
 
         logger.info("local_adapter.chat_start", model=target_model, message_count=len(messages))
 

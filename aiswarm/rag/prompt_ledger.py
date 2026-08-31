@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 from aiswarm.schemas.task import PromptLedger
 
 _LEDGER_DIR = Path("./storage/prompts")
+
 
 def save_ledger(task_id: str, ledger: PromptLedger) -> None:
     """Append a ledger entry to the task's prompt history file."""
@@ -15,6 +15,7 @@ def save_ledger(task_id: str, ledger: PromptLedger) -> None:
     path = _LEDGER_DIR / f"{task_id}.jsonl"
     with path.open("a", encoding="utf-8") as f:
         f.write(ledger.model_dump_json() + "\n")
+
 
 def load_ledgers(task_id: str) -> list[PromptLedger]:
     """Load all prompt ledger entries for a task."""

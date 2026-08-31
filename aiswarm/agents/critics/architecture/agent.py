@@ -60,6 +60,7 @@ Output ONLY valid JSON:
 Be strict. A score below 70 should be REJECT.
 """
 
+
 class ArchitectureCritic(BaseAgent):
     """Reviews code structural and architectural quality."""
 
@@ -102,11 +103,7 @@ class ArchitectureCritic(BaseAgent):
 
     def _build_prompt(self, task: Task, code: str) -> str:
         blueprint = task.metadata.get("blueprint", {})
-        bp_text = (
-            blueprint.get("blueprint", "")
-            if isinstance(blueprint, dict)
-            else str(blueprint)
-        )
+        bp_text = blueprint.get("blueprint", "") if isinstance(blueprint, dict) else str(blueprint)
         return f"""
 Review this code for architectural quality.
 

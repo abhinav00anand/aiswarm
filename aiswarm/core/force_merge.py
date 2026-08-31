@@ -7,9 +7,9 @@ from datetime import datetime, timezone
 import structlog
 
 from aiswarm.schemas.task import Task, TaskState
-from aiswarm.core.state_machine import StateMachine
 
 logger = structlog.get_logger(__name__)
+
 
 class ForceMergeOperator:
     """
@@ -54,6 +54,7 @@ class ForceMergeOperator:
         # Record to immutable audit ledger
         try:
             from aiswarm.security.audit import get_audit_ledger
+
             get_audit_ledger().record_event(
                 event_type="FORCE_MERGE_EXECUTED",
                 agent=f"operator:{operator}",

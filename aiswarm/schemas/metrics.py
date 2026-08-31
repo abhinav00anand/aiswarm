@@ -42,6 +42,7 @@ class PipelineMetrics(BaseModel):
 
 class SystemMetrics(BaseModel):
     """Snapshot of system-wide telemetry."""
+
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     active_tasks: int = 0
     completed_tasks: int = 0

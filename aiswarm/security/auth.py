@@ -10,7 +10,6 @@ from __future__ import annotations
 import os
 import sys
 from enum import Enum
-from typing import Any
 
 from aiswarm.utils.compat_log import get_logger
 
@@ -32,6 +31,7 @@ _SUPPORTED_KEY_ENVS = [
 
 class Role(str, Enum):
     """Execution roles with scoped authority within AISwarm."""
+
     HOST1 = "host1"
     HOST2 = "host2"
     BOSS = "boss"
@@ -44,7 +44,8 @@ def validate_adapter_url(url: str) -> bool:
     """Validate that the adapter URL is reachable by testing health endpoints."""
     import urllib.request
     import json
-    base_url = url.rstrip('/')
+
+    base_url = url.rstrip("/")
     # Try endpoints: /health, /v1/models
     for endpoint in ["/health", "/v1/models"]:
         try:
@@ -61,7 +62,7 @@ def validate_adapter_url(url: str) -> bool:
             f"{base_url}/v1/completions",
             data=data,
             headers={"Content-Type": "application/json"},
-            method="POST"
+            method="POST",
         )
         with urllib.request.urlopen(req, timeout=3.0) as response:
             if response.status in (200, 201):
@@ -130,6 +131,7 @@ class APIKeyValidator:
             logger.info("auth.no_cloud_keys_or_adapters_found_attempting_ollama_fallback")
             try:
                 from aiswarm.llm.ollama_manager import OllamaManager
+
                 manager = OllamaManager()
                 ok, selected_model = manager.ensure_ollama_provisioned()
                 if ok:
@@ -141,9 +143,11 @@ class APIKeyValidator:
                 logger.warning("auth.ollama_auto_provision_failed", error=str(exc))
 
         # 4. Check for deferred / offline local mode
-        deferred_mode = os.environ.get("ZYMIS_DEFERRED_INIT", "").strip() in ("1", "true", "True") or \
-                        os.environ.get("ZYMIS_LOCAL_MODE", "").strip() in ("1", "true", "True") or \
-                        os.environ.get("ZYMIS_ALLOW_OFFLINE", "").strip() in ("1", "true", "True")
+        deferred_mode = (
+            os.environ.get("ZYMIS_DEFERRED_INIT", "").strip() in ("1", "true", "True")
+            or os.environ.get("ZYMIS_LOCAL_MODE", "").strip() in ("1", "true", "True")
+            or os.environ.get("ZYMIS_ALLOW_OFFLINE", "").strip() in ("1", "true", "True")
+        )
         if deferred_mode:
             logger.info("auth.deferred_offline_mode_active")
             return True
@@ -169,4 +173,3 @@ class APIKeyValidator:
             logger.critical("auth.startup_failed", error=str(exc))
             print(f"\n[ZYMIS SECURITY FAULT] {exc}\n", file=sys.stderr)
             sys.exit(1)
-

@@ -27,6 +27,7 @@ from aiswarm.schemas.task import Task, TaskState
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _task(state: TaskState = TaskState.NEW) -> Task:
     return Task(title="Stress task", description="Stress", state=state)
 
@@ -39,8 +40,8 @@ def _transition(task, to, reason="stress", agent="stress"):
 # Exhaustive valid transitions
 # ---------------------------------------------------------------------------
 
-class TestStateMachineExhaustiveValid:
 
+class TestStateMachineExhaustiveValid:
     def test_every_valid_transition_accepted(self):
         """Every (from, to) in VALID_TRANSITIONS must succeed."""
         accepted = 0
@@ -80,8 +81,8 @@ class TestStateMachineExhaustiveValid:
 # Concurrent transitions (race-condition safety)
 # ---------------------------------------------------------------------------
 
-class TestStateMachineConcurrentTransitions:
 
+class TestStateMachineConcurrentTransitions:
     @pytest.mark.asyncio
     async def test_concurrent_valid_transitions_serialize(self):
         """50 concurrent tasks all progress through the happy path."""
@@ -124,8 +125,8 @@ class TestStateMachineConcurrentTransitions:
 # Retry loop: PROMPTED cycle
 # ---------------------------------------------------------------------------
 
-class TestStateMachineRetryLoop:
 
+class TestStateMachineRetryLoop:
     def test_full_retry_loop_five_cycles(self):
         """Task can cycle PROMPTED → GENERATED → PRECHECKED → PROMPTED five times."""
         task = _task()
@@ -151,8 +152,13 @@ class TestStateMachineRetryLoop:
 
     def test_retry_from_compiled_stage(self):
         task = _task()
-        for s in [TaskState.PROMPTED, TaskState.GENERATED,
-                  TaskState.PRECHECKED, TaskState.REVIEWED, TaskState.COMPILED]:
+        for s in [
+            TaskState.PROMPTED,
+            TaskState.GENERATED,
+            TaskState.PRECHECKED,
+            TaskState.REVIEWED,
+            TaskState.COMPILED,
+        ]:
             _transition(task, s)
         _transition(task, TaskState.PROMPTED, reason="compile fail")
         assert task.state == TaskState.PROMPTED
@@ -162,8 +168,8 @@ class TestStateMachineRetryLoop:
 # Deadlock / escalation chain
 # ---------------------------------------------------------------------------
 
-class TestStateMachineDeadlockChain:
 
+class TestStateMachineDeadlockChain:
     def test_deadlock_escalated_boss_restart(self):
         task = _task(TaskState.GENERATED)
         _transition(task, TaskState.DEADLOCK, reason="retry_exceeded")
@@ -190,8 +196,8 @@ class TestStateMachineDeadlockChain:
 # PAUSED round-trips
 # ---------------------------------------------------------------------------
 
-class TestStateMachinePauseResume:
 
+class TestStateMachinePauseResume:
     PAUSABLE = [
         TaskState.NEW,
         TaskState.PROMPTED,
@@ -225,8 +231,8 @@ class TestStateMachinePauseResume:
 # Audit trail integrity
 # ---------------------------------------------------------------------------
 
-class TestStateMachineAuditTrail:
 
+class TestStateMachineAuditTrail:
     def test_full_path_audit_trail_complete(self):
         task = _task()
         path = [

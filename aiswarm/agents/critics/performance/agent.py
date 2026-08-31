@@ -58,6 +58,7 @@ Output ONLY valid JSON:
 }
 """
 
+
 class PerformanceCritic(BaseAgent):
     """Reviews code efficiency and performance characteristics."""
 

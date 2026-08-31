@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import subprocess
-from pathlib import Path
 
 import structlog
 
@@ -21,7 +20,9 @@ class CoverageChecker:
     async def measure(self, test_path: str, source_path: str) -> dict[str, object]:
         """Run pytest with coverage and return the coverage percentage."""
         cmd = [
-            "python", "-m", "pytest",
+            "python",
+            "-m",
+            "pytest",
             test_path,
             f"--cov={source_path}",
             "--cov-report=term-missing",
@@ -33,12 +34,16 @@ class CoverageChecker:
             result = await loop.run_in_executor(
                 None,
                 lambda: subprocess.run(
-                    cmd, capture_output=True, text=True, timeout=self._timeout,
+                    cmd,
+                    capture_output=True,
+                    text=True,
+                    timeout=self._timeout,
                 ),
             )
             output = result.stdout + result.stderr
             # Parse coverage percentage
             import re
+
             cov_match = re.search(r"TOTAL\s+\d+\s+\d+\s+(\d+)%", output)
             pct = float(cov_match.group(1)) if cov_match else 0.0
             return {

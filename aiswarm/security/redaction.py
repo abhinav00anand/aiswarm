@@ -4,15 +4,17 @@ Secret Redaction Engine — scrubs sensitive data from prompts, logs, and artifa
 Provides multi-pattern secret detection and replacement to prevent credential leakage
 across all AISwarm output channels.
 """
+
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from aiswarm.utils.compat_log import get_logger
 
 logger = get_logger(__name__)
+
 
 @dataclass
 class RedactionRule:
@@ -20,9 +22,10 @@ class RedactionRule:
     pattern: re.Pattern
     replacement: str = "***REDACTED***"
 
+
 class SecretRedactor:
     """Multi-pattern secret scrubber for all platform output channels."""
-    
+
     _DEFAULT_RULES: list[tuple[str, str, str]] = [
         ("openai_key", r"sk-[a-zA-Z0-9]{32,}", "***OPENAI_KEY***"),
         ("anthropic_key", r"sk-ant-[a-zA-Z0-9\-]{30,}", "***ANTHROPIC_KEY***"),
@@ -30,11 +33,19 @@ class SecretRedactor:
         ("google_api_key", r"AIza[0-9A-Za-z\-_]{35}", "***GOOGLE_KEY***"),
         ("zephyr_temp_key", r"zph_tmp_[a-zA-Z0-9_\-]{16,}", "***ZEPHYR_TMP_KEY***"),
         ("zephyr_job_key", r"zph_job_[a-zA-Z0-9_\-]{16,}", "***ZEPHYR_JOB_KEY***"),
-        ("generic_secret", r"(?i)(api[_-]?key|secret|token|password|bearer)\s*[=:]\s*['\"]?([a-zA-Z0-9_\-\.]{16,})['\"]?", r"\1=***REDACTED***"),
+        (
+            "generic_secret",
+            r"(?i)(api[_-]?key|secret|token|password|bearer)\s*[=:]\s*['\"]?([a-zA-Z0-9_\-\.]{16,})['\"]?",
+            r"\1=***REDACTED***",
+        ),
         ("aws_key", r"AKIA[0-9A-Z]{16}", "***AWS_KEY***"),
-        ("env_assignment", r"(?m)^([A-Z_]{4,}_KEY|[A-Z_]{4,}_SECRET|[A-Z_]{4,}_TOKEN)=.+$", r"\1=***REDACTED***"),
+        (
+            "env_assignment",
+            r"(?m)^([A-Z_]{4,}_KEY|[A-Z_]{4,}_SECRET|[A-Z_]{4,}_TOKEN)=.+$",
+            r"\1=***REDACTED***",
+        ),
     ]
-    
+
     def __init__(self, extra_rules: list[RedactionRule] | None = None) -> None:
         self._rules: list[RedactionRule] = [
             RedactionRule(name=name, pattern=re.compile(pattern, re.IGNORECASE), replacement=repl)
@@ -42,7 +53,7 @@ class SecretRedactor:
         ]
         if extra_rules:
             self._rules.extend(extra_rules)
-    
+
     def scrub(self, text: str) -> str:
         """Apply all redaction rules to text, returning sanitized output."""
         if not text:
@@ -57,7 +68,7 @@ class SecretRedactor:
         if redacted_count:
             logger.debug("redactor.secrets_scrubbed", count=redacted_count)
         return sanitized
-    
+
     def scrub_dict(self, data: dict[str, Any]) -> dict[str, Any]:
         """Recursively scrub all string values in a dictionary."""
         result: dict[str, Any] = {}
@@ -72,11 +83,14 @@ class SecretRedactor:
                 result[key] = value
         return result
 
+
 _DEFAULT_REDACTOR = SecretRedactor()
+
 
 def scrub(text: str) -> str:
     """Module-level convenience: scrub secrets from a string."""
     return _DEFAULT_REDACTOR.scrub(text)
+
 
 def scrub_dict(data: dict[str, Any]) -> dict[str, Any]:
     """Module-level convenience: scrub secrets from a dict."""

@@ -54,7 +54,9 @@ def parse_pytest_output(output: str) -> ParsedTestResult:
 
 def parse_compiler_output(output: str, language: str = "python") -> dict[str, object]:
     """Extract key info from compiler/interpreter output."""
-    has_error = any(kw in output for kw in ("Error:", "error:", "SyntaxError", "ImportError", "Traceback"))
+    has_error = any(
+        kw in output for kw in ("Error:", "error:", "SyntaxError", "ImportError", "Traceback")
+    )
     errors: list[str] = []
     if language == "python":
         errors = re.findall(r"(?:Error|Exception):\s+(.+)", output)

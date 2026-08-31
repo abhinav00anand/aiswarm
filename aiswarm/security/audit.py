@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import json
 import os
 import uuid
 from datetime import datetime, timezone
@@ -40,12 +39,11 @@ class AuditEvent(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
-
 class AuditLedger:
     def __init__(self, persist_path: str | Path | None = None) -> None:
         self._events: list[AuditEvent] = []
         self._lock = asyncio.Lock()
-        
+
         # Configure persistence path
         env_path = os.getenv("ZYMIS_AUDIT_LOG_PATH")
         if persist_path:
@@ -54,7 +52,7 @@ class AuditLedger:
             self._persist_path = Path(env_path)
         else:
             self._persist_path = Path.home() / ".zymis" / "audit.jsonl"
-            
+
         self._load_persisted_events()
 
     def _load_persisted_events(self) -> None:
@@ -71,7 +69,11 @@ class AuditLedger:
                             self._events.append(event)
                         except Exception:
                             pass
-            logger.info("audit.persisted_events_loaded", path=str(self._persist_path), count=len(self._events))
+            logger.info(
+                "audit.persisted_events_loaded",
+                path=str(self._persist_path),
+                count=len(self._events),
+            )
         except Exception as exc:  # noqa: BLE001
             logger.warning("audit.load_error", error=str(exc))
 
@@ -118,8 +120,6 @@ class AuditLedger:
                 outcome=event.outcome,
             )
         return event
-
-
 
     async def get_events(
         self,

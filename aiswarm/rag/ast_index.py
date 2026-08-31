@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
 import structlog
@@ -10,6 +9,7 @@ import structlog
 from aiswarm.repository.parser import parse_python_file
 
 logger = structlog.get_logger(__name__)
+
 
 class ASTIndex:
     """
@@ -27,18 +27,20 @@ class ASTIndex:
             return 0
         symbols = []
         for fn in info.functions:
-            symbols.append({
-                "type": "function",
-                "name": fn.name,
-                "path": path,
-                "line_start": fn.line_start,
-                "line_end": fn.line_end,
-                "has_docstring": fn.has_docstring,
-                "has_type_hints": fn.has_type_hints,
-                "is_async": fn.is_async,
-                "args": fn.args,
-                "return_type": fn.return_annotation,
-            })
+            symbols.append(
+                {
+                    "type": "function",
+                    "name": fn.name,
+                    "path": path,
+                    "line_start": fn.line_start,
+                    "line_end": fn.line_end,
+                    "has_docstring": fn.has_docstring,
+                    "has_type_hints": fn.has_type_hints,
+                    "is_async": fn.is_async,
+                    "args": fn.args,
+                    "return_type": fn.return_annotation,
+                }
+            )
         for cls in info.classes:
             symbols.append({"type": "class", "name": cls, "path": path})
         self._index[path] = symbols

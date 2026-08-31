@@ -10,6 +10,7 @@ from pathlib import Path
 
 from aiswarm.schemas.task import Task, CompilerOutput
 
+
 class RustCompiler:
     """Compiles Rust source using rustc."""
 

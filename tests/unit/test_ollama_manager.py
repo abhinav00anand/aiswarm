@@ -11,7 +11,7 @@ from unittest.mock import patch, MagicMock
 from aiswarm.llm.ollama_manager import OllamaManager, MODEL_LARGE, MODEL_MEDIUM, MODEL_SMALL
 from aiswarm.llm.local_models import LocalModelAdapter
 from aiswarm.llm.adapter import LLMMessage
-from aiswarm.security.auth import APIKeyValidator, SecurityAuthError
+from aiswarm.security.auth import APIKeyValidator, SecurityAuthError, _SUPPORTED_KEY_ENVS
 from aiswarm.security.audit import get_audit_ledger
 
 
@@ -32,7 +32,9 @@ class TestOllamaManager:
 
     @patch.object(OllamaManager, "is_service_running", return_value=True)
     @patch.object(OllamaManager, "pull_model", return_value=True)
-    def test_ensure_ollama_provisioned_success(self, mock_pull: MagicMock, mock_running: MagicMock) -> None:
+    def test_ensure_ollama_provisioned_success(
+        self, mock_pull: MagicMock, mock_running: MagicMock
+    ) -> None:
         manager = OllamaManager()
         ok, model = manager.ensure_ollama_provisioned()
         assert ok is True
@@ -51,7 +53,9 @@ class TestLocalModelAdapterSecurity:
         mock_response.total_tokens = 30
 
         with patch("aiswarm.llm.openai.OpenAIAdapter.chat", return_value=mock_response):
-            msg = LLMMessage(role="user", content="My secret is sk-12345678901234567890123456789012")
+            msg = LLMMessage(
+                role="user", content="My secret is sk-12345678901234567890123456789012"
+            )
             res = await adapter.chat(messages=[msg], model="llama3.2:3b")
 
             # Verify response was scrubbed
@@ -69,23 +73,24 @@ class TestLocalModelAdapterSecurity:
 class TestAPIKeyValidatorOllamaFallback:
     def test_auth_fallback_to_ollama_when_no_cloud_keys(self) -> None:
         # Clear cloud keys from environment
-        keys_to_clear = [
-            "ZYMIS_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY",
-            "GOOGLE_API_KEY", "GEMINI_API_KEY", "NOVITA_API_KEY", "DEEPSEEK_API_KEY"
-        ]
-        with patch.dict(os.environ, {k: "" for k in keys_to_clear}, clear=False):
-            with patch("aiswarm.llm.ollama_manager.OllamaManager.ensure_ollama_provisioned", return_value=(True, "llama3.2:3b")):
+        env_clear = {k: "" for k in _SUPPORTED_KEY_ENVS}
+        env_clear["ZYMIS_NO_OLLAMA"] = ""
+        with patch.dict(os.environ, env_clear, clear=False):
+            with patch(
+                "aiswarm.llm.ollama_manager.OllamaManager.ensure_ollama_provisioned",
+                return_value=(True, "llama3.2:3b"),
+            ):
                 result = APIKeyValidator.verify_api_keys()
                 assert result is True
                 assert os.environ.get("OLLAMA_FALLBACK_ACTIVE") == "true"
                 assert os.environ.get("OLLAMA_SELECTED_MODEL") == "llama3.2:3b"
 
     def test_auth_raises_error_if_ollama_also_fails(self) -> None:
-        keys_to_clear = [
-            "ZYMIS_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY",
-            "GOOGLE_API_KEY", "GEMINI_API_KEY", "NOVITA_API_KEY", "DEEPSEEK_API_KEY"
-        ]
+        keys_to_clear = _SUPPORTED_KEY_ENVS
         with patch.dict(os.environ, {k: "" for k in keys_to_clear}, clear=False):
-            with patch("aiswarm.llm.ollama_manager.OllamaManager.ensure_ollama_provisioned", return_value=(False, "llama3.2:1b")):
+            with patch(
+                "aiswarm.llm.ollama_manager.OllamaManager.ensure_ollama_provisioned",
+                return_value=(False, "llama3.2:1b"),
+            ):
                 with pytest.raises(SecurityAuthError, match="CRITICAL SECURITY ERROR"):
                     APIKeyValidator.verify_api_keys()

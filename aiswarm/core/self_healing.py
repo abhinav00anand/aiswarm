@@ -9,6 +9,7 @@ from aiswarm.utils.compat_log import get_logger
 
 logger = get_logger(__name__)
 
+
 class FailureCategory:
     MISSING_IMPORT = "MISSING_IMPORT"
     SYNTAX_ERROR = "SYNTAX_ERROR"
@@ -16,6 +17,7 @@ class FailureCategory:
     ASSERTION_FAILURE = "ASSERTION_FAILURE"
     TIMEOUT = "TIMEOUT"
     UNKNOWN = "UNKNOWN"
+
 
 class SelfHealingEngine:
     """Classifies runtime and compiler failures and suggests deterministic repairs."""
@@ -84,4 +86,8 @@ class SelfHealingEngine:
                 }
 
         logger.info("self_healing.auto_repair_skipped", category=cat)
-        return {"repaired": False, "code": code, "patch_description": "No auto-repair patch applicable"}
+        return {
+            "repaired": False,
+            "code": code,
+            "patch_description": "No auto-repair patch applicable",
+        }

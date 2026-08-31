@@ -10,6 +10,7 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+
 class LifecycleManager:
     """
     Manages ordered startup and shutdown of async services.

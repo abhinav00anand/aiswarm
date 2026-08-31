@@ -12,7 +12,6 @@ Commands:
 from __future__ import annotations
 
 import asyncio
-import json
 import os
 import sys
 from pathlib import Path
@@ -22,7 +21,6 @@ from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich import print as rprint
 from typing import Any
 
 from aiswarm.security.auth import APIKeyValidator
@@ -50,7 +48,9 @@ def _load_env() -> None:
     env_file = Path(".env")
     if env_file.exists():
         from dotenv import load_dotenv
+
         load_dotenv(env_file)
+
 
 _load_env()
 
@@ -65,8 +65,12 @@ def run(
     max_retries: int = typer.Option(5, "--retries", help="Max retry attempts"),
     wait: bool = typer.Option(True, "--wait/--no-wait", help="Wait for completion"),
     api_key: str | None = typer.Option(None, "--api-key", "-k", help="Zymis or Provider API Key"),
-    adapter_url: str | None = typer.Option(None, "--adapter-url", help="OpenAI-compatible adapter URL"),
-    provider: str | None = typer.Option(None, "--provider", help="Preferred provider (e.g. zephyr, openai)"),
+    adapter_url: str | None = typer.Option(
+        None, "--adapter-url", help="OpenAI-compatible adapter URL"
+    ),
+    provider: str | None = typer.Option(
+        None, "--provider", help="Preferred provider (e.g. zephyr, openai)"
+    ),
     model: str | None = typer.Option(None, "--model", "-m", help="Target model (e.g. llama3:8b)"),
     no_ollama: bool = typer.Option(False, "--no-ollama", help="Disable Ollama auto-provisioning"),
     notebook: bool = typer.Option(False, "--notebook", help="Run in lightweight notebook mode"),
@@ -88,16 +92,18 @@ def run(
         os.environ["ZYMIS_NOTEBOOK_MODE"] = "1"
 
     APIKeyValidator.enforce_startup_auth(api_key)
-    asyncio.run(_run_task(
-        title=title,
-        description=description or title,
-        target_files=list(target),
-        language=language,
-        priority=priority,
-        max_retries=max_retries,
-        wait_for_completion=wait,
-        api_key=api_key,
-    ))
+    asyncio.run(
+        _run_task(
+            title=title,
+            description=description or title,
+            target_files=list(target),
+            language=language,
+            priority=priority,
+            max_retries=max_retries,
+            wait_for_completion=wait,
+            api_key=api_key,
+        )
+    )
 
 
 async def _run_task(
@@ -111,13 +117,14 @@ async def _run_task(
     api_key: str | None = None,
 ) -> None:
     from aiswarm.bootstrap.startup import build_orchestrator
-    from aiswarm.schemas.task import Task, TaskPriority, TaskClass
-    import time
+    from aiswarm.schemas.task import Task, TaskPriority
 
-    console.print(Panel.fit(
-        f"[bold green]Submitting task:[/bold green] {title}",
-        border_style="green",
-    ))
+    console.print(
+        Panel.fit(
+            f"[bold green]Submitting task:[/bold green] {title}",
+            border_style="green",
+        )
+    )
 
     orc, lifecycle = build_orchestrator(repo_root=".", api_key=api_key)
     await lifecycle.startup()
@@ -168,19 +175,20 @@ async def _run_task(
 
 
 def _display_task_result(task: Any) -> None:
-    from aiswarm.schemas.task import TaskState
     state = task.state.value
     color = "green" if state == "MERGED" else "red"
 
-    console.print(Panel(
-        f"[{color}]Final State: {state}[/{color}]\n"
-        f"Retries: {task.retry_count}\n"
-        f"Tokens used: {task.total_tokens_used:,}\n"
-        f"Estimated cost: ${task.estimated_cost_usd:.4f}\n"
-        f"Merged: {task.merged}",
-        title=f"Task: {task.title}",
-        border_style=color,
-    ))
+    console.print(
+        Panel(
+            f"[{color}]Final State: {state}[/{color}]\n"
+            f"Retries: {task.retry_count}\n"
+            f"Tokens used: {task.total_tokens_used:,}\n"
+            f"Estimated cost: ${task.estimated_cost_usd:.4f}\n"
+            f"Merged: {task.merged}",
+            title=f"Task: {task.title}",
+            border_style=color,
+        )
+    )
 
     if task.reviews:
         table = Table(title="Critic Reviews")
@@ -204,17 +212,31 @@ def providers() -> None:
     """List all configured LLM providers and their availability."""
     _load_env()
     from aiswarm.llm.provider_router import ProviderRouter
+
     router = ProviderRouter()
     available = router.list_available()
     configured_keys = APIKeyValidator.get_configured_keys()
-    
-    console.print(f"\n[cyan]Configured API Keys:[/cyan] {', '.join(configured_keys) if configured_keys else 'None'}\n")
+
+    console.print(
+        f"\n[cyan]Configured API Keys:[/cyan] {', '.join(configured_keys) if configured_keys else 'None'}\n"
+    )
 
     table = Table(title="LLM Providers")
     table.add_column("Provider", style="cyan")
     table.add_column("Status", justify="center")
-    for name in ["novita", "openai", "anthropic", "gemini", "deepseek", "bedrock", "local", "adapter"]:
-        status = "[green]✓ Available[/green]" if name in available else "[red]✗ Not configured[/red]"
+    for name in [
+        "novita",
+        "openai",
+        "anthropic",
+        "gemini",
+        "deepseek",
+        "bedrock",
+        "local",
+        "adapter",
+    ]:
+        status = (
+            "[green]✓ Available[/green]" if name in available else "[red]✗ Not configured[/red]"
+        )
         table.add_row(name, status)
     console.print(table)
 
@@ -223,10 +245,9 @@ def providers() -> None:
 def audit() -> None:
     """View the last 50 audit events."""
     _load_env()
-    
+
     events = asyncio.run(get_audit_ledger().get_events(limit=50))
 
-    
     table = Table(title="Audit Ledger (Last 50 Events)")
     table.add_column("Timestamp", style="cyan")
     table.add_column("Event Type", style="magenta")
@@ -234,7 +255,7 @@ def audit() -> None:
     table.add_column("Task ID", style="green")
     table.add_column("Action", style="yellow")
     table.add_column("Outcome", justify="right")
-    
+
     for e in events:
         table.add_row(
             str(e.timestamp),
@@ -242,7 +263,7 @@ def audit() -> None:
             str(e.actor),
             str(e.task_id or "-"),
             str(e.action),
-            str(e.outcome)
+            str(e.outcome),
         )
     console.print(table)
 
@@ -263,7 +284,9 @@ async def _index_repo(root: str) -> None:
     retriever = RAGRetriever(repo_root=root)
     indexer = RepositoryIndexer(repo_root=root, retriever=retriever)
 
-    with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console) as p:
+    with Progress(
+        SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
+    ) as p:
         task = p.add_task("[cyan]Indexing repository...[/cyan]", total=None)
         count = await indexer.index_all()
         p.update(task, description=f"[green]Indexed {count} files[/green]")
@@ -274,21 +297,30 @@ async def _index_repo(root: str) -> None:
 @app.command()
 def direct(
     prompt: str = typer.Argument(..., help="Prompt to execute directly with model"),
-    model: str = typer.Option("gpt-4o", "--model", "-m", help="LLM model (e.g. gpt-4o, claude-3-5-sonnet)"),
+    model: str = typer.Option(
+        "gpt-4o", "--model", "-m", help="LLM model (e.g. gpt-4o, claude-3-5-sonnet)"
+    ),
     temperature: float = typer.Option(0.7, "--temp", "-t", help="Temperature (0.0 - 1.0)"),
 ) -> None:
     """Directly execute a prompt through an LLM model with AISwarm security and audit coordination."""
     _load_env()
     from aiswarm.llm.direct_runner import DirectModelCoordinator
+
     coord = DirectModelCoordinator()
     res = asyncio.run(coord.run_direct(prompt=prompt, model=model, temperature=temperature))
     if res.get("status") == "SUCCESS":
-        console.print(Panel(res.get("content", ""), title=f"[bold green]Direct Model Output ({model})[/bold green]"))
-        console.print(f"[dim]Cost: ${res.get('usage', {}).get('cost_usd', 0.0):.4f} | Duration: {res.get('duration_seconds')}s[/dim]")
+        console.print(
+            Panel(
+                res.get("content", ""),
+                title=f"[bold green]Direct Model Output ({model})[/bold green]",
+            )
+        )
+        console.print(
+            f"[dim]Cost: ${res.get('usage', {}).get('cost_usd', 0.0):.4f} | Duration: {res.get('duration_seconds')}s[/dim]"
+        )
     else:
         console.print(f"[bold red]Direct Model Failed:[/bold red] {res.get('error')}")
 
 
 if __name__ == "__main__":
     app()
-

@@ -29,9 +29,12 @@ def _any_llm_configured() -> bool:
     return any(
         os.getenv(k)
         for k in (
-            "NOVITA_API_KEY", "NOVITA_TOKEN",
-            "OPENAI_API_KEY", "ANTHROPIC_API_KEY",
-            "DEEPSEEK_API_KEY", "GOOGLE_API_KEY",
+            "NOVITA_API_KEY",
+            "NOVITA_TOKEN",
+            "OPENAI_API_KEY",
+            "ANTHROPIC_API_KEY",
+            "DEEPSEEK_API_KEY",
+            "GOOGLE_API_KEY",
         )
     )
 
@@ -89,8 +92,10 @@ class TestFullPipeline:
                 while loop.time() < deadline:
                     t = await orc.get_task(submitted.task_id)
                     if t and t.state in (
-                        TaskState.MERGED, TaskState.REJECTED,
-                        TaskState.DEADLOCK, TaskState.CANCELLED,
+                        TaskState.MERGED,
+                        TaskState.REJECTED,
+                        TaskState.DEADLOCK,
+                        TaskState.CANCELLED,
                     ):
                         break
                     await asyncio.sleep(3)

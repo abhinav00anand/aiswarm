@@ -15,7 +15,6 @@ Covers:
 from __future__ import annotations
 
 import asyncio
-import time
 
 import pytest
 
@@ -27,6 +26,7 @@ from aiswarm.schemas.task import Task, TaskPriority
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _task(priority: TaskPriority = TaskPriority.NORMAL, title: str = "t") -> Task:
     return Task(title=title, description="stress", priority=priority)
 
@@ -35,8 +35,8 @@ def _task(priority: TaskPriority = TaskPriority.NORMAL, title: str = "t") -> Tas
 # Queue-full backpressure
 # ---------------------------------------------------------------------------
 
-class TestSchedulerQueueFull:
 
+class TestSchedulerQueueFull:
     @pytest.mark.asyncio
     async def test_queue_full_raises_at_exact_limit(self):
         sched = TaskScheduler(max_queue=5)
@@ -78,8 +78,8 @@ class TestSchedulerQueueFull:
 # Priority ordering
 # ---------------------------------------------------------------------------
 
-class TestSchedulerPriorityOrdering:
 
+class TestSchedulerPriorityOrdering:
     @pytest.mark.asyncio
     async def test_critical_dequeued_before_low(self):
         sched = TaskScheduler(max_queue=100)
@@ -119,6 +119,7 @@ class TestSchedulerPriorityOrdering:
     async def test_100_mixed_priority_tasks_correct_order(self):
         sched = TaskScheduler(max_queue=500)
         import random
+
         all_priorities = list(TaskPriority)
         tasks_by_priority = {p: 0 for p in all_priorities}
         task_list = [_task(random.choice(all_priorities)) for _ in range(100)]
@@ -137,9 +138,7 @@ class TestSchedulerPriorityOrdering:
         for _ in range(100):
             t = await sched.next()
             w = _WEIGHT[t.priority]
-            assert w >= prev_weight, (
-                f"Out-of-order dequeue: got weight {w} after {prev_weight}"
-            )
+            assert w >= prev_weight, f"Out-of-order dequeue: got weight {w} after {prev_weight}"
             prev_weight = w
 
     @pytest.mark.asyncio
@@ -164,16 +163,13 @@ class TestSchedulerPriorityOrdering:
 # High-concurrency producer/consumer
 # ---------------------------------------------------------------------------
 
-class TestSchedulerConcurrency:
 
+class TestSchedulerConcurrency:
     @pytest.mark.asyncio
     async def test_1000_concurrent_enqueues(self):
         sched = TaskScheduler(max_queue=1000)
         N = 1000
-        await asyncio.gather(*[
-            sched.enqueue(_task())
-            for _ in range(N)
-        ])
+        await asyncio.gather(*[sched.enqueue(_task()) for _ in range(N)])
         assert sched.depth() == N
 
     @pytest.mark.asyncio

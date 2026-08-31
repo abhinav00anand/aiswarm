@@ -13,15 +13,16 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 _DEFAULTS: dict[str, dict[str, int]] = {
-    "novita":    {"rpm": 60,  "concurrency": 5},
-    "openai":    {"rpm": 60,  "concurrency": 5},
-    "anthropic": {"rpm": 50,  "concurrency": 4},
-    "gemini":    {"rpm": 60,  "concurrency": 5},
-    "deepseek":  {"rpm": 30,  "concurrency": 3},
-    "bedrock":   {"rpm": 30,  "concurrency": 3},
-    "zephyr":    {"rpm": 60,  "concurrency": 1},
-    "local":     {"rpm": 999, "concurrency": 2},
+    "novita": {"rpm": 60, "concurrency": 5},
+    "openai": {"rpm": 60, "concurrency": 5},
+    "anthropic": {"rpm": 50, "concurrency": 4},
+    "gemini": {"rpm": 60, "concurrency": 5},
+    "deepseek": {"rpm": 30, "concurrency": 3},
+    "bedrock": {"rpm": 30, "concurrency": 3},
+    "zephyr": {"rpm": 60, "concurrency": 1},
+    "local": {"rpm": 999, "concurrency": 2},
 }
+
 
 class ProviderRateLimiter:
     """
@@ -45,7 +46,9 @@ class ProviderRateLimiter:
 
         for provider, defaults in _DEFAULTS.items():
             rpm = int(os.getenv(f"RATE_LIMIT_{provider.upper()}_RPM", str(defaults["rpm"])))
-            conc = int(os.getenv(f"RATE_LIMIT_{provider.upper()}_CONC", str(defaults["concurrency"])))
+            conc = int(
+                os.getenv(f"RATE_LIMIT_{provider.upper()}_CONC", str(defaults["concurrency"]))
+            )
             self._rpm[provider] = rpm
             self._semaphores[provider] = asyncio.Semaphore(conc)
             self._windows[provider] = deque()
@@ -128,6 +131,7 @@ class ProviderRateLimiter:
             }
             for provider in _DEFAULTS
         }
+
 
 class _AcquireCtx:
     """Async context manager returned by ProviderRateLimiter.acquire()."""

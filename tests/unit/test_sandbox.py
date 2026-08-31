@@ -14,12 +14,10 @@ def test_scrub_secrets():
     assert "***REDACTED***" in sanitized
 
 
-
-
 def test_allowlist_command_validation(tmp_path: Path):
     """Only allowlisted commands should be permitted."""
     sandbox = ExecutionSandbox(workspace_dir=tmp_path)
-    
+
     # Allowed command
     parsed = sandbox.validate_command(["python", "-c", "print('hello')"])
     assert parsed[0] == "python"

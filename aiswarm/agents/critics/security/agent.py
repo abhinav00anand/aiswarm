@@ -64,6 +64,7 @@ If ANY critical security flaw exists, decision MUST be REJECT.
 Security is non-negotiable.
 """
 
+
 class SecurityCritic(BaseAgent):
     """Reviews code for security vulnerabilities — has veto power."""
 
@@ -92,7 +93,7 @@ Perform a thorough security review of this code.
 Task: {task.title}
 Language: {task.target_language}
 Security considerations from plan:
-{', '.join(task.metadata.get("blueprint", {}).get("security_considerations", []) if isinstance(task.metadata.get("blueprint"), dict) else [])}
+{", ".join(task.metadata.get("blueprint", {}).get("security_considerations", []) if isinstance(task.metadata.get("blueprint"), dict) else [])}
 
 Code:
 ```{task.target_language}

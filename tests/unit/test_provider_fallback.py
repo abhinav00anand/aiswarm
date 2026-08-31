@@ -4,18 +4,23 @@ Unit tests for provider router model ID fallback resolution.
 
 from __future__ import annotations
 
-import pytest
 from aiswarm.llm.provider_router import _resolve_model
 
 
 def test_novita_model_passthrough():
-    assert _resolve_model("meta-llama/llama-3.1-70b-instruct", "novita") == "meta-llama/llama-3.1-70b-instruct"
+    assert (
+        _resolve_model("meta-llama/llama-3.1-70b-instruct", "novita")
+        == "meta-llama/llama-3.1-70b-instruct"
+    )
     assert _resolve_model("mistralai/mistral-nemo", "novita") == "mistralai/mistral-nemo"
 
 
 def test_explicit_mapping_resolution():
     assert _resolve_model("meta-llama/llama-3.1-405b-instruct", "openai") == "gpt-4o"
-    assert _resolve_model("meta-llama/llama-3.1-70b-instruct", "anthropic") == "claude-3-5-haiku-20241022"
+    assert (
+        _resolve_model("meta-llama/llama-3.1-70b-instruct", "anthropic")
+        == "claude-3-5-haiku-20241022"
+    )
     assert _resolve_model("meta-llama/llama-3.1-8b-instruct", "local") == "llama3"
 
 

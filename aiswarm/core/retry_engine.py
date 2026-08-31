@@ -12,14 +12,16 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+
 @dataclass
 class RetryPolicy:
     max_attempts: int = 5
-    base_delay: float = 3.0      # seconds (protects rate limits on free-tier APIs)
-    max_delay: float = 60.0      # seconds
+    base_delay: float = 3.0  # seconds (protects rate limits on free-tier APIs)
+    max_delay: float = 60.0  # seconds
     exponential_base: float = 2.0
     jitter: bool = True
     retriable_exceptions: tuple[type[Exception], ...] = (Exception,)
+
 
 @dataclass
 class RetryRecord:
@@ -27,6 +29,7 @@ class RetryRecord:
     error: str
     timestamp: float = field(default_factory=time.time)
     delay_before_retry: float = 0.0
+
 
 class RetryExhausted(Exception):
     """Raised when a task has exhausted all retry attempts."""
@@ -38,6 +41,7 @@ class RetryExhausted(Exception):
             f"Task {task_id} exhausted {len(history)} retry attempts. "
             f"Last error: {history[-1].error if history else 'unknown'}"
         )
+
 
 class RetryEngine:
     """
@@ -63,7 +67,7 @@ class RetryEngine:
 
     def _delay_for(self, attempt: int) -> float:
         delay = min(
-            self._policy.base_delay * (self._policy.exponential_base ** attempt),
+            self._policy.base_delay * (self._policy.exponential_base**attempt),
             self._policy.max_delay,
         )
         if self._policy.jitter:

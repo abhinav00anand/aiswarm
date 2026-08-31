@@ -7,6 +7,7 @@ import time
 from typing import Any
 
 import structlog
+
 try:
     from anthropic import AsyncAnthropic, APIError, RateLimitError
 except ImportError:
@@ -23,6 +24,7 @@ _COST_TABLE: dict[str, tuple[float, float]] = {
     "claude-3-5-haiku-20241022": (0.001, 0.005),
     "claude-3-opus-20240229": (0.015, 0.075),
 }
+
 
 class AnthropicAdapter(BaseLLMAdapter):
     """Adapter for Anthropic Claude models."""
@@ -67,9 +69,7 @@ class AnthropicAdapter(BaseLLMAdapter):
         system_parts = [m.content for m in messages if m.role == "system"]
         system_prompt = "\n\n".join(system_parts)
         api_messages = [
-            {"role": m.role, "content": m.content}
-            for m in messages
-            if m.role != "system"
+            {"role": m.role, "content": m.content} for m in messages if m.role != "system"
         ]
 
         t0 = time.monotonic()
