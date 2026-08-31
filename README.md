@@ -272,6 +272,19 @@ export SAMBANOVA_API_KEY="your-sambanova-key"
 # Or use OPENAI_API_KEY, ANTHROPIC_API_KEY, GOOGLE_API_KEY, NOVITA_API_KEY, DEEPSEEK_API_KEY
 ```
 
+### ⚡ Zephyr Remote GPU Mesh Provider Integration
+
+Zymis natively integrates with **Zephyr**, allowing your swarms to route LLM workloads directly to remote edge GPUs (vLLM, Ollama, llama.cpp, PyTorch transformers) tunneled via Zephyr's zero-trust WebSocket control plane:
+
+```bash
+# Connect Zymis to your Zephyr Control Plane
+export ZEPHYR_API_URL="http://localhost:10000"       # or https://viento.onrender.com
+export ZEPHYR_API_KEY="zph_tmp_your_session_token"  # or ZEPHYR_BOOTSTRAP_KEY
+
+# Run Zymis using your remote GPU edge node
+zymis run "Write a FastAPI JWT router" --provider zephyr --file auth.py
+```
+
 ### 2. Run Swarm via Command Line (CLI)
 
 ```bash
