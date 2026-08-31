@@ -34,6 +34,7 @@ _DEFAULT_ALLOWLIST = {
     "clang++",
     "cl",
     "main",
+    "test_main",
     "host2_engine",
     "node",
     "npm",
