@@ -1,0 +1,90 @@
+name: Antigravity PR Review
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'Pull Request Number to review'
+        required: true
+        type: string
+      review_instructions:
+        description: 'Custom review instructions or focus criteria'
+        required: false
+        default: ''
+        type: string
+
+concurrency:
+  group: antigravity-review-${{ github.event.pull_request.number || github.event.issue.number || github.event.inputs.pr_number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  antigravity-review:
+    name: Google Antigravity Code Review
+    runs-on: ubuntu-latest
+    # Run on PR events, manual dispatches, or PR comments containing review trigger commands
+    if: >
+      github.event_name == 'pull_request' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request &&
+       (contains(github.event.comment.body, '@agy /review') ||
+        contains(github.event.comment.body, '/review') ||
+        contains(github.event.comment.body, '@antigravity /review')))
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: 'pip'
+          cache-dependency-path: 'requirements.txt'
+
+      - name: Install Review Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install httpx google-generativeai
+
+      - name: Resolve PR Details & Trigger Context
+        id: context
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "pr_number=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+            echo "instructions=" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "issue_comment" ]; then
+            echo "pr_number=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
+            # Extract any instructions after /review
+            COMMENT_BODY="${{ github.event.comment.body }}"
+            echo "instructions=${COMMENT_BODY}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "pr_number=${{ github.event.inputs.pr_number }}" >> "$GITHUB_OUTPUT"
+            echo "instructions=${{ github.event.inputs.review_instructions }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Execute Antigravity PR Review Agent
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANTIGRAVITY_API_KEY: ${{ secrets.ANTIGRAVITY_API_KEY || secrets.GEMINI_API_KEY }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ steps.context.outputs.pr_number }}
+          REVIEW_INSTRUCTIONS: ${{ steps.context.outputs.instructions }}
+        run: |
+          if [ -z "$ANTIGRAVITY_API_KEY" ]; then
+            echo "::error::Missing ANTIGRAVITY_API_KEY or GEMINI_API_KEY in repository secrets!"
+            echo "Please set ANTIGRAVITY_API_KEY at: Settings > Secrets and variables > Actions"
+            exit 1
+          fi
+          python scripts/review_agent.py
