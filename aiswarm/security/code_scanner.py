@@ -28,7 +28,7 @@ _DANGEROUS_PATTERNS = [
     (r"yaml\.load\s*\([^,)]+\)", "HIGH: yaml.load without Loader"),
     (r"hashlib\.(md5|sha1)\s*\(", "HIGH: Weak hash algorithm for security use"),
     (r"verify\s*=\s*False", "HIGH: verify=False disables TLS certificate verification"),
-    (r"SECRET|PASSWORD|TOKEN|API_KEY\s*=\s*['\"][^'\"]+['\"]", "HIGH: Hardcoded secret"),
+    (r"(?:SECRET|PASSWORD|TOKEN|API_KEY)\s*=\s*['\"][^'\"]+['\"]", "HIGH: Hardcoded secret"),
     (r"DEBUG\s*=\s*True", "MEDIUM: Debug mode enabled"),
     (r"__import__\s*\(", "MEDIUM: Dynamic import"),
     (r"getattr\s*\(.*,\s*input\s*\(", "HIGH: Unsafe getattr with user input"),

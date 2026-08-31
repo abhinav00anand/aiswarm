@@ -94,32 +94,36 @@ class CapabilityRegistry:
 
     # Built-in capability handlers running via ExecutionSandbox
     async def _handle_pytest(self, params: dict[str, Any]) -> dict[str, Any]:
+        import sys
         test_path = params.get("path", ".")
         test_cmd = params.get("test_command")
         if test_cmd and isinstance(test_cmd, list):
             return await self.sandbox.execute_sandboxed_command(test_cmd)
         elif test_cmd and isinstance(test_cmd, str):
             return await self.sandbox.execute_sandboxed_command([test_cmd, str(test_path)])
-        return await self.sandbox.execute_sandboxed_command(["pytest", str(test_path)])
+        return await self.sandbox.execute_sandboxed_command([sys.executable, "-m", "pytest", str(test_path)])
 
     async def _handle_ruff(self, params: dict[str, Any]) -> dict[str, Any]:
+        import sys
         target_path = params.get("path", ".")
-        return await self.sandbox.execute_sandboxed_command(["ruff", "check", str(target_path)])
+        return await self.sandbox.execute_sandboxed_command([sys.executable, "-m", "ruff", "check", str(target_path)])
 
     async def _handle_git(self, params: dict[str, Any]) -> dict[str, Any]:
         subcmd = params.get("subcommand", "status")
         return await self.sandbox.execute_sandboxed_command(["git", subcmd])
 
     async def _handle_python_exec(self, params: dict[str, Any]) -> dict[str, Any]:
+        import sys
         script_path = params.get("script", "main.py")
-        return await self.sandbox.execute_sandboxed_command(["python", str(script_path)])
+        return await self.sandbox.execute_sandboxed_command([sys.executable, str(script_path)])
 
     async def _handle_lightweight_execution(self, params: dict[str, Any]) -> dict[str, Any]:
+        import sys
         instruction = params.get("instruction", "echo 'lightweight_ok'")
         code = params.get("code")
         if code:
-            return await self.sandbox.execute_sandboxed_command(["python", "-c", code])
-        return await self.sandbox.execute_sandboxed_command(["python", "-c", f"print({instruction!r})"])
+            return await self.sandbox.execute_sandboxed_command([sys.executable, "-c", code])
+        return await self.sandbox.execute_sandboxed_command([sys.executable, "-c", f"print({instruction!r})"])
 
     async def _handle_cpp_compile(self, params: dict[str, Any]) -> dict[str, Any]:
         from aiswarm.compiler.cpp import CppCompiler

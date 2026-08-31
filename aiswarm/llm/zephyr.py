@@ -7,6 +7,7 @@ directly to remote GPUs (vLLM, Ollama, llama.cpp) connected via Zephyr WebSocket
 
 from __future__ import annotations
 
+import asyncio
 import os
 import time
 from typing import Any
@@ -100,23 +101,38 @@ class ZephyrAdapter(BaseLLMAdapter):
         api_messages = [{"role": m.role, "content": m.content} for m in messages]
 
         t0 = time.monotonic()
-        try:
-            response = await client.chat.completions.create(
-                model=model,
-                messages=api_messages,  # type: ignore[arg-type]
-                temperature=temperature,
-                max_tokens=max_tokens,
-                **kwargs,
-            )
-        except RateLimitError as exc:
-            logger.warning("zephyr.rate_limit", provider=self.provider_name, model=model)
-            raise
-        except APITimeoutError as exc:
-            logger.error("zephyr.timeout", provider=self.provider_name, model=model)
-            raise
-        except APIError as exc:
-            logger.error("zephyr.api_error", provider=self.provider_name, model=model, error=str(exc))
-            raise
+        max_attempts = 4
+        response = None
+        for attempt in range(max_attempts):
+            try:
+                response = await client.chat.completions.create(
+                    model=model,
+                    messages=api_messages,  # type: ignore[arg-type]
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    **kwargs,
+                )
+                break
+            except RateLimitError as exc:
+                if attempt == max_attempts - 1:
+                    logger.warning("zephyr.rate_limit", provider=self.provider_name, model=model)
+                    raise
+                await asyncio.sleep(2.0 * (attempt + 1))
+            except APITimeoutError as exc:
+                if attempt == max_attempts - 1:
+                    logger.error("zephyr.timeout", provider=self.provider_name, model=model)
+                    raise
+                await asyncio.sleep(2.0 * (attempt + 1))
+            except APIError as exc:
+                if "at capacity" in str(exc).lower() and attempt < max_attempts - 1:
+                    logger.warning("zephyr.node_capacity_retry", attempt=attempt + 1, wait_s=2.0 * (attempt + 1))
+                    await asyncio.sleep(2.0 * (attempt + 1))
+                    continue
+                logger.error("zephyr.api_error", provider=self.provider_name, model=model, error=str(exc))
+                raise
+
+        if response is None:
+            raise RuntimeError(f"Zephyr completions returned no response for model {model}")
 
         latency_ms = (time.monotonic() - t0) * 1000
         choice = response.choices[0]

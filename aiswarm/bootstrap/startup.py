@@ -23,10 +23,12 @@ logger = structlog.get_logger(__name__)
 
 def _try_build_redis() -> Any:
     """Attempt to connect to Redis. Returns None if Redis is unavailable."""
+    url = os.getenv("REDIS_URL")
+    if not url:
+        return None
     import importlib
     try:
         redis_mod = importlib.import_module("redis.asyncio")
-        url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
         client = redis_mod.from_url(url, decode_responses=False)
         logger.info("startup.redis_configured", url=url)
         return client
@@ -117,6 +119,9 @@ def build_orchestrator(
 
     def _pref(role: str) -> list[str]:
         pref = agents_cfg.get(role, {}).get("provider_preference", ["novita", "openai", "anthropic"])
+        if os.getenv("ZEPHYR_API_KEY") or os.getenv("ZEPHYR_API_URL") or os.getenv("ZYMIS_PREFERRED_PROVIDER") == "zephyr":
+            if "zephyr" not in pref:
+                pref = ["zephyr"] + pref
         if adapter_url:
             if "adapter" not in pref:
                 pref = ["adapter"] + pref

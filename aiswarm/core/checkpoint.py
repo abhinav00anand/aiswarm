@@ -24,7 +24,7 @@ def save_task(task: Task) -> Path:
     """Atomically serialize a task to disk."""
     path = _checkpoint_path(task.task_id)
     tmp = path.with_suffix(".tmp")
-    tmp.write_text(task.model_dump_json(indent=2))
+    tmp.write_text(task.model_dump_json(indent=2), encoding="utf-8")
     os.replace(tmp, path)
 
     logger.debug("checkpoint.saved", task_id=task.task_id, path=str(path))
@@ -36,7 +36,7 @@ def load_task(task_id: str) -> Task | None:
     if not path.exists():
         return None
     try:
-        data = json.loads(path.read_text())
+        data = json.loads(path.read_text(encoding="utf-8"))
         task = Task.model_validate(data)
         logger.info("checkpoint.restored", task_id=task_id)
         return task

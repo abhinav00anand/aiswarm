@@ -33,7 +33,16 @@ app = typer.Typer(
     help="Zymis — Lightweight multi-agent orchestration framework",
     rich_markup_mode="rich",
 )
-console = Console()
+if sys.platform == "win32":
+    try:
+        if hasattr(sys.stdout, "reconfigure"):
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        if hasattr(sys.stderr, "reconfigure"):
+            sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
+console = Console(legacy_windows=False)
 
 
 def _load_env() -> None:
@@ -42,6 +51,8 @@ def _load_env() -> None:
     if env_file.exists():
         from dotenv import load_dotenv
         load_dotenv(env_file)
+
+_load_env()
 
 
 @app.command()
@@ -55,11 +66,20 @@ def run(
     wait: bool = typer.Option(True, "--wait/--no-wait", help="Wait for completion"),
     api_key: str | None = typer.Option(None, "--api-key", "-k", help="Zymis or Provider API Key"),
     adapter_url: str | None = typer.Option(None, "--adapter-url", help="OpenAI-compatible adapter URL"),
+    provider: str | None = typer.Option(None, "--provider", help="Preferred provider (e.g. zephyr, openai)"),
+    model: str | None = typer.Option(None, "--model", "-m", help="Target model (e.g. llama3:8b)"),
     no_ollama: bool = typer.Option(False, "--no-ollama", help="Disable Ollama auto-provisioning"),
     notebook: bool = typer.Option(False, "--notebook", help="Run in lightweight notebook mode"),
 ) -> None:
     """Submit a task and optionally wait for it to complete."""
     _load_env()
+    if provider:
+        os.environ["ZYMIS_PREFERRED_PROVIDER"] = provider
+        if provider == "zephyr" and model:
+            os.environ["ZEPHYR_SELECTED_MODEL"] = model
+    elif model:
+        if os.getenv("ZEPHYR_API_KEY") or os.getenv("ZEPHYR_API_URL"):
+            os.environ["ZEPHYR_SELECTED_MODEL"] = model
     if adapter_url:
         os.environ["OPENAI_API_ADAPTER_URL"] = adapter_url
     if no_ollama:

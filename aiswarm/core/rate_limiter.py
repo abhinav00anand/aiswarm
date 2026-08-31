@@ -19,6 +19,7 @@ _DEFAULTS: dict[str, dict[str, int]] = {
     "gemini":    {"rpm": 60,  "concurrency": 5},
     "deepseek":  {"rpm": 30,  "concurrency": 3},
     "bedrock":   {"rpm": 30,  "concurrency": 3},
+    "zephyr":    {"rpm": 60,  "concurrency": 1},
     "local":     {"rpm": 999, "concurrency": 2},
 }
 

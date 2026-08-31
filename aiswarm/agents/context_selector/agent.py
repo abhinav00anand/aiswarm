@@ -28,6 +28,7 @@ Rules:
 4. Generated files → never include (they are derived, not authoritative)
 5. Configuration files → include only if the task touches config
 6. Maximum 15 files, maximum 8000 total tokens
+7. Standalone / new utility tasks → output empty array []. NEVER select internal framework files (like aiswarm/...) for new standalone files.
 
 Output a JSON array:
 [

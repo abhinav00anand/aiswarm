@@ -61,7 +61,7 @@ _KNOWN_PROVIDER_MODELS: dict[str, set[str]] = {
     "anthropic": {"claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022", "claude-3-opus-20240229", "claude-3-sonnet-20240229", "claude-3-haiku-20240307"},
     "gemini": {"gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"},
     "deepseek": {"deepseek-chat", "deepseek-reasoner"},
-    "zephyr": {"zephyr/llama-3.1-70b", "zephyr/qwen2.5-coder-32b", "zephyr/codestral", "llama3.1:8b", "llama3"},
+    "zephyr": {"zephyr/llama-3.1-70b", "zephyr/qwen2.5-coder-32b", "zephyr/codestral", "llama3.1:8b", "llama3", "llama3:8b"},
     "local": {
         "llama3.1:8b", "llama3.2:3b", "llama3.2:1b", "llama3.1:70b", "llama3.1:latest",
         "llama3.2:latest", "llama3:latest", "llama3", "llama3:70b", "codestral:latest",
@@ -269,6 +269,8 @@ class ProviderRouter:
         )
         if provider_preference:
             order = list(provider_preference)
+            if (os.getenv("ZEPHYR_API_KEY") or os.getenv("ZEPHYR_API_URL")) and "zephyr" not in order:
+                order = ["zephyr"] + order
         else:
             order = ["novita", "zephyr", "openai", "anthropic", "deepseek", "local"]
             if os.getenv("ZEPHYR_API_KEY") or os.getenv("ZEPHYR_API_URL"):
