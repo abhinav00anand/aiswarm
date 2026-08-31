@@ -62,7 +62,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 app = FastAPI(
     title="Zymis API",
     description="Lightweight multi-agent orchestration framework",
-    version="0.1.2",
+    version="0.1.3",
     lifespan=lifespan,
 )
 
