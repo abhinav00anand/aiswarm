@@ -31,7 +31,7 @@ Traditional LLM coding tools rely on single-prompt generations or simple linear 
 1. **Zero-Trust Code Generation**: Every line of code written by the Coder Agent must pass static security scanning, 8 panel reviews, compilation, and unit tests before touching disk or git repositories.
 2. **Deterministic Self-Healing**: When code fails a compiler check, unit test, or security gate, Zymis extracts exact error tracebacks and AST violations, feeding them back to the Coder Agent in a structured retry loop.
 3. **Multi-Provider LLM Resilience**: Seamlessly fail over between SambaNova, Novita, OpenAI, Anthropic, Gemini, DeepSeek, Bedrock, and local Ollama models without breaking active agent tasks.
-4. **Hardened Governance & Cost Control**: Real-time USD budget tracking, automated secret redaction, command allowlisting, and thread-safe audit logging.
+4. **Hardened Governance & Cost Control**: Real-time USD budget tracking, automated secret redaction, command allowlisting, and thread-safe audit logging. 
 
 ---
 
