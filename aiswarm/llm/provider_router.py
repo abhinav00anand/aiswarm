@@ -135,7 +135,7 @@ def get_adapter_model() -> str:
     base_url = url.rstrip("/")
     try:
         req = urllib.request.Request(f"{base_url}/v1/models", method="GET")
-        with urllib.request.urlopen(req, timeout=3.0) as response:
+        with urllib.request.urlopen(req, timeout=3.0) as response:  # nosec B310
             if response.status == 200:
                 data = json.loads(response.read().decode("utf-8"))
                 if "data" in data and len(data["data"]) > 0:

@@ -27,7 +27,7 @@ class ChangeDetector:
                 continue
             rel = str(path)
             try:
-                digest = hashlib.md5(path.read_bytes()).hexdigest()
+                digest = hashlib.md5(path.read_bytes(), usedforsecurity=False).hexdigest()
                 if self._hashes.get(rel) != digest:
                     changed.append(rel)
                     self._hashes[rel] = digest

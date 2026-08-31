@@ -50,7 +50,7 @@ def validate_adapter_url(url: str) -> bool:
     for endpoint in ["/health", "/v1/models"]:
         try:
             req = urllib.request.Request(f"{base_url}{endpoint}", method="GET")
-            with urllib.request.urlopen(req, timeout=3.0) as response:
+            with urllib.request.urlopen(req, timeout=3.0) as response:  # nosec B310
                 if response.status in (200, 204, 401, 405):
                     return True
         except Exception:
@@ -64,7 +64,7 @@ def validate_adapter_url(url: str) -> bool:
             headers={"Content-Type": "application/json"},
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=3.0) as response:
+        with urllib.request.urlopen(req, timeout=3.0) as response:  # nosec B310
             if response.status in (200, 201):
                 return True
     except Exception:

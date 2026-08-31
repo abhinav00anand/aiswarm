@@ -69,7 +69,7 @@ class RepositoryIndexer:
                 continue
             try:
                 content = path.read_text(encoding="utf-8", errors="replace")
-                file_hash = hashlib.md5(content.encode()).hexdigest()
+                file_hash = hashlib.md5(content.encode(), usedforsecurity=False).hexdigest()
                 rel = str(path.relative_to(self._root))
 
                 if self._indexed.get(rel) == file_hash:

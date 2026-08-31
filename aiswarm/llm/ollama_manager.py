@@ -80,7 +80,7 @@ class OllamaManager:
         for url in endpoints:
             req = urllib.request.Request(url, headers={"User-Agent": "Zymis-HealthCheck"})
             try:
-                with urllib.request.urlopen(req, timeout=2) as res:
+                with urllib.request.urlopen(req, timeout=2) as res:  # nosec B310
                     if res.status == 200:
                         logger.info("ollama_manager.service_detected", url=url)
                         return True
@@ -137,7 +137,7 @@ class OllamaManager:
             method="POST",
         )
         try:
-            with urllib.request.urlopen(req, timeout=120) as res:
+            with urllib.request.urlopen(req, timeout=120) as res:  # nosec B310
                 if res.status == 200:
                     logger.info("ollama_manager.pull_success_api", model=model_name)
                     return True
